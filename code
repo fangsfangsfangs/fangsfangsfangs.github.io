@@ -1,465 +1,440 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+	<head>
+		<title>Exercise Friend</title>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<style>
+			@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap");
 
-	<style>
-	
-	@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap');
+			body {
+				font-family: "Noto Serif";
+				color: #303028;
+				background-color: #dcddd3;
+				font-size: 16px;
+				margin: 0px;
+				padding: 0px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
 
-	body {
-		font-family: "Noto Serif";
-		color: #303028;
-		background-color: #e3e3e3;
-		font-size: 16px;
-		margin: 0px;
-		padding: 0px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
+			.container {
+				width: 50%;
+				margin-top: 40px;
+			}
 
-	.container {
-		width: 50%;
-		margin-top: 40px;
-	}
+			.accordion {
+			}
 
-	.accordion {
-	}
+			.accordion-header {
+				padding: 8px;
+			}
 
-	.accordion-header {
-		padding: 8px;
-	}
+			.accordion-content {
+				display: none;
+				padding: 10px;
+			}
 
-	.accordion-content {
-		display: none;
-		padding: 10px;
-	}
+			audio {
+				color: #86aeaf;
+				width: 100%;
+			}
+			audio::-webkit-media-controls-panel {
+				background-color: #ffffff;
+			}
+			audio::-webkit-media-controls-enclosure {
+				border-radius: 0;
+			}
 
-	audio {
-		color: #86aeaf;
-		width: 100%;
-	}
-	audio::-webkit-media-controls-panel {
-		background-color: #b0b4b4;
-	}
-	audio::-webkit-media-controls-enclosure {
-		border-radius: 0;
-	}
+			input[type="checkbox"] {
+				width: 20px;
+				height: 20px;
+				margin: 0px 6px;
+				vertical-align: middle;
+			}
 
-	input[type="checkbox"] {
-		width: 20px;
-		height: 20px;
-		margin: 0px 6px;
-		vertical-align: middle;
-	}
+			label {
+				margin-left: 12px;
+			}
 
-	label {
-		margin-left: 12px;
-	}
+			button {
+				font-family: "Noto Serif";
+				font-size: 18px;
+				padding: 10px 30px;
+				background-color: #ff7333;
+				color: #404030;
+				border: none;
+				text-align: center;
+				cursor: pointer;
+				white-space: nowrap;
+			}
 
-	button {
-		font-family: "Noto Serif";
-		font-size: 18px;
-		padding: 10px 30px;
-		background-color: #d3c8c3;
-		color: #404030;
-		border: none;
-		text-align: center;
-		cursor: pointer;
-		white-space: nowrap;
-	}
+			.triangle {
+				margin: 0px 10px;
+				display: inline-block;
+				cursor: pointer;
+			}
 
-	.triangle {
-		margin: 0px 10px;
-		display: inline-block;
-		cursor: pointer;
-	}
-	
-	.infotag {
-		margin: 0px 8px;
-	}
+			.infotag {
+				margin: 0px 8px;
+			}
 
-	.time {
-		color: #b0b4b4;
-	}
+			.time {
+				color: #9ea0bf;
+			}
 
-	.reps {
-		color: #d4be96;
-	}
+			.reps {
+				color: #9ea0bf;
+			}
 
-	.sides {
-		color: #dcb38b;
-	}
-	
-	.grouptime {
-		color: #6e7384;
-	}
+			.sides {
+				color: #dcb38b;
+			}
 
-	#speakButton span {
-		display: inline-block;
-		animation: wave .75s infinite steps(1);
-		//transform-origin: 50% 50%;
-	}
+			.grouptime {
+				color: #ffffff;
+			}
 
-	@keyframes wave {
-		50% {
-			transform: translatey(-4px);
-		}
-	}
-	
-	@media only screen and (max-width: 800px) {
-		.container {
-			width: 90%;
-		}
-	}
-	
-	</style>
-	
-</head>
+			#speakButton span {
+				display: inline-block;
+				animation: wave 0.75s infinite steps(1);
+				//transform-origin: 50% 50%;
+			}
 
-<body>
+			@keyframes wave {
+				50% {
+					transform: translatey(-4px);
+				}
+			}
 
-	<div class="container">
-		
-		<div style="display:flex;margin-bottom:20px;">
+			@media only screen and (max-width: 800px) {
+				.container {
+					width: 90%;
+				}
+			}
+		</style>
+	</head>
 
-			<button id="speakButton" onclick="speak()">⟶speak</button>
+	<body>
+		<div class="container">
+			<div style="display: flex; margin-bottom: 20px">
+				<button id="speakButton" onclick="speak()">start! ⟶</button>
 
-			<audio id="audio" controls>
-			  your browser doesn't support the audio element.
-			</audio>
-		
+				<audio id="audio" controls>your browser doesn't support the audio element.</audio>
+			</div>
+
+			<div id="stretchList"></div>
 		</div>
 
-		<div id="stretchList">
+		<script>
+			//array of colors for the headers to cycle thru
+			const lightcolors = ["#FFF1CA", "#FFB823", "#708A58", "#2D4F2B"];
+			let currentIndex = 0;
+			var ssml = "";
 
-		</div>
+			// fetch the data from the spreadsheet as json using opensheet
+			fetch("https://opensheet.elk.sh/1rLG4dApWPjAiGRwVKSGjoHqnBFvVyRrR34sYN82hycQ/exercises")
+				.then((response) => {
+					if (!response.ok) {
+						throw new Error("network response error");
+					}
+					return response.json();
+				})
+				.then((data) => {
+					const items = data;
+					createElements(items);
+				})
+				.catch((error) => {
+					console.error("data fetching error", error);
+				});
 
-	</div>
+			//make the exercise groups and the exercises within them
+			function createElements(data) {
+				const stretchList = document.getElementById("stretchList");
+				const groupCheckboxes = {};
 
-<script>
-	
-	//array of colors for the headers to cycle thru
-	const lightcolors = ['#d3c8c3','#d3b690','#b9af2a','#b0b4b4','#d4be96','#dcb38b'];
-	let currentIndex = 0;
-	var ssml = '';
-	
-	// fetch the data from the spreadsheet as json using opensheet
-	fetch('https://opensheet.elk.sh/1osuWeLX42mewfnpqIbYoUMNgtGscNcouADfZRGOLQxc/exercises')
-	    .then(response => {
-	        if (!response.ok) {
-	            throw new Error('network response error');
-	        }
-	        return response.json();
-	    })
-	    .then(data => {
-	        
-	        const items = data;
-			createElements(items);
-			
-	    })
-	    .catch(error => {
-	        console.error('data fetching error', error);
-	    });
+				data.forEach((item) => {
+					const groupName = item.group;
 
-	//make the exercise groups and the exercises within them
-	function createElements(data) {
-	
-		const stretchList = document.getElementById('stretchList');
-		const groupCheckboxes = {};
+					//if the exercise group header doesn't exist yet, make it
+					if (groupCheckboxes[groupName] === undefined) {
+						const accordion = document.createElement("div");
+						accordion.className = "accordion";
 
-		data.forEach(item => {
-			
-			const groupName = item.group;
+						const header = document.createElement("div");
+						header.className = "accordion-header";
 
-			//if the exercise group header doesn't exist yet, make it
-			if (groupCheckboxes[groupName] === undefined) {
-				
-				const accordion = document.createElement('div');
-		        accordion.className = 'accordion';
-			
-				const header = document.createElement('div');
-				header.className = 'accordion-header';
-			
-				const triangle = document.createElement('div');
-				triangle.className = 'triangle';
-				triangle.textContent = "▶";
-				
-				//when the triangle in the exercise group header is clicked, show or hide the content
-				triangle.onclick = function() {
-					toggleAccordion(header);
+						const triangle = document.createElement("div");
+						triangle.className = "triangle";
+						triangle.textContent = "▶";
+
+						//when the triangle in the exercise group header is clicked, show or hide the content
+						triangle.onclick = function () {
+							toggleAccordion(header);
+						};
+
+						groupCheckboxes[groupName] = document.createElement("input");
+						groupCheckboxes[groupName].type = "checkbox";
+						groupCheckboxes[groupName].checked = false;
+
+						const groupLabel = document.createElement("label");
+						groupLabel.textContent = groupName.replace(/_/g, " ");
+
+						//if the group header checkbox is checked or unchecked, make the children follow suit
+						groupCheckboxes[groupName].addEventListener("change", function () {
+							const nestedCheckboxes = stretchList.querySelectorAll(
+								`input[type='checkbox'][data-group='${CSS.escape(groupName)}']`
+							);
+							nestedCheckboxes.forEach((checkbox) => {
+								checkbox.checked = this.checked;
+							});
+						});
+
+						const content = document.createElement("div");
+						content.className = "accordion-content";
+
+						header.appendChild(triangle);
+						header.appendChild(groupCheckboxes[groupName]);
+						header.appendChild(groupLabel);
+						accordion.appendChild(header);
+						accordion.appendChild(content);
+
+						groupCheckboxes[groupName] = {
+							accordion: accordion,
+							content: content
+						};
+
+						stretchList.appendChild(accordion);
+
+						//styling
+						header.style.backgroundColor = lightcolors[currentIndex];
+						currentIndex++;
+						if (currentIndex >= lightcolors.length) {
+							currentIndex = 0;
+						}
+					}
+
+					//make a checkbox for sub-exercises
+					const stretchCheckbox = document.createElement("input");
+					stretchCheckbox.type = "checkbox";
+					stretchCheckbox.checked = false;
+					stretchCheckbox.dataset.group = groupName;
+					stretchCheckbox.dataset.time = item.time;
+					stretchCheckbox.dataset.bothsides = item.bothsides;
+					stretchCheckbox.dataset.recover = item.recover;
+					stretchCheckbox.dataset.reps = item.reps;
+
+					const stretchLabel = document.createElement("label");
+					stretchLabel.textContent = item.stretch;
+
+					groupCheckboxes[groupName].content.appendChild(stretchCheckbox);
+					groupCheckboxes[groupName].content.appendChild(stretchLabel);
+
+					//add rep and time info
+					if (item.reps > 1) {
+						const repspan = document.createElement("span");
+						repspan.classList.add("reps", "infotag");
+						repspan.textContent = item.reps + " reps";
+						groupCheckboxes[groupName].content.appendChild(repspan);
+					} else {
+						const timeSpan = document.createElement("span");
+						timeSpan.classList.add("time", "infotag");
+						timeSpan.textContent = item.time + " seconds";
+						groupCheckboxes[groupName].content.appendChild(timeSpan);
+						if (item.bothsides === "y") {
+							const sidesspan = document.createElement("span");
+							sidesspan.classList.add("sides", "infotag");
+							sidesspan.textContent = "per side";
+							groupCheckboxes[groupName].content.appendChild(sidesspan);
+						}
+					}
+
+					groupCheckboxes[groupName].content.appendChild(document.createElement("br"));
+				});
+
+				//total time estimation for exercise group headers
+				for (let groupName in groupCheckboxes) {
+					const checkboxes = groupCheckboxes[groupName].content.querySelectorAll("input[type='checkbox']");
+					const filteredTextList = Array.from(checkboxes);
+					generatessml(filteredTextList);
+					let totalSeconds = estimateReadingTime(ssml);
+					let minutes = Math.round(totalSeconds / 60);
+					let seconds = Math.round(totalSeconds % 60);
+					if (seconds < 10) {
+						seconds = "0" + seconds;
+					}
+
+					const headerDiv = groupCheckboxes[groupName].accordion.querySelector(".accordion-header");
+					const spanElement = document.createElement("span");
+					spanElement.textContent = `${minutes}:${seconds}`;
+					spanElement.classList.add("grouptime", "infotag");
+					headerDiv.appendChild(spanElement);
+				}
+			}
+
+			//open and close the exercise group accordions
+			function toggleAccordion(header) {
+				const content = header.nextElementSibling;
+				if (content.style.display === "block") {
+					content.style.display = "none";
+					header.querySelector(".triangle").textContent = "▶";
+				} else {
+					content.style.display = "block";
+					header.querySelector(".triangle").textContent = "▼";
+				}
+			}
+
+			function speak() {
+				//do the loading animation
+				loadingText = "get ready";
+				var spannedText = loadingText
+					.split("")
+					.map((letter) => `<span>${letter}</span>`)
+					.join("");
+				document.getElementById("speakButton").innerHTML = spannedText;
+				const letters = document.querySelectorAll("#speakButton span");
+				letters.forEach((letter, index) => {
+					letter.style.animationDelay = `${index * 0.1}s`;
+				});
+
+				//make array from checked non-group-header checkboxes
+				var textList = document.querySelectorAll("#stretchList input[type='checkbox']");
+				var filteredTextList = Array.from(textList).filter((checkbox) => {
+					return checkbox.checked && checkbox.dataset.group !== undefined;
+				});
+
+				//make ssml from it
+				generatessml(filteredTextList);
+
+				//add in the time estimate
+				let totalSeconds = estimateReadingTime(ssml);
+				let minutes = Math.round(totalSeconds / 60);
+				let seconds = Math.round(totalSeconds % 60);
+				let newString = ` it should take about ${minutes} minutes and ${seconds} seconds.`;
+				let openingTag = "prepare yourself.";
+				let insertionPoint = ssml.indexOf(openingTag) + openingTag.length;
+				ssml = ssml.slice(0, insertionPoint) + newString + ssml.slice(insertionPoint);
+
+				console.log(ssml);
+
+				//send it off to the tts mines
+				var xhr = new XMLHttpRequest();
+				var url =
+					"https://texttospeech.googleapis.com/v1/text:synthesize?key=AIzaSyDpqDvoizSQhcpwDpO604yvLIvbMpo-bMU";
+
+				xhr.open("POST", url, true);
+				xhr.setRequestHeader("Content-Type", "application/json");
+
+				xhr.onreadystatechange = function () {
+					if (xhr.readyState === 4 && xhr.status === 200) {
+						var response = JSON.parse(xhr.responseText);
+						var audioUrl = "data:audio/mp3;base64," + response.audioContent;
+						document.getElementById("audio").src = audioUrl;
+						document.getElementById("audio").play();
+						document.getElementById("speakButton").innerHTML = "start! ⟶";
+					}
 				};
-			
-				groupCheckboxes[groupName] = document.createElement('input');
-				groupCheckboxes[groupName].type = 'checkbox';
-				groupCheckboxes[groupName].checked = false;
 
-				const groupLabel = document.createElement('label');
-				groupLabel.textContent = groupName.replace(/_/g, ' ');
-				
-				//if the group header checkbox is checked or unchecked, make the children follow suit
-			    groupCheckboxes[groupName].addEventListener('change', function() {
-			      const nestedCheckboxes = stretchList.querySelectorAll(`input[type='checkbox'][data-group='${CSS.escape(groupName)}']`);
-			      nestedCheckboxes.forEach(checkbox => {
-			        checkbox.checked = this.checked;
-			      });
-			    });
-			
-				const content = document.createElement('div');
-				content.className = 'accordion-content';
-  
-				header.appendChild(triangle);
-				header.appendChild(groupCheckboxes[groupName]);
-				header.appendChild(groupLabel);
-				accordion.appendChild(header);
-				accordion.appendChild(content);
-			
-				groupCheckboxes[groupName] = {
-					accordion: accordion,
-					content: content
-				};
-			
-				stretchList.appendChild(accordion);
+				var data = JSON.stringify({
+					input: { ssml: ssml },
+					voice: { languageCode: "en-IN", name: "en-IN-Standard-E", ssmlGender: "FEMALE" },
+					audioConfig: { audioEncoding: "MP3" }
+				});
 
-				//styling
-			    header.style.backgroundColor = lightcolors[currentIndex];
-			    currentIndex++;
-			    if (currentIndex >= lightcolors.length) {
-			        currentIndex = 0;
-			    }
-			
+				xhr.send(data);
 			}
 
-			//make a checkbox for sub-exercises
-			const stretchCheckbox = document.createElement('input');
-			stretchCheckbox.type = 'checkbox';
-			stretchCheckbox.checked = false;
-			stretchCheckbox.dataset.group = groupName;
-			stretchCheckbox.dataset.time = item.time;
-			stretchCheckbox.dataset.bothsides = item.bothsides;
-			stretchCheckbox.dataset.recover = item.recover;
-			stretchCheckbox.dataset.reps = item.reps;
+			//make ssml for the robot to speak
+			function generatessml(filteredTextList) {
+				ssml = "<speak>";
+				ssml += 'hello elliott, its time to exercise! I hope you enjoy it. <break time="1"/>';
 
-			const stretchLabel = document.createElement('label');
-			stretchLabel.textContent = item.stretch;
-		
-			groupCheckboxes[groupName].content.appendChild(stretchCheckbox);
-			groupCheckboxes[groupName].content.appendChild(stretchLabel);
-			
-			//add rep and time info
-			if(item.reps > 1){
-				const repspan = document.createElement('span');
-				repspan.classList.add('reps', 'infotag');
-				repspan.textContent = item.reps + ' reps';
-				groupCheckboxes[groupName].content.appendChild(repspan);
-			}
-			else{
-				const timeSpan = document.createElement('span');
-				timeSpan.classList.add('time', 'infotag');
-				timeSpan.textContent = item.time + ' seconds';
-				groupCheckboxes[groupName].content.appendChild(timeSpan);
-				if(item.bothsides === "y"){
-					const sidesspan = document.createElement('span');
-					sidesspan.classList.add('sides', 'infotag');
-					sidesspan.textContent = 'per side';
-					groupCheckboxes[groupName].content.appendChild(sidesspan);
-				}
-			}
-		
-			groupCheckboxes[groupName].content.appendChild(document.createElement('br'));
-		
-		});
-		
-		//total time estimation for exercise group headers
-		for (let groupName in groupCheckboxes) {
-            const checkboxes = groupCheckboxes[groupName].content.querySelectorAll("input[type='checkbox']");
-            const filteredTextList = Array.from(checkboxes)
-            generatessml(filteredTextList);
-			let totalSeconds = estimateReadingTime(ssml);
-			let minutes = Math.round(totalSeconds / 60);
-			let seconds = Math.round(totalSeconds % 60);
-			if (seconds < 10) {
-			        seconds = '0' + seconds;
-			    }
-			
-			const headerDiv = groupCheckboxes[groupName].accordion.querySelector(".accordion-header");
-            const spanElement = document.createElement('span');
-            spanElement.textContent = `${minutes}:${seconds}`;
-			spanElement.classList.add('grouptime', 'infotag');
-            headerDiv.appendChild(spanElement);
-		}
-	}
-	
-	//open and close the exercise group accordions
-	function toggleAccordion(header) {
-	  const content = header.nextElementSibling;
-	  if (content.style.display === "block") {
-	    content.style.display = "none";
-		header.querySelector('.triangle').textContent = '▶';
-	  } else {
-	    content.style.display = "block";
-		header.querySelector('.triangle').textContent = '▼';
-	  }
-	}
-	
-	function speak() {
-		
-		//do the loading animation
-		loadingText = "loading"
-		var spannedText = loadingText.split('').map(letter => `<span>${letter}</span>`).join('');
-		document.getElementById("speakButton").innerHTML = spannedText;
-		const letters = document.querySelectorAll("#speakButton span");
-		letters.forEach((letter, index) =>{
-			letter.style.animationDelay = `${index * 0.1}s`;
-		})
-		
-		//make array from checked non-group-header checkboxes
-		var textList = document.querySelectorAll("#stretchList input[type='checkbox']");
-		var filteredTextList = Array.from(textList).filter(checkbox => {
-		    return checkbox.checked && checkbox.dataset.group !== undefined;
-		});
-		
-		//make ssml from it
-		generatessml(filteredTextList);
-		
-		//add in the time estimate
-		let totalSeconds = estimateReadingTime(ssml);
-		let minutes = Math.round(totalSeconds / 60);
-		let seconds = Math.round(totalSeconds % 60);
-		let newString = ` it should take about ${minutes} minutes and ${seconds} seconds.`;
-		let openingTag = "hope you enjoy it.";
-		let insertionPoint = ssml.indexOf(openingTag) + openingTag.length;
-		ssml = ssml.slice(0, insertionPoint) + newString + ssml.slice(insertionPoint);
-		
-		console.log(ssml);
+				filteredTextList.forEach((item, index) => {
+					const checkbox = item;
+					const text = item.nextSibling.textContent.trim();
+					const exercisetime = checkbox.dataset.time;
+					const bothsides = checkbox.dataset.bothsides;
+					const reps = checkbox.dataset.reps;
+					const recover = checkbox.dataset.recover;
 
-		//send it off to the tts mines
-		var xhr = new XMLHttpRequest();
-		var url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=AIzaSyCcCQFbNls8ogpWJTshCm2ZTQLnx1x3tzE";
+					if (filteredTextList[index + 1] !== undefined) {
+						var nextexercise = filteredTextList[index + 1].nextSibling.textContent.trim();
+					}
 
-	    xhr.open("POST", url, true);
-	    xhr.setRequestHeader("Content-Type", "application/json");
+					const getreadystring = `get ready for ${nextexercise}. <break time="3s"/>`;
+					const reststring = `rest for ${recover} seconds. <break time="${recover}s"/> `;
 
-	    xhr.onreadystatechange = function () {
-	      if (xhr.readyState === 4 && xhr.status === 200) {
-	        var response = JSON.parse(xhr.responseText);
-	        var audioUrl = "data:audio/mp3;base64," + response.audioContent;
-	        document.getElementById("audio").src = audioUrl;
-	        document.getElementById("audio").play();
-			document.getElementById("speakButton").innerHTML = "⟶speak";
-	      }
-	    };
-		
+					function recovery() {
+						ssml += reststring;
+						//if this isn't the last exercise,
+						if (filteredTextList[index + 1] !== undefined) {
+							ssml += getreadystring;
+						}
+					}
 
-	    var data = JSON.stringify({
-	      input: { ssml: ssml },
-	      voice: { languageCode: "en-US", "name": "en-US-Studio-O", ssmlGender: "FEMALE" },
-	      audioConfig: { audioEncoding: "MP3" }
-	    });
+					if (reps > 1) {
+						if (bothsides === "y") {
+							ssml += `${text}, first side. <break time="1s"/> `;
+							for (i = 0; i < reps; i++) {
+								ssml += ` ${i + 1} <break time="${exercisetime}s"/> `;
+							}
+							ssml += `${text}, other side. <break time="1s"/> `;
+							for (i = 0; i < reps; i++) {
+								ssml += ` ${i + 1} <break time="${exercisetime}s"/> `;
+							}
+							if (recover > 0) {
+								recovery();
+							}
+						} else {
+							ssml += `${text} <break time="1s"/> `;
+							for (i = 0; i < reps; i++) {
+								ssml += ` ${i + 1} <break time="${exercisetime}s"/> `;
+							}
+							if (recover > 0) {
+								recovery();
+							}
+						}
+					} else {
+						if (bothsides === "y") {
+							ssml += text + `, first side, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
+							ssml += text + `, other side, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
+							if (recover > 0) {
+								recovery();
+							}
+						} else {
+							ssml += text + `, ${exercisetime} seconds. <break time="${exercisetime}s"/>`;
+							if (recover > 0) {
+								recovery();
+							}
+						}
+					}
+				});
 
-	    xhr.send(data);
-	}
-	
-	//make ssml for the robot to speak
-	function generatessml(filteredTextList){
-		
-		ssml = '<speak>';
-		ssml += 'hey. here goes your exercise routine. hope you enjoy it. <break time="1"/>';
-
-		filteredTextList.forEach((item, index) => {
-			
-			const checkbox = item;
-			const text = item.nextSibling.textContent.trim();
-			const exercisetime = checkbox.dataset.time;
-			const bothsides = checkbox.dataset.bothsides;
-			const reps = checkbox.dataset.reps;
-			const recover = checkbox.dataset.recover;
-			
-			if(filteredTextList[index+1] !== undefined){
-				var nextexercise = filteredTextList[index+1].nextSibling.textContent.trim();
-			}
-			
-			const getreadystring = `get ready for ${nextexercise}. <break time="3s"/>`
-			const reststring = `rest for ${recover} seconds. <break time="${recover}s"/> `
-			
-			function recovery(){
-				ssml += reststring
-				//if this isn't the last exercise,
-				if(filteredTextList[index+1] !== undefined){
-					ssml += getreadystring;
-				}
+				ssml += "you did it. go and live your life and have fun. see you next time.";
+				ssml += "</speak>";
 			}
 
-			if (reps>1){
-				if (bothsides === 'y'){
-					ssml += `${text}, first side. <break time="1s"/> `
-					for (i=0;i<reps;i++){
-						ssml += ` ${i+1} <break time="${exercisetime}s"/> `
+			//estimate time it takes to read any given ssml
+			function estimateReadingTime(ssml) {
+				const wordsPerSecond = 2.5;
+
+				const textContent = ssml.replace(/<[^>]*>/g, "");
+				const wordCount = textContent.split(/\s+/).filter((word) => word.length > 0).length;
+
+				let estimatedTime = wordCount / wordsPerSecond;
+
+				const breakTimes = ssml.match(/<break[^>]*time="([\d.]+)s"[^>]*>/g) || [];
+				breakTimes.forEach((breakTag) => {
+					const match = breakTag.match(/time="([\d.]+)s"/);
+					if (match && match[1]) {
+						estimatedTime += parseFloat(match[1]);
 					}
-					ssml += `${text}, other side. <break time="1s"/> `
-					for (i=0;i<reps;i++){
-						ssml += ` ${i+1} <break time="${exercisetime}s"/> `
-					}
-					if (recover > 0){
-						recovery();
-					}
-				}
-				else{
-					ssml += `${text} <break time="1s"/> `;
-					for (i=0;i<reps;i++){
-						ssml += ` ${i+1} <break time="${exercisetime}s"/> `
-					}
-					if (recover > 0){
-						recovery();
-					}
-				}
+				});
+
+				return estimatedTime;
 			}
-			else {
-			    if (bothsides === 'y') {
-					ssml += text + `, first side, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
-			        ssml += text + `, other side, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
-					if (recover > 0){
-						recovery();
-					}
-			    } else {
-			        ssml += text + `, ${exercisetime} seconds. <break time="${exercisetime}s"/>`;
-					if (recover > 0){
-						recovery();
-					}
-			    }
-			}
-			
-		});
-
-		ssml += "hey. your workout is all done. go and live your life and have fun. see you next time.";
-		ssml += '</speak>';
-	}
-	
-	//estimate time it takes to read any given ssml
-	function estimateReadingTime(ssml) {
-		
-	    const wordsPerSecond = 2.5;
-
-	    const textContent = ssml.replace(/<[^>]*>/g, '');
-	    const wordCount = textContent.split(/\s+/).filter(word => word.length > 0).length;
-
-	    let estimatedTime = wordCount / wordsPerSecond;
-		
-	    const breakTimes = ssml.match(/<break[^>]*time="([\d.]+)s"[^>]*>/g) || [];
-	    breakTimes.forEach(breakTag => {
-	        const match = breakTag.match(/time="([\d.]+)s"/);
-	        if (match && match[1]) {
-	            estimatedTime += parseFloat(match[1]);
-	        }
-	    });
-
-	    return estimatedTime;
-	}
-
-</script>
-
-</body>
+		</script>
+	</body>
 </html>
