@@ -12,7 +12,7 @@
 				font-family: "Noto Serif";
 				color: #303028;
 				background-color: #dcddd3;
-				font-size: 16px;
+				font-size: 14px;
 				margin: 0px;
 				padding: 0px;
 				display: flex;
@@ -61,7 +61,7 @@
 
 			button {
 				font-family: "Noto Serif";
-				font-size: 18px;
+				font-size: 16px;
 				padding: 10px 30px;
 				background-color: #ff7333;
 				color: #404030;
@@ -313,7 +313,7 @@
 				let minutes = Math.round(totalSeconds / 60);
 				let seconds = Math.round(totalSeconds % 60);
 				let newString = ` it should take about ${minutes} minutes and ${seconds} seconds.`;
-				let openingTag = "prepare yourself.";
+				let openingTag = "hope you enjoy it.";
 				let insertionPoint = ssml.indexOf(openingTag) + openingTag.length;
 				ssml = ssml.slice(0, insertionPoint) + newString + ssml.slice(insertionPoint);
 
