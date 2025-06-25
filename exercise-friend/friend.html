@@ -239,7 +239,7 @@
 						repspan.classList.add("reps", "infotag");
 						repspan.textContent = item.reps + " reps";
 						groupCheckboxes[groupName].content.appendChild(repspan);
-					} else if (item.reps < 1) {
+					       if (item.hold === "y") {
 						// Static hold - treat as time-based + TTS cue
 						const holdSpan = document.createElement("span");
 						holdSpan.classList.add("time", "infotag");
