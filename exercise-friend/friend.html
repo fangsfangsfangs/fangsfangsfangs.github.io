@@ -12,7 +12,7 @@
 				font-family: "Noto Serif";
 				color: #303028;
 				background-color: #dcddd3;
-				font-size: 16px;
+				font-size: 14px;
 				margin: 0px;
 				padding: 0px;
 				display: flex;
@@ -61,7 +61,7 @@
 
 			button {
 				font-family: "Noto Serif";
-				font-size: 18px;
+				font-size: 16px;
 				padding: 10px 30px;
 				background-color: #ff7333;
 				color: #404030;
@@ -234,15 +234,32 @@
 
 					//add rep and time info
 					if (item.reps > 1) {
+						// Standard reps
 						const repspan = document.createElement("span");
 						repspan.classList.add("reps", "infotag");
 						repspan.textContent = item.reps + " reps";
 						groupCheckboxes[groupName].content.appendChild(repspan);
+					} else if (item.reps < 1) {
+						// Static hold - treat as time-based + TTS cue
+						const holdSpan = document.createElement("span");
+						holdSpan.classList.add("time", "infotag");
+						holdSpan.textContent = item.time + " seconds (hold)";
+						groupCheckboxes[groupName].content.appendChild(holdSpan);
+
+						// Optionally add "per side"
+						if (item.bothsides === "y") {
+							const sidesspan = document.createElement("span");
+							sidesspan.classList.add("sides", "infotag");
+							sidesspan.textContent = "per side";
+							groupCheckboxes[groupName].content.appendChild(sidesspan);
+						}
 					} else {
+						// Standard time-based movement
 						const timeSpan = document.createElement("span");
 						timeSpan.classList.add("time", "infotag");
 						timeSpan.textContent = item.time + " seconds";
 						groupCheckboxes[groupName].content.appendChild(timeSpan);
+
 						if (item.bothsides === "y") {
 							const sidesspan = document.createElement("span");
 							sidesspan.classList.add("sides", "infotag");
@@ -313,7 +330,7 @@
 				let minutes = Math.round(totalSeconds / 60);
 				let seconds = Math.round(totalSeconds % 60);
 				let newString = ` it should take about ${minutes} minutes and ${seconds} seconds.`;
-				let openingTag = "prepare yourself.";
+				let openingTag = "hope you enjoy it.";
 				let insertionPoint = ssml.indexOf(openingTag) + openingTag.length;
 				ssml = ssml.slice(0, insertionPoint) + newString + ssml.slice(insertionPoint);
 
@@ -373,42 +390,47 @@
 							ssml += getreadystring;
 						}
 					}
-
-					if (reps > 1) {
+					if (reps < 1) {
+						// Static hold - add audio file
 						if (bothsides === "y") {
-							ssml += `${text}, first side. <break time="1s"/> `;
-							for (i = 0; i < reps; i++) {
+							ssml += `Hold, right side, ${exercisetime} seconds. 
+    <break time="${exercisetime}s"/> `;
+							ssml += `Hold, left side, ${exercisetime} seconds. 
+							<break time="${exercisetime}s"/> `;
+						} else {
+							ssml += `Hold for ${exercisetime} seconds. 
+							<break time="${exercisetime}s"/> `;
+						}
+					} else if (reps > 1) {
+						// Repetitions
+						if (bothsides === "y") {
+							ssml += `${text}, right side. <break time="1s"/> `;
+							for (let i = 0; i < reps; i++) {
 								ssml += ` ${i + 1} <break time="${exercisetime}s"/> `;
 							}
-							ssml += `${text}, other side. <break time="1s"/> `;
-							for (i = 0; i < reps; i++) {
+							ssml += `${text}, left side. <break time="1s"/> `;
+							for (let i = 0; i < reps; i++) {
 								ssml += ` ${i + 1} <break time="${exercisetime}s"/> `;
-							}
-							if (recover > 0) {
-								recovery();
 							}
 						} else {
 							ssml += `${text} <break time="1s"/> `;
-							for (i = 0; i < reps; i++) {
+							for (let i = 0; i < reps; i++) {
 								ssml += ` ${i + 1} <break time="${exercisetime}s"/> `;
-							}
-							if (recover > 0) {
-								recovery();
 							}
 						}
 					} else {
+						// reps == 1 — time-based single rep
 						if (bothsides === "y") {
-							ssml += text + `, first side, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
-							ssml += text + `, other side, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
-							if (recover > 0) {
-								recovery();
-							}
+							ssml += `${text}, first side, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
+							ssml += `${text}, other side, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
 						} else {
-							ssml += text + `, ${exercisetime} seconds. <break time="${exercisetime}s"/>`;
-							if (recover > 0) {
-								recovery();
-							}
+							ssml += `${text}, ${exercisetime} seconds. <break time="${exercisetime}s"/> `;
 						}
+					}
+
+					// Recovery logic – only once
+					if (recover > 0) {
+						recovery(); // assumes this appends recovery SSML
 					}
 				});
 
