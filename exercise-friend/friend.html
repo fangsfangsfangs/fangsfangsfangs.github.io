@@ -98,12 +98,19 @@
                 right: 16px;
                 font-size: 18px;
                 padding: 10px 16px;
-                background-color: #ff7333;
+                background-color: #ff9c6e;
                 border: none;
-                border-radius: 4px;
+                border-radius: 50px;
                 color: #fff;
                 cursor: pointer;
                 z-index: 1000;
+                cursor: pointer; /* pointer cursor on hover */
+                transition: background-color 0.3s ease;
+            }
+
+            #themeToggleBtn:hover {
+                background-color: #2ba06f; /* darker green on hover */
+            }
             }
 
             .triangle {
@@ -113,6 +120,7 @@
 
             .infotag {
                 margin-left: 8px;
+                color: #f0f0f0;
             }
 
             .time {
@@ -149,6 +157,7 @@
                     width: 90%;
                 }
             }
+        
         </style>
     </head>
     <body>
@@ -186,59 +195,96 @@
                     backgroundColor: "#E3F2FD",
                     textColor: "#191a1e",
                     buttonColor: "#66BB6A",
-                    headerColors: ["#edf7ff","#90CAF9", "#54acf2", "#2e7ad0"]
+                    headerColors: ["#edf7ff", "#90CAF9", "#54acf2", "#2e7ad0"]
                 },
                 {
                     name: "Dirt sunset",
                     backgroundColor: "#b7b8be",
                     textColor: "#463411",
                     buttonColor: "#f5c53e",
-                    headerColors: ['#67533e', '#ead0af', '#c6b594', '#77613d']
+                    headerColors: ["#67533e", "#ead0af", "#c6b594", "#77613d"]
                 },
-                 {
+                {
                     name: "dark mode",
                     backgroundColor: "#393939",
                     textColor: "#000000",
                     buttonColor: "#e3a6af",
-                    headerColors: ["#b4b4b4", "#ade0e7", "#7b7b7b", "#5c5c5c","#e7adad"]
+                    headerColors: ["#b4b4b4", "#ade0e7", "#7b7b7b", "#5c5c5c", "#e7adad"]
                 }
             ];
 
             let currentThemeIndex = 0;
             let currentColorIndex = 0;
             var ssml = "";
-
-            const holdAudioClips = [
-                "https://fangsfangsfangs.github.io/exercise-friend/30-1.mp3",
-                "https://fangsfangsfangs.github.io/exercise-friend/30-2.mp3",
-                "https://fangsfangsfangs.github.io/exercise-friend/30-3.mp3",
-                "https://fangsfangsfangs.github.io/exercise-friend/30-4.mp3",
-                "https://fangsfangsfangs.github.io/exercise-friend/30-5.mp3"
+            // 🎵 Hold music arrays
+            const holdAudioClips20 = [
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/20/kk20-1.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/20/kk20-2.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/20/kk20-3.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/20/shop20-2.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/20/shop20-1.mp3"
             ];
 
-            function getRandomHoldAudioUrl() {
-                const index = Math.floor(Math.random() * holdAudioClips.length);
-                return holdAudioClips[index];
+            const holdAudioClips30 = [
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/30/Shop30-1.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/30/kk30-1.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/30/opus30-1.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/30/opus30-2.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/30/opus30-3.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/30/opus30-4.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/30/Shop30-2.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/30/Shop30-3.mp3"
+            ];
+
+            const holdAudioClips60 = [
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/60/rain60-1.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/60/rain60-2.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/60/rain60-3.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/60/rain60-4.mp3",
+                "https://fangsfangsfangs.github.io/exercise-friend/audio/60/rain60-5.mp3"
+            ];
+
+            function getRandomHoldAudioUrl(duration) {
+                let clips;
+                if (duration === 20) clips = holdAudioClips20;
+                else if (duration === 30) clips = holdAudioClips30;
+                else if (duration === 60) clips = holdAudioClips60;
+                else return null;
+
+                if (!clips || clips.length === 0) return null;
+                return clips[Math.floor(Math.random() * clips.length)];
             }
 
-            function playRandomHoldAudio() {
+            function playRandomHoldAudio(duration = 30) {
                 const holdAudio = document.getElementById("holdMusicAudio");
-                holdAudio.src = getRandomHoldAudioUrl();
-                holdAudio.play().catch((e) => console.log("Hold music playback failed:", e));
+                const url = getRandomHoldAudioUrl(duration);
+
+                if (url) {
+                    holdAudio.src = url;
+                    holdAudio.play().catch((e) => console.log("Hold music playback failed:", e));
+                } else {
+                    console.log(`No audio found for ${duration}s. Skipping playback.`);
+                }
             }
 
-            fetch("https://opensheet.elk.sh/1rLG4dApWPjAiGRwVKSGjoHqnBFvVyRrR34sYN82hycQ/exercises")
-                .then((response) => {
-                    if (!response.ok) throw new Error("network response error");
-                    return response.json();
-                })
-                .then((data) => createElements(data))
-                .catch((error) => console.error("data fetching error", error));
+            //Spreadsheet fetch
+            Promise.all([
+                fetch("https://opensheet.elk.sh/1rLG4dApWPjAiGRwVKSGjoHqnBFvVyRrR34sYN82hycQ/exercises").then((r) =>
+                    r.json()
+                ),
+                fetch("https://opensheet.elk.sh/1rLG4dApWPjAiGRwVKSGjoHqnBFvVyRrR34sYN82hycQ/yoga").then((r) =>
+                    r.json()
+                )
+            ]).then(([exercises, yoga]) => {
+                const taggedExercises = exercises.map((e) => ({ ...e, source: "exercises" }));
+                const taggedYoga = yoga.map((e) => ({ ...e, source: "yoga" }));
+                const combined = taggedExercises.concat(taggedYoga);
+                createElements(combined);
+            });
 
             function createElements(data) {
                 const stretchList = document.getElementById("stretchList");
                 const groupCheckboxes = {};
-
                 data.forEach((item) => {
                     const groupName = item.group;
 
@@ -303,14 +349,22 @@
                     const stretchCheckbox = document.createElement("input");
                     stretchCheckbox.type = "checkbox";
                     stretchCheckbox.checked = false;
+                    stretchCheckbox.addEventListener("change", () => {
+                        updateGroupTimes(groupCheckboxes);
+                    });
                     stretchCheckbox.dataset.group = groupName;
                     stretchCheckbox.dataset.time = item.time;
                     stretchCheckbox.dataset.bothsides = item.bothsides;
                     stretchCheckbox.dataset.recover = item.recover;
                     stretchCheckbox.dataset.reps = item.reps;
+                    stretchCheckbox.dataset.breath = item.breath || "";
+                    stretchCheckbox.dataset.source = item.source; // 'yoga' or 'exercises'
 
+                    //Omits text after comma from appearing in list but still reads it
+                    const displayName = item.stretch.split(",")[0].trim(); // Only show name before comma
                     const stretchLabel = document.createElement("label");
-                    stretchLabel.textContent = item.stretch;
+                    stretchLabel.textContent = displayName;
+                    stretchCheckbox.dataset.fullname = item.stretch; // Store full name for SSML
 
                     leftSide.appendChild(stretchCheckbox);
                     leftSide.appendChild(stretchLabel);
@@ -350,8 +404,8 @@
                 for (let groupName in groupCheckboxes) {
                     const checkboxes = groupCheckboxes[groupName].content.querySelectorAll("input[type='checkbox']");
                     const filteredTextList = Array.from(checkboxes);
-                    generatessml(filteredTextList);
-                    let totalSeconds = estimateReadingTime(ssml);
+                    const ssmlForGroup = generatessml(filteredTextList);
+                    let totalSeconds = estimateReadingTime(ssmlForGroup);
                     let minutes = Math.round(totalSeconds / 60);
                     let seconds = Math.round(totalSeconds % 60);
                     if (seconds < 10) seconds = "0" + seconds;
@@ -363,6 +417,7 @@
                     headerDiv.appendChild(spanElement);
                 }
             }
+
             //open and close the exercise group accordions
             function toggleAccordion(header) {
                 const content = header.nextElementSibling;
@@ -395,12 +450,15 @@
                 });
             });
 
+            // 🧠 Updated speak logic
             function speak() {
-                //do the loading animation
                 const speakBtn = document.getElementById("speakButton");
                 const audioElem = document.getElementById("audio");
 
-                // Animated button text
+                fixedHoldDurations = [];
+                holdAudioQueue = [];
+
+                // Loading animation
                 const loadingText = "get ready";
                 speakBtn.innerHTML = loadingText
                     .split("")
@@ -410,23 +468,29 @@
                     el.style.animationDelay = `${i * 0.1}s`;
                 });
 
-                // Get checked exercises
                 const checkboxes = Array.from(document.querySelectorAll("#stretchList input[type='checkbox']")).filter(
                     (cb) => cb.checked && cb.dataset.group !== undefined
                 );
 
-                generatessml(checkboxes);
-                const duration = estimateReadingTime(ssml);
+                const generatedSSML = generatessml(checkboxes);
+                const duration = estimateReadingTime(generatedSSML);
                 const minutes = Math.floor(duration / 60);
                 const seconds = Math.floor(duration % 60);
-                ssml = ssml.replace(
-                    "hope you enjoy it.",
-                    `hope you enjoy it. It should take about ${minutes} minutes and ${seconds} seconds.`
+
+                //makes it so it doesn't announce zero minutes or zero seconds
+                let timeIntro = "It should take about ";
+                if (minutes > 0) {
+                    timeIntro += `${minutes} minute${minutes > 1 ? "s" : ""}`;
+                    if (seconds > 0) timeIntro += ` and ${seconds} seconds`;
+                } else {
+                    timeIntro += `${seconds} seconds`;
+                }
+
+                let ssml = generatedSSML.replace(
+                    "<speak>",
+                    `<speak>hello elliott, it’s time to exercise! ${timeIntro}. <break time="1s"/> `
                 );
 
-                console.log("SSML:", ssml);
-
-                // TTS request
                 const xhr = new XMLHttpRequest();
                 xhr.open(
                     "POST",
@@ -439,110 +503,218 @@
                         const audioUrl = "data:audio/mp3;base64," + response.audioContent;
                         audioElem.src = audioUrl;
 
-                        // Only play hold music AFTER TTS finishes
                         audioElem.onended = () => {
-                            const holdAudio = document.getElementById("holdMusicAudio");
-                            holdAudio.src = getRandomHoldAudioUrl();
-                            holdAudio.play().catch((e) => console.log("Hold music error:", e));
-                        };
+                            const durationsQueue = getHoldDurationsFromCheckboxes(); // You’ll define this function below
 
+                            function playNextHold() {
+                                if (durationsQueue.length === 0) return;
+
+                                const duration = durationsQueue.shift();
+                                playRandomHoldAudio(duration);
+
+                                const holdAudio = document.getElementById("holdMusicAudio");
+                                holdAudio.onended = () => playNextHold(); // Chain the next one
+                            }
+
+                            playNextHold();
+                        };
+                        function getHoldDurationsFromCheckboxes() {
+                            const checkboxes = Array.from(
+                                document.querySelectorAll("#stretchList input[type='checkbox']")
+                            ).filter((cb) => cb.checked && cb.dataset.group !== undefined);
+
+                            const durations = [];
+
+                            checkboxes.forEach((checkbox) => {
+                                const time = parseInt(checkbox.dataset.time, 10);
+                                const reps = parseInt(checkbox.dataset.reps, 10) || 1;
+                                const isHold = time >= 20;
+                                const bothSides = checkbox.dataset.bothsides === "y";
+
+                                if (isHold) {
+                                    const repeatCount = (bothSides ? 2 : 1) * reps;
+                                    for (let i = 0; i < repeatCount; i++) {
+                                        durations.push(time);
+                                    }
+                                }
+                            });
+
+                            return durations;
+                        }
                         audioElem.play();
                         speakBtn.innerHTML = "start! ⟶";
                     }
                 };
+
                 const data = JSON.stringify({
                     input: { ssml: ssml },
-                    voice: { languageCode: "en-IN", name: "en-IN-Standard-E", ssmlGender: "FEMALE" },
+                    voice: {
+                        languageCode: "en-IN",
+                        name: "en-IN-Standard-E",
+                        ssmlGender: "FEMALE"
+                    },
                     audioConfig: { audioEncoding: "MP3" }
                 });
+
                 xhr.send(data);
             }
 
             //make ssml for the robot to speak
             function generatessml(filteredTextList) {
-                ssml = "<speak>";
-                ssml += 'hello elliott, it’s time to exercise! I hope you enjoy it. <break time="1s"/>';
+                let ssml = "<speak>";
 
                 filteredTextList.forEach((checkbox, index) => {
-                    const text = checkbox.nextSibling.textContent.trim();
+                    const text = checkbox.dataset.fullname.trim();
                     const exercisetime = parseInt(checkbox.dataset.time, 10) || 0;
                     const bothsides = checkbox.dataset.bothsides === "y";
                     const reps = parseInt(checkbox.dataset.reps, 10) || 1;
                     const recover = parseInt(checkbox.dataset.recover, 10) || 0;
 
                     const nextItem = filteredTextList[index + 1];
-                    const nextexercise = nextItem ? nextItem.nextSibling.textContent.trim() : null;
+                    const nextexercise = nextItem ? nextItem.dataset.fullname.trim() : null;
 
                     const isHold = exercisetime > 5;
+                    const isYoga = checkbox.dataset.source === "yoga";
 
-                    function addBreakOrAudio(time) {
-                        if (time === 30) {
-                            const audioUrl = getRandomHoldAudioUrl();
-                            ssml += `<audio src="${audioUrl}"/>`;
-                        } else {
-                            ssml += ` <break time="${time}s"/> `;
-                        }
+                    if (index === 0) {
+                        ssml += `First up, ${text}. <break time="2s"/> `;
                     }
 
-                    function addRepsBlock(label) {
-                        ssml += `${label} <break time="1s"/> `;
+                    function getRandomHoldAudioUrl(duration) {
+                        let array = [];
+                        if (duration === 20) array = holdAudioClips20;
+                        else if (duration === 30) array = holdAudioClips30;
+                        else if (duration === 60) array = holdAudioClips60;
+                        if (array.length === 0) return null;
+                        const index = Math.floor(Math.random() * array.length);
+                        return array[index];
+                    }
+
+                    function addBreakOrAudio(time) {
+                        const audioUrl = getRandomHoldAudioUrl(time);
+                        if (audioUrl) {
+                            ssml += `<audio src="${audioUrl}"/>`;
+                        } else {
+                            ssml += `<break time="${time}s"/>`;
+                        }
+                        // Add "release" cue after hold
+                        ssml += ` release. <break time="1s"/> `;
+                    }
+
+                    function addRepsBlock(label, reps, time, isHold, isYoga) {
                         for (let i = 0; i < reps; i++) {
-                            ssml += `${i + 1}`;
+                            const breathCue = isYoga ? (i % 2 === 0 ? "breathe in" : "breathe out") : `${i + 1}`;
+                            ssml += `${breathCue}`;
                             if (isHold) {
-                                ssml += `, hold for ${exercisetime} seconds.`;
-                                addBreakOrAudio(exercisetime);
+                                ssml += `, hold for ${time} seconds. `;
+                                addBreakOrAudio(time);
                             } else {
-                                ssml += ` <break time="${exercisetime}s"/> `;
+                                ssml += ` <break time="${time}s"/> `;
                             }
                         }
                     }
 
-                    function addSingleHold(label) {
-                        ssml += `${label}, hold for ${exercisetime} seconds.`;
-                        addBreakOrAudio(exercisetime);
+                    function addSingleHold(label, time) {
+                        ssml += `hold.`;
+                        addBreakOrAudio(time);
                     }
 
-                    // Determine how to render this exercise
                     if (reps > 1) {
                         if (bothsides) {
-                            addRepsBlock(`${text}, right side`);
-                            addRepsBlock(`${text}, left side`);
+                            addRepsBlock(`${text}, right side`, reps, exercisetime, isHold, isYoga);
+                            addRepsBlock(`${text}, left side`, reps, exercisetime, isHold, isYoga);
                         } else {
-                            addRepsBlock(text);
+                            addRepsBlock(text, reps, exercisetime, isHold, isYoga);
                         }
                     } else {
                         if (bothsides) {
-                            addSingleHold(`${text}, right side`);
-                            addSingleHold(`${text}, left side`);
+                            addSingleHold(`${text}, right side`, exercisetime);
+                            addSingleHold(`${text}, left side`, exercisetime);
                         } else {
-                            addSingleHold(text);
+                            addSingleHold(text, exercisetime);
                         }
                     }
 
-                    // Add recovery and "get ready" prompt if applicable
                     if (recover > 0) {
-                        ssml += `rest for ${recover} seconds. <break time="${recover}s"/> `;
+                        ssml += `<break time="${recover}s"/> `;
+
                         if (nextexercise) {
-                            ssml += `get ready for ${nextexercise}. <break time="3s"/> `;
+                            const nextIsYoga = nextItem?.dataset.source === "yoga";
+                            const breathAttr = nextItem?.dataset.breath;
+                            let transitionCue = "";
+
+                            if (nextIsYoga) {
+                                if (breathAttr === "1") {
+                                    transitionCue = "breathe in to";
+                                } else if (breathAttr === "2") {
+                                    transitionCue = "breathe out into";
+                                } else {
+                                    transitionCue = "move into";
+                                }
+                            } else {
+                                transitionCue = "move to";
+                            }
+
+                            ssml += `${transitionCue} ${nextexercise}. <break time="3s"/> `;
                         }
                     }
                 });
 
                 ssml += "you did it. go and live your life and have fun. see you next time.";
                 ssml += "</speak>";
+                return ssml;
+            }
+            //what is this down here
+            function updateGroupTimes(groupCheckboxes) {
+                for (let groupName in groupCheckboxes) {
+                    const checkboxes = groupCheckboxes[groupName].content.querySelectorAll("input[type='checkbox']");
+                    const filtered = Array.from(checkboxes).filter((cb) => cb.checked);
+
+                    const existingTimeTag = groupCheckboxes[groupName].accordion.querySelector(".grouptime");
+                    if (existingTimeTag) existingTimeTag.remove();
+
+                    if (filtered.length > 0) {
+                        const ssml = generatessml(filtered);
+                        const totalSeconds = estimateReadingTime(ssml);
+                        const minutes = Math.floor(totalSeconds / 60);
+                        let seconds = Math.round(totalSeconds % 60);
+                        if (seconds < 10) seconds = "0" + seconds;
+
+                        const timeTag = document.createElement("span");
+                        timeTag.textContent = `${minutes}:${seconds}`;
+                        timeTag.classList.add("grouptime", "infotag");
+
+                        const header = groupCheckboxes[groupName].accordion.querySelector(".accordion-header");
+                        header.appendChild(timeTag);
+                    }
+                }
             }
 
-            //estimate time it takes to read any given ssml
             function estimateReadingTime(ssml) {
-                const wordsPerSecond = 1.5;
+                const wordsPerSecond = 1.8;
                 const textContent = ssml.replace(/<[^>]*>/g, "");
-                const wordCount = textContent.split(/\s+/).filter((w) => w.length > 0).length;
+                const wordCount = textContent.trim().split(/\s+/).length;
                 let estimatedTime = wordCount / wordsPerSecond;
-                const breakTags = ssml.match(/<break[^>]*time=\"([\d.]+)s\"[^>]*>/g) || [];
+
+                // Add break times
+                const breakTags = ssml.match(/<break[^>]*time="([\d.]+)s"[^>]*>/g) || [];
                 breakTags.forEach((tag) => {
-                    const match = tag.match(/time=\"([\d.]+)s\"/);
+                    const match = tag.match(/time="([\d.]+)s"/);
                     if (match) estimatedTime += parseFloat(match[1]);
                 });
+
+                // Add audio tag durations based on folder (20s, 30s, 60s)
+                const audioTags = ssml.match(/<audio[^>]*src="([^"]+)"[^>]*>/g) || [];
+                audioTags.forEach((tag) => {
+                    const match = tag.match(/src="([^"]+)"/);
+                    if (match) {
+                        const url = match[1];
+                        if (url.includes("/20/")) estimatedTime += 20;
+                        else if (url.includes("/30/")) estimatedTime += 30;
+                        else if (url.includes("/60/")) estimatedTime += 60;
+                    }
+                });
+
                 return estimatedTime;
             }
         </script>
