@@ -1,0 +1,151 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap");
+
+body {
+    font-family: "Noto Serif", serif;
+    color: #303028;
+    background-color: #dcddd3;
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 50%;
+    margin-top: 40px;
+}
+
+.accordion {
+    border-bottom: 0px solid #ccc;
+}
+
+.accordion-header {
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.accordion-content {
+    display: none;
+    padding: 10px;
+}
+
+.stretch-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+}
+
+.stretch-left {
+    display: flex;
+    align-items: center;
+}
+
+.stretch-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+audio {
+    width: 100%;
+}
+
+audio::-webkit-media-controls-panel {
+    background-color: #ffffff;
+}
+
+audio::-webkit-media-controls-enclosure {
+    border-radius: 0;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0 6px;
+    vertical-align: middle;
+}
+
+label {
+    margin-left: 12px;
+}
+
+button {
+    font-family: "Noto Serif", serif;
+    font-size: 16px;
+    padding: 10px 30px;
+    background-color: #ff7333;
+    color: #404030;
+    border: none;
+    text-align: center;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#themeToggleBtn {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    font-size: 18px;
+    padding: 10px 16px;
+    background-color: #ff9c6e;
+    border: none;
+    border-radius: 50px;
+    color: #fff;
+    cursor: pointer;
+    z-index: 1000;
+    transition: background-color 0.3s ease;
+}
+
+#themeToggleBtn:hover {
+    background-color: #2ba06f;
+}
+
+.triangle {
+    margin: 0 10px;
+    display: inline-block;
+}
+
+.infotag {
+    margin-left: 8px;
+    color: #f0f0f0;
+}
+
+.time {
+    color: #9ea0bf;
+}
+
+.reps {
+    color: #9ea0bf;
+}
+
+.sides {
+    color: #dcb38b;
+}
+
+.grouptime {
+    color: #ffffff;
+    margin-left: auto;
+    font-weight: bold;
+}
+
+#speakButton span {
+    display: inline-block;
+    animation: wave 0.75s infinite steps(1);
+}
+
+@keyframes wave {
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+@media only screen and (max-width: 800px) {
+    .container {
+        width: 90%;
+    }
+}
