@@ -111,7 +111,6 @@
             #themeToggleBtn:hover {
                 background-color: #2ba06f; /* darker green on hover */
             }
-            }
 
             .triangle {
                 margin: 0 10px;
@@ -157,7 +156,6 @@
                     width: 90%;
                 }
             }
-        
         </style>
     </head>
     <body>
@@ -181,20 +179,29 @@
                     backgroundColor: "#e3e3e3",
                     textColor: "#303028",
                     buttonColor: "#dcb38b",
+                    buttonHoverColor: "#c9ad6f",
+                    speakButtonBgColor: "#dcb38b",
+                    speakButtonTextColor: "#303028",
                     headerColors: ["#d3c8c3", "#d3b690", "#b9af2a", "#b0b4b4", "#d4be96", "#dcb38b"]
                 },
                 {
-                    name: "summer's ending ",
+                    name: "summer's ending",
                     backgroundColor: "#dbd4b8",
                     textColor: "#1B5E20",
-                    buttonColor: "#66BB6A",
+                    buttonColor: "#71b174",
+                    buttonHoverColor: "#c9ad6f",
+                    speakButtonBgColor: "#4caf50",
+                    speakButtonTextColor: "#ffffff",
                     headerColors: ["#FFF1CA", "#fab627", "#a1b16d", "#8a7f58", "#708A58"]
                 },
                 {
                     name: "blue",
                     backgroundColor: "#E3F2FD",
                     textColor: "#191a1e",
-                    buttonColor: "#66BB6A",
+                    buttonColor: "#90e794",
+                    buttonHoverColor: "#c9ad6f",
+                    speakButtonBgColor: "#3a9da2",
+                    speakButtonTextColor: "#fff",
                     headerColors: ["#edf7ff", "#90CAF9", "#54acf2", "#2e7ad0"]
                 },
                 {
@@ -202,20 +209,26 @@
                     backgroundColor: "#b7b8be",
                     textColor: "#463411",
                     buttonColor: "#f5c53e",
-                    headerColors: ["#67533e", "#ead0af", "#c6b594", "#77613d"]
+                    buttonHoverColor: "#c9ad6f",
+                    speakButtonBgColor: "#f5c53e",
+                    speakButtonTextColor: "#463411",
+                    headerColors: ["#6b5f53", "#e8d4b9", "#c3b8a2", "#857b6b"]
                 },
                 {
                     name: "dark mode",
                     backgroundColor: "#393939",
-                    textColor: "#000000",
-                    buttonColor: "#e3a6af",
-                    headerColors: ["#b4b4b4", "#ade0e7", "#7b7b7b", "#5c5c5c", "#e7adad"]
+                    textColor: "#f6f6f6",
+                    buttonColor: "#d3cacb",
+                    buttonHoverColor: "#c9ad6f",
+                    speakButtonBgColor: "#e3a6af",
+                    speakButtonTextColor: "#000000",
+                    headerColors: ["#b4b4b4", "#b2cfd3", "#7b7b7b", "#5c5c5c", "#e7adad"]
                 }
             ];
 
             let currentThemeIndex = 0;
             let currentColorIndex = 0;
-            var ssml = "";
+
             // 🎵 Hold music arrays
             const holdAudioClips20 = [
                 "https://fangsfangsfangs.github.io/exercise-friend/audio/20/kk20-1.mp3",
@@ -430,8 +443,6 @@
                 }
             }
 
-            console.log(ssml);
-
             // Theme toggle logic
             document.getElementById("themeToggleBtn").addEventListener("click", () => {
                 currentThemeIndex = (currentThemeIndex + 1) % colorThemes.length;
@@ -439,14 +450,41 @@
 
                 const theme = colorThemes[currentThemeIndex];
 
-                // Set background color of body
+                // Set body background and text color
                 document.body.style.backgroundColor = theme.backgroundColor;
+                document.body.style.color = theme.textColor;
 
-                // Set accordion header colors
+                // Style all accordion headers with cycling colors
                 const headers = document.querySelectorAll(".accordion-header");
                 headers.forEach((header, i) => {
                     const newColor = theme.headerColors[i % theme.headerColors.length];
                     header.style.backgroundColor = newColor;
+                    header.style.color = theme.textColor; // optional for contrast
+                });
+
+                // Style the speak button
+                const speakBtn = document.getElementById("speakButton");
+                if (speakBtn) {
+                    speakBtn.style.backgroundColor = theme.speakButtonBgColor || theme.buttonColor;
+                    speakBtn.style.color = theme.speakButtonTextColor || theme.textColor;
+                    speakBtn.style.fontFamily = theme.fontFamily || "inherit";
+                }
+
+                // Style the theme toggle button
+                const themeToggleBtn = document.getElementById("themeToggleBtn");
+                if (themeToggleBtn) {
+                    themeToggleBtn.style.backgroundColor = theme.buttonColor;
+                    themeToggleBtn.style.color = theme.textColor;
+                    themeToggleBtn.style.fontFamily = theme.fontFamily || "inherit";
+                }
+
+                // Style *all* other buttons if needed (optional)
+                document.querySelectorAll("button").forEach((btn) => {
+                    if (btn.id !== "speakButton" && btn.id !== "themeToggleBtn") {
+                        btn.style.backgroundColor = theme.buttonColor;
+                        btn.style.color = theme.textColor;
+                        btn.style.fontFamily = theme.fontFamily || "inherit";
+                    }
                 });
             });
 
@@ -717,6 +755,43 @@
 
                 return estimatedTime;
             }
+            document.addEventListener("DOMContentLoaded", () => {
+                let currentThemeIndex = 0;
+                let currentColorIndex = 0;
+
+                const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+                function applyTheme(theme) {
+                    document.body.style.backgroundColor = theme.backgroundColor;
+                    document.body.style.color = theme.textColor;
+
+                    const headers = document.querySelectorAll(".accordion-header");
+                    headers.forEach((header, i) => {
+                        header.style.backgroundColor = theme.headerColors[i % theme.headerColors.length];
+                        header.style.color = theme.textColor;
+                    });
+
+                    const speakBtn = document.getElementById("speakButton");
+                    if (speakBtn) {
+                        speakBtn.style.backgroundColor = theme.speakButtonBgColor || theme.buttonColor;
+                        speakBtn.style.color = theme.speakButtonTextColor || theme.textColor;
+                    }
+
+                    if (themeToggleBtn) {
+                        themeToggleBtn.style.backgroundColor = theme.buttonColor;
+                        themeToggleBtn.style.color = theme.textColor;
+                    }
+                }
+
+                applyTheme(colorThemes[currentThemeIndex]);
+
+                themeToggleBtn.addEventListener("click", () => {
+                    currentThemeIndex = (currentThemeIndex + 1) % colorThemes.length;
+                    currentColorIndex = 0;
+
+                    applyTheme(colorThemes[currentThemeIndex]);
+                });
+            });
         </script>
     </body>
 </html>
