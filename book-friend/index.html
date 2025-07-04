@@ -8,14 +8,24 @@
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
   <body>
-    <div class="card-container">
-      <div id="bookCard" class="book-card">
-        <button id="prevBtn" class="nav-button" aria-label="Previous Book">&#10094;</button>
-        <!-- Book card content injected here -->
-        <button id="nextBtn" class="nav-button" aria-label="Next Book">&#10095;</button>
-      </div>
+    <!-- Fixed toolbar -->
+    <div id="fixedToolbar" class="icon-bar fixed-toolbar">
+      <button id="homeBtn" title="Reset Filters"><i data-lucide="home"></i></button>
+      <button id="showToReadBtn" title="Show To-Read"><i data-lucide="notebook-pen"></i></button>
+      <button id="favoritesBtn" title="Show Favorites"><i data-lucide="book-heart"></i></button>
+      <button id="showReadBtn" title="Show Read Books"><i data-lucide="bookmark-plus"></i></button>
+      <button id="quicklistBtn" title="quick list"><i data-lucide="scroll-text"></i></button>
     </div>
 
+    <!-- Grid view -->
+    <div id="gridView" class="grid-area"></div>
+
+    <!-- Book card overlay -->
+    <div id="cardOverlay" class="overlay hidden">
+      <div id="bookCard" class="book-card"></div>
+    </div>
+
+    <!-- Theme toggle button -->
     <button id="themeToggleBtn" class="theme-toggle" title="Toggle Theme">
       <i data-lucide="palette"></i>
     </button>
