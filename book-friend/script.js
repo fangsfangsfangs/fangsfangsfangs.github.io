@@ -83,47 +83,51 @@ function normalizeToReadBook(book) {
 
 // --- FETCH OPEN LIBRARY COVER (try ISBN first, then fallback to title+author) ---
 async function fetchOpenLibraryCover(title, author, isbn) {
-  // Try ISBN first
-  if (isbn) {
-    const isbnKey = `cover_isbn_${isbn}`;
-    const cachedIsbn = localStorage.getItem(isbnKey);
-    if (cachedIsbn) return cachedIsbn === "null" ? null : cachedIsbn;
+  const keyBase = isbn?.trim() || `${title.toLowerCase()}_${author.toLowerCase()}`;
 
-    const coverUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
-    try {
-      // Use HEAD request to check if image exists without downloading it fully
-      const res = await fetch(coverUrl, { method: "HEAD" });
-      if (res.ok) {
-        localStorage.setItem(isbnKey, coverUrl);
-        return coverUrl;
-      } else {
-        localStorage.setItem(isbnKey, "null");
-      }
-    } catch (e) {
-      console.error("Error fetching ISBN cover:", e);
-      localStorage.setItem(isbnKey, "null");
+  const cacheKey = `cover_${keyBase}`;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) return cached === "null" ? null : cached;
+
+  // 1. Try ISBN
+  if (isbn) {
+    const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+    const exists = await imageExists(url);
+    if (exists) {
+      localStorage.setItem(cacheKey, url);
+      return url;
     }
   }
 
-  // Fallback: search by title and author
-  const key = `cover_${title.toLowerCase()}_${author.toLowerCase()}`;
-  const cached = localStorage.getItem(key);
-  if (cached) return cached === "null" ? null : cached;
-
-  const query = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
+  // 2. Fallback to Open Library search by title + author
+  const searchUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
   try {
-    const res = await fetch(query);
+    const res = await fetch(searchUrl);
     const data = await res.json();
-    if (!data.docs?.length || !data.docs[0].cover_i) {
-      localStorage.setItem(key, "null");
-      return null;
+    if (data.docs && data.docs.length > 0) {
+      const doc = data.docs.find(d => d.cover_i);
+      if (doc?.cover_i) {
+        const url = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`;
+        localStorage.setItem(cacheKey, url);
+        return url;
+      }
     }
-    const coverUrl = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-L.jpg`;
-    localStorage.setItem(key, coverUrl);
-    return coverUrl;
   } catch (e) {
-    console.error("Error fetching cover by title+author:", e);
-    return null;
+    console.warn("OpenLibrary search failed", e);
+  }
+
+  // 3. Fallback to default
+  localStorage.setItem(cacheKey, "null");
+  return null;
+}
+
+//Fallback helper
+async function imageExists(url) {
+  try {
+    const res = await fetch(url, { method: "HEAD" });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 
@@ -487,6 +491,39 @@ async function renderToReadCard(book) {
   synopsisEl.textContent = synopsis || "No synopsis available.";
 }
 
+//Quick-list Render
+function renderQuickListCard() {
+  fetch("https://opensheet.elk.sh/1mba7klBrTyQ3QXRic4Lw97RIt4aU4XeEUcUJ8QjP7WU/to-read")
+    .then(res => res.json())
+    .then(data => {
+      const listItems = data
+        .map(book => {
+          const title = (book.title || "Untitled").trim();
+          const author = (book.author || "Unknown").trim();
+          return `<div class="quicklist-item"><strong>${title}</strong><br><em>${author}</em></div>`;
+        })
+        .join("");
+
+      const bookCard = document.getElementById("bookCard");
+      bookCard.innerHTML = `
+        <button class="close-btn" id="closeQuickList">&times;</button>
+        <div class="quicklist-header">Quick List</div>
+        <div class="quicklist-content">${listItems}</div>
+      `;
+
+      document.getElementById("cardOverlay").classList.remove("hidden");
+      document.getElementById("closeQuickList").onclick = () => {
+        document.getElementById("cardOverlay").classList.add("hidden");
+      };
+    })
+    .catch(err => {
+      console.error("Error loading quick list", err);
+      const bookCard = document.getElementById("bookCard");
+      bookCard.innerHTML = `<p style="color:red;">Failed to load quick list.</p>`;
+      document.getElementById("cardOverlay").classList.remove("hidden");
+    });
+}
+
 // --- TOOLBAR ---
 function attachToolbarHandlers() {
   document.getElementById("homeBtn").onclick = () => {
@@ -501,11 +538,9 @@ function attachToolbarHandlers() {
     applyFilters();
   };
 
-  document.getElementById("showReadBtn").onclick = () => {
-    viewMode = "all";
-    activeTag = null;
-    applyFilters();
-  };
+ document.getElementById("showReadBtn").onclick = () => {
+  renderQuickListCard();
+};
 
   document.getElementById("showToReadBtn").onclick = () => {
     viewMode = "to-read";
@@ -564,17 +599,17 @@ function showTagInput(book, isToRead = false) {
   // Optional suggested tags - customize as you like
   const suggestedTags = ["Fiction", "Non-fiction", "Sci-Fi", "Fantasy", "Biography"];
   const suggestionsContainer = document.createElement("div");
-  suggestionsContainer.className = "tag-suggestions";
-  suggestedTags.forEach(tag => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = tag;
-    btn.addEventListener("click", () => {
-      input.value = tag;
-      input.focus();
-    });
-    suggestionsContainer.appendChild(btn);
+suggestionsContainer.className = "tag-suggestions";
+suggestedTags.forEach(tag => {
+  const tagEl = document.createElement("span");
+  tagEl.className = "tag";
+  tagEl.textContent = tag;
+  tagEl.addEventListener("click", () => {
+    input.value = tag;
+    input.focus();
   });
+  suggestionsContainer.appendChild(tagEl);
+});
 
   popup.appendChild(title);
   popup.appendChild(input);
