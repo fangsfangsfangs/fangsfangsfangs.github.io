@@ -170,10 +170,6 @@ body,
   width: 100%;
   max-width: 350px;
   min-height: 50vh;
-  max-height: 60vh;
-  flex-grow: 1;
-  background: #ffffff;
-  border-radius: 12px;
   box-shadow: 0 4px 10px #b1bcbf;
   padding: 1rem;
   text-align: center;
