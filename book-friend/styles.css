@@ -7,9 +7,12 @@
   height: 100vh;
   background: rgba(255, 255, 255, 0.95);
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* prevent overflow at bottom */
   justify-content: center;
   z-index: 999;
+  overflow-y: auto;  /* ✅ allow scrolling on small screens */
+  padding: 2rem 1rem; /* ✅ space around card on mobile */
+  box-sizing: border-box;
 }
 
 .overlay.hidden {
@@ -170,7 +173,6 @@ body,
   width: 100%;
   max-width: 300px;
   min-height: 50vh;
-  max-height: 60vh;
   flex-grow: 1;
   background: #ffffff;
   border-radius: 12px;
@@ -777,4 +779,15 @@ body,
 .toast-message.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+@media (max-width: 600px) {
+  .book-card {
+    padding: 1rem 0.8rem;
+  }
+
+  .overlay {
+    align-items: flex-start;
+    padding-top: 2.5rem;
+  }
 }
