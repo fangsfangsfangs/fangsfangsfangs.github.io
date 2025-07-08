@@ -771,6 +771,12 @@ function setupEditableField(elementId, book, fieldName) {
   });
 }
 
+//OPTIONS preflight request
+function doOptions(e) {
+  return ContentService.createTextOutput("")
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
 //housekeeping popup
 
 function showToast(message) {
@@ -790,8 +796,8 @@ function showToast(message) {
 }
 
 async function saveBookData(book) {
-  const endpointUrl =
-  "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnetlvY_K_aqozdWYWqt3BSTIxA7tSd-_ZYo2fSV8csoUbshC3/exec";
+  const proxyUrl = "https://vercel-cors-proxy.vercel.app/api/proxy";
+const scriptUrl = "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnetlvY_K_aqozdWYWqt3BSTIxA7tSd-_ZYo2fSV8csoUbshC3/exec";
 
   const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
   const isFav = localStorage.getItem(key) === "true";
@@ -816,11 +822,16 @@ async function saveBookData(book) {
     ]
   };
 
-  const response = await fetch(endpointUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  const response = await fetch(`${proxyUrl}?url=${encodeURIComponent(scriptUrl)}`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+  // add auth header here only if proxy requires it
+  // headers: {
+  //   "Content-Type": "application/json",
+  //   Authorization: "Basic " + btoa("user:pass")
+  // }
+});
 
   const result = await response.json();
 
