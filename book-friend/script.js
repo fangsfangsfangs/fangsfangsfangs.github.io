@@ -744,31 +744,28 @@ function setupEditableField(elementId, book, fieldName) {
   });
 
   // On losing focus, save if content changed
-  el.addEventListener("blur", async () => {
-    el.contentEditable = "false";
-    const newValue = el.textContent.trim();
+el.addEventListener("blur", async () => {
+  el.contentEditable = "false";
+  const newValue = el.textContent.trim();
 
-    console.log(`📝 Blur triggered for "${fieldName}"`);
-    console.log("New value:", newValue);
-    console.log("Old value:", book[fieldName]);
+  console.log(`📝 Blur triggered for "${fieldName}"`);
+  console.log("New value:", newValue);
+  console.log("Old value:", book[fieldName]);
 
-    if (book[fieldName] !== newValue) {
-      if (book[fieldName] !== newValue) {
-        book[fieldName] = newValue;
-        await saveBookData(book);
-      }
-      try {
-        console.log("📤 Sending updated book data...");
-        await saveBookData(book);
-        console.log(`✅ Saved ${fieldName} successfully`);
-      } catch (err) {
-        alert(`❌ Failed to save ${fieldName}.`);
-        console.error(err);
-      }
-    } else {
-      console.log(`ℹ️ No changes to ${fieldName}, not saving.`);
+  if (book[fieldName] !== newValue) {
+    book[fieldName] = newValue;
+    try {
+      console.log("📤 Sending updated book data...");
+      await saveBookData(book);
+      console.log(`✅ Saved ${fieldName} successfully`);
+    } catch (err) {
+      alert(`❌ Failed to save ${fieldName}.`);
+      console.error(err);
     }
-  });
+  } else {
+    console.log(`ℹ️ No changes to ${fieldName}, not saving.`);
+  }
+});
 }
 
 //OPTIONS preflight request
