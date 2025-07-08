@@ -171,9 +171,11 @@ body,
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 300px;
-  min-height: 50vh;
-  flex-grow: 1;
+  max-width: 350px;
+  /* Remove fixed min-height to allow natural height */
+  min-height: auto;
+  /* Remove flex-grow to prevent forced height expansion */
+  flex-grow: 0;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 10px #b1bcbf;
@@ -181,6 +183,8 @@ body,
   text-align: center;
   align-items: center;
   position: relative;
+  /* Ensure it expands to fit content */
+  align-items: stretch;
 }
 
 .cover-container {
@@ -781,11 +785,14 @@ body,
   transform: translateX(-50%) translateY(0);
 }
 
+/* Mobile override */
 @media (max-width: 600px) {
   .book-card {
     padding: 1rem 0.8rem;
+    min-height: auto;
+    flex-grow: 0;
   }
-
+}
   .overlay {
     align-items: flex-start;
     padding-top: 2.5rem;
