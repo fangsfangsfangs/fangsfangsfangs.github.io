@@ -20,7 +20,7 @@ async function fetchBooks() {
     const rawBooks = await res.json();
     const normalizedBooks = rawBooks.map(normalizeBook);
     // Enhance each book with cover + genres
-    allBooks = await Promise.all(normalizedBooks.map(enhanceBookWithCoverAndGenres));
+    allBooks = await Promise.all(normalizedBooks.map(enhanceBookWithCover));
     applyFilters();
   } catch (e) {
     console.error("Failed to fetch books:", e);
@@ -32,29 +32,32 @@ function normalizeBook(book) {
   return {
     title: (book.title || "").trim(),
     author: (book.author || "").trim(),
-    isbn: (book.isbn || "").trim(), // Add this if your sheet has an 'isbn' column
+    isbn: (book.isbn || "").replace(/[-\s]/g, "").trim(),
     quote: (book.quote || "").trim(),
     review: (book.review || "").trim(),
     cover: (book.cover || "").trim(),
     rating: parseInt(book.rating || "0"),
     despair: parseInt(book.despair || "0"),
     favorite: (book.favorite || "").toLowerCase(),
-    genres: [] // We no longer use manual tags, genres will come from Open Library
+    tags: (book.tags || "")
+      .split(",")
+      .map((tag) => tag.trim().toLowerCase())
+      .filter((tag) => tag.length > 0)
   };
 }
 
 // --- ENHANCE BOOK WITH COVER AND GENRES (use ISBN if available) ---
-async function enhanceBookWithCoverAndGenres(book) {
+async function enhanceBookWithCover(book) {
   if (!book.cover || book.cover === "") {
     book.cover = (await fetchOpenLibraryCover(book.title, book.author, book.isbn)) || placeholderImage;
   }
-  // You can add genre fetching here if needed
   return book;
 }
 
 // --- ENHANCE TO-READ BOOK (use ISBN if available) ---
 async function enhanceToReadBookWithCover(book) {
-  book.cover = (await fetchOpenLibraryCover(book.title, book.author, book.isbn)) || placeholderImage;
+  const cleanIsbn = (book.isbn || "").replace(/[-\s]/g, "").trim();
+  book.cover = (await fetchOpenLibraryCover(book.title, book.author, cleanIsbn)) || placeholderImage;
   return book;
 }
 
@@ -76,22 +79,23 @@ function normalizeToReadBook(book) {
     title: (book.title || "").trim(),
     author: (book.author || "").trim(),
     notes: (book.notes || "").trim(),
-    cover: (book.cover || "").trim(),
-    genres: []
+    isbn: (book.isbn || "").trim(),
+    cover: (book.cover || "").trim()
   };
 }
 
 // --- FETCH OPEN LIBRARY COVER (try ISBN first, then fallback to title+author) ---
 async function fetchOpenLibraryCover(title, author, isbn) {
-  const keyBase = isbn?.trim() || `${title.toLowerCase()}_${author.toLowerCase()}`;
-
+  const cleanIsbn = isbn?.replace(/[-\s]/g, "").trim(); // remove spaces/dashes
+  const keyBase = cleanIsbn || `${title.toLowerCase()}_${author.toLowerCase()}`;
   const cacheKey = `cover_${keyBase}`;
+
   const cached = localStorage.getItem(cacheKey);
   if (cached) return cached === "null" ? null : cached;
 
-  // 1. Try ISBN
-  if (isbn) {
-    const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+  // 1. Try direct ISBN fetch
+  if (cleanIsbn) {
+    const url = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
     const exists = await imageExists(url);
     if (exists) {
       localStorage.setItem(cacheKey, url);
@@ -99,24 +103,39 @@ async function fetchOpenLibraryCover(title, author, isbn) {
     }
   }
 
-  // 2. Fallback to Open Library search by title + author
+  // 2. Fallback to Open Library search
   const searchUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
   try {
     const res = await fetch(searchUrl);
     const data = await res.json();
+
     if (data.docs && data.docs.length > 0) {
-      const doc = data.docs.find(d => d.cover_i);
-      if (doc?.cover_i) {
-        const url = `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`;
-        localStorage.setItem(cacheKey, url);
-        return url;
+      const docWithCover = data.docs.find((d) => d.cover_i);
+      if (docWithCover?.cover_i) {
+        const coverUrl = `https://covers.openlibrary.org/b/id/${docWithCover.cover_i}-L.jpg`;
+        localStorage.setItem(cacheKey, coverUrl);
+        return coverUrl;
+      }
+
+      // 3. Try using a fallback ISBN from a result
+      for (const doc of data.docs) {
+        if (doc.isbn && doc.isbn.length > 0) {
+          for (const fallbackIsbn of doc.isbn) {
+            const url = `https://covers.openlibrary.org/b/isbn/${fallbackIsbn}-L.jpg`;
+            const exists = await imageExists(url);
+            if (exists) {
+              localStorage.setItem(cacheKey, url);
+              return url;
+            }
+          }
+        }
       }
     }
   } catch (e) {
-    console.warn("OpenLibrary search failed", e);
+    console.warn("OpenLibrary search failed:", e);
   }
 
-  // 3. Fallback to default
+  // 4. If everything fails, use null (will show placeholder later)
   localStorage.setItem(cacheKey, "null");
   return null;
 }
@@ -219,9 +238,9 @@ function applyFilters() {
   }
 
   if (activeTag) {
-    filteredBooks = filteredBooks.filter(book => {
+    filteredBooks = filteredBooks.filter((book) => {
       // Check custom tags for filtering
-      const customTags = getCustomTags(book).map(t => t.toLowerCase());
+      const customTags = getCustomTags(book).map((t) => t.toLowerCase());
       return customTags.includes(activeTag.toLowerCase());
     });
   }
@@ -232,10 +251,10 @@ function applyFilters() {
 
 function applyToReadFilter() {
   if (activeToReadTag) {
-    filteredToReadBooks = toReadBooks.filter(book => {
+    filteredToReadBooks = toReadBooks.filter((book) => {
       const bookKey = `customTagsToRead_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
       const customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
-      return customTags.some(tag => tag.toLowerCase() === activeToReadTag);
+      return customTags.some((tag) => tag.toLowerCase() === activeToReadTag);
     });
   } else {
     filteredToReadBooks = toReadBooks;
@@ -309,10 +328,13 @@ function renderSingleCard(book) {
   let customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
 
   // Generate tags HTML
-  const tagsHTML = customTags
-    .map(tag => `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`)
-    .join("") +
-    `<span class="tag add-tag-btn" title="Add Tag">+</span>`;
+  const tagsHTML =
+    customTags
+      .map(
+        (tag) =>
+          `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
+      )
+      .join("") + `<span class="tag add-tag-btn" title="Add Tag">+</span>`;
 
   const bookCard = document.getElementById("bookCard");
   const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
@@ -332,11 +354,11 @@ function renderSingleCard(book) {
     <div class="title">${book.title || "Untitled"}</div>
     <div class="author">${book.author || "Unknown"}</div>
 
-    <div class="rating-quote">
-      <i data-lucide="quote" class="quote-icon close-quote"></i>
-      <span class="quote-text">${book.quote || "No quote available"}</span>
-      <i data-lucide="quote" class="quote-icon open-quote"></i>
-    </div>
+   <div class="rating-quote">
+  <i data-lucide="quote" class="quote-icon close-quote"></i>
+  <div id="quoteEditable" class="quote-text editable" contenteditable="false" title="Click to edit quote">${book.quote || "No quote available"}</div>
+  <i data-lucide="quote" class="quote-icon open-quote"></i>
+</div>
 
     <div class="rating-despair-box">
       <div class="rating-despair-left">
@@ -348,8 +370,8 @@ function renderSingleCard(book) {
       </div>
     </div>
     <div class="title-author-review">
-      <div class="review">${book.review || ""}</div>
-    </div>
+  <div id="reviewEditable" class="review editable" contenteditable="false" title="Click to edit review">${book.review || ""}</div>
+</div>
 
     <div class="card-footer">
       <div class="footer-left">
@@ -386,16 +408,16 @@ function renderSingleCard(book) {
     renderSingleCard(filteredBooks[currentIndex]);
   });
 
-  // Toggle favorite
+  // Toggle favorite save to spreadsheet
   document.getElementById("favoriteHeart").addEventListener("click", () => {
     const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
     const isFav = localStorage.getItem(key) === "true";
-    localStorage.setItem(key, !isFav);
+    localStorage.setItem(key, !isFav ? "true" : "false");
     renderSingleCard(book);
   });
 
   // Tag filtering
-  bookCard.querySelectorAll(".tag").forEach(tagEl => {
+  bookCard.querySelectorAll(".tag").forEach((tagEl) => {
     if (tagEl.classList.contains("add-tag-btn")) return; // skip add button here
     tagEl.addEventListener("click", () => {
       activeTag = tagEl.dataset.tag.toLowerCase();
@@ -405,12 +427,12 @@ function renderSingleCard(book) {
   });
 
   // Delete tag buttons
-  bookCard.querySelectorAll(".delete-tag-btn").forEach(delBtn => {
+  bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
     delBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       const tagSpan = delBtn.parentElement;
       const tagToRemove = tagSpan.dataset.tag;
-      customTags = customTags.filter(t => t.toLowerCase() !== tagToRemove);
+      customTags = customTags.filter((t) => t.toLowerCase() !== tagToRemove);
       localStorage.setItem(bookKey, JSON.stringify(customTags));
       renderSingleCard(book);
     });
@@ -420,6 +442,10 @@ function renderSingleCard(book) {
   bookCard.querySelector(".add-tag-btn").addEventListener("click", () => {
     showTagInput(book, false);
   });
+
+  // Setup editable fields for quote and review with autosave
+  setupEditableField("quoteEditable", book, "quote");
+  setupEditableField("reviewEditable", book, "review");
 
   attachToolbarHandlers();
 }
@@ -431,10 +457,18 @@ async function renderToReadCard(book) {
   const bookKey = `customTagsToRead_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
   let customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
 
-  const tagsHTML = customTags
-    .map(tag => `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`)
-    .join("") +
-    `<span class="tag add-tag-btn" title="Add Tag">+</span>`;
+  const spreadsheetTagsHTML = (book.tags || [])
+    .map((tag) => `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}</span>`)
+    .join("");
+
+  const customTagsHTML = customTags
+    .map(
+      (tag) =>
+        `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
+    )
+    .join("");
+
+  const tagsHTML = spreadsheetTagsHTML + customTagsHTML + `<span class="tag add-tag-btn" title="Add Tag">+</span>`;
 
   const bookCard = document.getElementById("bookCard");
 
@@ -459,7 +493,7 @@ async function renderToReadCard(book) {
   });
 
   // Tag filtering
-  bookCard.querySelectorAll(".tag").forEach(tagEl => {
+  bookCard.querySelectorAll(".tag").forEach((tagEl) => {
     if (tagEl.classList.contains("add-tag-btn")) return;
     tagEl.addEventListener("click", () => {
       activeToReadTag = tagEl.dataset.tag.toLowerCase();
@@ -469,12 +503,12 @@ async function renderToReadCard(book) {
   });
 
   // Delete tag buttons
-  bookCard.querySelectorAll(".delete-tag-btn").forEach(delBtn => {
+  bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
     delBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       const tagSpan = delBtn.parentElement;
       const tagToRemove = tagSpan.dataset.tag;
-      customTags = customTags.filter(t => t.toLowerCase() !== tagToRemove);
+      customTags = customTags.filter((t) => t.toLowerCase() !== tagToRemove);
       localStorage.setItem(bookKey, JSON.stringify(customTags));
       renderToReadCard(book);
     });
@@ -494,10 +528,10 @@ async function renderToReadCard(book) {
 //Quick-list Render
 function renderQuickListCard() {
   fetch("https://opensheet.elk.sh/1mba7klBrTyQ3QXRic4Lw97RIt4aU4XeEUcUJ8QjP7WU/to-read")
-    .then(res => res.json())
-    .then(data => {
+    .then((res) => res.json())
+    .then((data) => {
       const listItems = data
-        .map(book => {
+        .map((book) => {
           const title = (book.title || "Untitled").trim();
           const author = (book.author || "Unknown").trim();
           return `<div class="quicklist-item"><strong>${title}</strong><br><em>${author}</em></div>`;
@@ -516,7 +550,7 @@ function renderQuickListCard() {
         document.getElementById("cardOverlay").classList.add("hidden");
       };
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error loading quick list", err);
       const bookCard = document.getElementById("bookCard");
       bookCard.innerHTML = `<p style="color:red;">Failed to load quick list.</p>`;
@@ -527,10 +561,21 @@ function renderQuickListCard() {
 // --- TOOLBAR ---
 function attachToolbarHandlers() {
   document.getElementById("homeBtn").onclick = () => {
-    viewMode = "all";
-    activeTag = null;
-    applyFilters();
-  };
+  // Clear failed cover cache
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith("cover_") && localStorage.getItem(key) === "null") {
+      localStorage.removeItem(key);
+    }
+  });
+
+  // Show confirmation message
+  showToast("Housekeeping performed 🧹🏠");
+
+  // Reset filters and re-fetch
+  viewMode = "all";
+  activeTag = null;
+  fetchBooks();
+};
 
   document.getElementById("favoritesBtn").onclick = () => {
     viewMode = viewMode === "favorites" ? "all" : "favorites";
@@ -538,9 +583,9 @@ function attachToolbarHandlers() {
     applyFilters();
   };
 
- document.getElementById("showReadBtn").onclick = () => {
-  renderQuickListCard();
-};
+  document.getElementById("showReadBtn").onclick = () => {
+    renderQuickListCard();
+  };
 
   document.getElementById("showToReadBtn").onclick = () => {
     viewMode = "to-read";
@@ -599,17 +644,17 @@ function showTagInput(book, isToRead = false) {
   // Optional suggested tags - customize as you like
   const suggestedTags = ["Fiction", "Non-fiction", "Sci-Fi", "Fantasy", "Biography"];
   const suggestionsContainer = document.createElement("div");
-suggestionsContainer.className = "tag-suggestions";
-suggestedTags.forEach(tag => {
-  const tagEl = document.createElement("span");
-  tagEl.className = "tag";
-  tagEl.textContent = tag;
-  tagEl.addEventListener("click", () => {
-    input.value = tag;
-    input.focus();
+  suggestionsContainer.className = "tag-suggestions";
+  suggestedTags.forEach((tag) => {
+    const tagEl = document.createElement("span");
+    tagEl.className = "tag";
+    tagEl.textContent = tag;
+    tagEl.addEventListener("click", () => {
+      input.value = tag;
+      input.focus();
+    });
+    suggestionsContainer.appendChild(tagEl);
   });
-  suggestionsContainer.appendChild(tagEl);
-});
 
   popup.appendChild(title);
   popup.appendChild(input);
@@ -629,7 +674,7 @@ suggestedTags.forEach(tag => {
 
   addBtn.addEventListener("click", () => {
     const newTag = input.value.trim();
-    if (newTag && !customTags.map(t => t.toLowerCase()).includes(newTag.toLowerCase())) {
+    if (newTag && !customTags.map((t) => t.toLowerCase()).includes(newTag.toLowerCase())) {
       customTags.push(newTag);
       localStorage.setItem(bookKey, JSON.stringify(customTags));
       document.body.removeChild(overlay);
@@ -656,6 +701,108 @@ suggestedTags.forEach(tag => {
     if (e.key === "Enter") addBtn.click();
     else if (e.key === "Escape") cancelBtn.click();
   });
+}
+function setupEditableField(elementId, book, fieldName) {
+  const el = document.getElementById(elementId);
+  if (!el) {
+    console.warn(`Element with ID "${elementId}" not found.`);
+    return;
+  }
+
+  // Enable editing on click
+  el.addEventListener("click", () => {
+    el.contentEditable = "true";
+    el.focus();
+
+    // Optional: select all text on focus
+    document.execCommand("selectAll", false, null);
+  });
+
+  // Handle Enter key: prevent newline and blur to trigger save
+  el.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      el.blur(); // force save
+    }
+  });
+
+  // On losing focus, save if content changed
+  el.addEventListener("blur", async () => {
+    el.contentEditable = "false";
+    const newValue = el.textContent.trim();
+
+    console.log(`📝 Blur triggered for "${fieldName}"`);
+    console.log("New value:", newValue);
+    console.log("Old value:", book[fieldName]);
+
+    if (book[fieldName] !== newValue) {
+      book[fieldName] = newValue;
+
+      try {
+        console.log("📤 Sending updated book data...");
+        await saveBookData(book);
+        console.log(`✅ Saved ${fieldName} successfully`);
+      } catch (err) {
+        alert(`❌ Failed to save ${fieldName}.`);
+        console.error(err);
+      }
+    } else {
+      console.log(`ℹ️ No changes to ${fieldName}, not saving.`);
+    }
+  });
+}
+
+//housekeeping popup
+
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast-message";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 100); // Start animation slightly after insertion
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 500); // Remove from DOM after fade out
+  }, 3000);
+}
+
+async function saveBookData(book) {
+  const endpointUrl =
+    "https://script.google.com/macros/s/AKfycbwxWis0RUqhjIOYFHLAGujH9eOgC9ym-DlGoySrHHdAWMLiW6K9DAD-zgFqq2yXfCRn/exec";
+
+  const payload = {
+    type: "read",
+    books: [
+      {
+        title: book.title,
+        author: book.author,
+        quote: book.quote,
+        review: book.review,
+        rating: book.rating || 0,
+        despair: book.despair || 0,
+        tags: (book.tags || []).join(", "),
+        favorite: book.favorite === "true" || book.favorite === true ? "true" : "false",
+        isbn: book.isbn || ""
+      }
+    ]
+  };
+
+  const response = await fetch(endpointUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const result = await response.json();
+
+  if (result.result !== "success") {
+    throw new Error(result.message || "Backup save failed");
+  }
+  console.log("Payload being sent:", payload.books[0]);
 }
 
 // --- INITIALIZE ---
