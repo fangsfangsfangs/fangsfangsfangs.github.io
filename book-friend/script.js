@@ -813,8 +813,8 @@ async function saveBookData(book) {
       {
         title: book.title,
         author: book.author,
-        quote: book.quote,
-        review: book.review,
+        quote: book.quote || "",
+        review: book.review || "",
         rating: book.rating || 0,
         despair: book.despair || 0,
         tags: customTags.join(", "),
@@ -824,23 +824,15 @@ async function saveBookData(book) {
     ]
   };
 
-  const username = "peepee696969"; // your proxy username
-  const password = "poopoo420420"; // your proxy password
-  const basicAuth = "Basic " + btoa(username + ":" + password);
-
   try {
-    const response = await fetch(proxyUrl + "?url=" + encodeURIComponent(googleScriptUrl), {
+    const response = await fetch(fullUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Basic ${btoa(username + ":" + password)}`
+        Authorization: `Basic ${btoa("peepee696969:poopoo420420")}`
       },
-      body: JSON.stringify(bookData)
+      body: JSON.stringify(payload)
     });
-
-    if (response.status === 401) {
-      throw new Error("Unauthorized: Check your proxy credentials.");
-    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -855,8 +847,7 @@ async function saveBookData(book) {
 
     console.log("✅ Saved book:", payload.books[0]);
   } catch (error) {
-    console.error("Proxy error:", error); // logs in Vercel dashboard
-    res.status(500).json({ error: "Proxy error", details: error.message });
+    console.error("❌ Proxy error:", error.message);
   }
 }
 
