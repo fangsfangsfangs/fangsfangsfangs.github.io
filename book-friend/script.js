@@ -796,7 +796,7 @@ function showToast(message) {
 }
 
 async function saveBookData(book) {
-  const proxyUrl = "https://vercel-cors-proxy.vercel.app/api/proxy";
+  const proxyUrl = "https://vercel-cors-proxy-orpin.vercel.app/api/proxy";
 const scriptUrl = "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnetlvY_K_aqozdWYWqt3BSTIxA7tSd-_ZYo2fSV8csoUbshC3/exec";
 
   const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
@@ -822,15 +822,17 @@ const scriptUrl = "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnet
     ]
   };
 
-  const response = await fetch(`${proxyUrl}?url=${encodeURIComponent(scriptUrl)}`, {
+  const username = "peepee696969";
+const password = "poopoo420420";
+const basicAuth = "Basic " + btoa(username + ":" + password);
+
+const response = await fetch(`${proxyUrl}?url=${encodeURIComponent(scriptUrl)}`, {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload),
-  // add auth header here only if proxy requires it
-  // headers: {
-  //   "Content-Type": "application/json",
-  //   Authorization: "Basic " + btoa("user:pass")
-  // }
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": basicAuth
+  },
+  body: JSON.stringify(payload)
 });
 
   const result = await response.json();
