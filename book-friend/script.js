@@ -46,7 +46,7 @@ function normalizeBook(book) {
   };
 }
 
-// --- ENHANCE BOOK WITH COVER AND GENRES (use ISBN if available) ---
+// --- ENHANCE BOOK WITH COVER ---
 async function enhanceBookWithCover(book) {
   if (!book.cover || book.cover === "") {
     book.cover = (await fetchOpenLibraryCover(book.title, book.author, book.isbn)) || placeholderImage;
@@ -84,32 +84,22 @@ function normalizeToReadBook(book) {
   };
 }
 
-// --- FETCH OPEN LIBRARY COVER (try ISBN first, then fallback to title+author) ---
+// --- FETCH OPEN LIBRARY COVER (try title+author first, then fallback to ISBN direct) ---
 async function fetchOpenLibraryCover(title, author, isbn) {
-  const cleanIsbn = isbn?.replace(/[-\s]/g, "").trim(); // remove spaces/dashes
-  const keyBase = cleanIsbn || `${title.toLowerCase()}_${author.toLowerCase()}`;
-  const cacheKey = `cover_${keyBase}`;
+  const cleanIsbn = isbn?.replace(/[-\s]/g, "").trim();
 
+  const cacheKey = `cover_${title.toLowerCase()}_${author.toLowerCase()}`;
   const cached = localStorage.getItem(cacheKey);
   if (cached) return cached === "null" ? null : cached;
 
-  // 1. Try direct ISBN fetch
-  if (cleanIsbn) {
-    const url = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
-    const exists = await imageExists(url);
-    if (exists) {
-      localStorage.setItem(cacheKey, url);
-      return url;
-    }
-  }
-
-  // 2. Fallback to Open Library search
-  const searchUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
+  // 1. Try Open Library search by title + author first
   try {
+    const searchUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
     const res = await fetch(searchUrl);
     const data = await res.json();
 
     if (data.docs && data.docs.length > 0) {
+      // Find a doc with a cover
       const docWithCover = data.docs.find((d) => d.cover_i);
       if (docWithCover?.cover_i) {
         const coverUrl = `https://covers.openlibrary.org/b/id/${docWithCover.cover_i}-L.jpg`;
@@ -117,13 +107,12 @@ async function fetchOpenLibraryCover(title, author, isbn) {
         return coverUrl;
       }
 
-      // 3. Try using a fallback ISBN from a result
+      // Try fallback ISBN from search results
       for (const doc of data.docs) {
         if (doc.isbn && doc.isbn.length > 0) {
           for (const fallbackIsbn of doc.isbn) {
             const url = `https://covers.openlibrary.org/b/isbn/${fallbackIsbn}-L.jpg`;
-            const exists = await imageExists(url);
-            if (exists) {
+            if (await imageExists(url)) {
               localStorage.setItem(cacheKey, url);
               return url;
             }
@@ -135,7 +124,16 @@ async function fetchOpenLibraryCover(title, author, isbn) {
     console.warn("OpenLibrary search failed:", e);
   }
 
-  // 4. If everything fails, use null (will show placeholder later)
+  // 2. If search by title+author fails, try ISBN direct fetch if ISBN exists
+  if (cleanIsbn) {
+    const url = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
+    if (await imageExists(url)) {
+      localStorage.setItem(cacheKey, url);
+      return url;
+    }
+  }
+
+  // 3. If everything fails, cache null and return null (placeholder later)
   localStorage.setItem(cacheKey, "null");
   return null;
 }
@@ -561,21 +559,21 @@ function renderQuickListCard() {
 // --- TOOLBAR ---
 function attachToolbarHandlers() {
   document.getElementById("homeBtn").onclick = () => {
-  // Clear failed cover cache
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith("cover_") && localStorage.getItem(key) === "null") {
-      localStorage.removeItem(key);
-    }
-  });
+    // Clear failed cover cache
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("cover_") && localStorage.getItem(key) === "null") {
+        localStorage.removeItem(key);
+      }
+    });
 
-  // Show confirmation message
-  showToast("Housekeeping performed 🧹🏠");
+    // Show confirmation message
+    showToast("Housekeeping performed 🧹🏠");
 
-  // Reset filters and re-fetch
-  viewMode = "all";
-  activeTag = null;
-  fetchBooks();
-};
+    // Reset filters and re-fetch
+    viewMode = "all";
+    activeTag = null;
+    fetchBooks();
+  };
 
   document.getElementById("favoritesBtn").onclick = () => {
     viewMode = viewMode === "favorites" ? "all" : "favorites";
@@ -655,6 +653,19 @@ function showTagInput(book, isToRead = false) {
     });
     suggestionsContainer.appendChild(tagEl);
   });
+
+  // --- Helper to check if image URL is valid ---
+  function checkImageValid(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        if (img.naturalWidth > 10 && img.naturalHeight > 10) resolve(true);
+        else resolve(false);
+      };
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
 
   popup.appendChild(title);
   popup.appendChild(input);
@@ -736,8 +747,10 @@ function setupEditableField(elementId, book, fieldName) {
     console.log("Old value:", book[fieldName]);
 
     if (book[fieldName] !== newValue) {
-      book[fieldName] = newValue;
-
+      if (book[fieldName] !== newValue) {
+        book[fieldName] = newValue;
+        await saveBookData(book);
+      }
       try {
         console.log("📤 Sending updated book data...");
         await saveBookData(book);
