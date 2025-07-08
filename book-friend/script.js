@@ -407,12 +407,13 @@ function renderSingleCard(book) {
   });
 
   // Toggle favorite save to spreadsheet
-  document.getElementById("favoriteHeart").addEventListener("click", () => {
-    const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
-    const isFav = localStorage.getItem(key) === "true";
-    localStorage.setItem(key, !isFav ? "true" : "false");
-    renderSingleCard(book);
-  });
+  document.getElementById("favoriteHeart").addEventListener("click", async () => {
+  const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
+  const isFav = localStorage.getItem(key) === "true";
+  localStorage.setItem(key, !isFav ? "true" : "false");
+  renderSingleCard(book);
+  await saveBookData(book); // ✅ Save updated favorite
+});
 
   // Tag filtering
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
@@ -426,15 +427,16 @@ function renderSingleCard(book) {
 
   // Delete tag buttons
   bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
-    delBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const tagSpan = delBtn.parentElement;
-      const tagToRemove = tagSpan.dataset.tag;
-      customTags = customTags.filter((t) => t.toLowerCase() !== tagToRemove);
-      localStorage.setItem(bookKey, JSON.stringify(customTags));
-      renderSingleCard(book);
-    });
+  delBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const tagSpan = delBtn.parentElement;
+    const tagToRemove = tagSpan.dataset.tag;
+    customTags = customTags.filter((t) => t.toLowerCase() !== tagToRemove);
+    localStorage.setItem(bookKey, JSON.stringify(customTags));
+    renderSingleCard(book);
+    await saveBookData(book); // ✅ Save updated tags
   });
+});
 
   // Add tag button
   bookCard.querySelector(".add-tag-btn").addEventListener("click", () => {
@@ -683,18 +685,22 @@ function showTagInput(book, isToRead = false) {
 
   let customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
 
-  addBtn.addEventListener("click", () => {
-    const newTag = input.value.trim();
-    if (newTag && !customTags.map((t) => t.toLowerCase()).includes(newTag.toLowerCase())) {
-      customTags.push(newTag);
-      localStorage.setItem(bookKey, JSON.stringify(customTags));
-      document.body.removeChild(overlay);
-      if (isToRead) renderToReadCard(book);
-      else renderSingleCard(book);
+  addBtn.addEventListener("click", async () => {
+  const newTag = input.value.trim();
+  if (newTag && !customTags.map((t) => t.toLowerCase()).includes(newTag.toLowerCase())) {
+    customTags.push(newTag);
+    localStorage.setItem(bookKey, JSON.stringify(customTags));
+    document.body.removeChild(overlay);
+    if (isToRead) {
+      renderToReadCard(book);
     } else {
-      alert("Please enter a unique tag.");
+      renderSingleCard(book);
+      await saveBookData(book); // ✅ Save updated tags
     }
-  });
+  } else {
+    alert("Please enter a unique tag.");
+  }
+});
 
   cancelBtn.addEventListener("click", () => {
     document.body.removeChild(overlay);
@@ -785,7 +791,13 @@ function showToast(message) {
 
 async function saveBookData(book) {
   const endpointUrl =
-    "https://script.google.com/macros/s/AKfycbwxWis0RUqhjIOYFHLAGujH9eOgC9ym-DlGoySrHHdAWMLiW6K9DAD-zgFqq2yXfCRn/exec";
+  "https://script.google.com/macros/s/AKfycbwkiUrO8TuqlEMgF9kVtL9KrxLD1PTe41HCMoVSHd93_7lYfOsPjBICjjFh9fD81wpy/exec";
+
+  const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
+  const isFav = localStorage.getItem(key) === "true";
+
+  const tagKey = `customtags_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
+  const customTags = JSON.parse(localStorage.getItem(tagKey)) || [];
 
   const payload = {
     type: "read",
@@ -797,8 +809,8 @@ async function saveBookData(book) {
         review: book.review,
         rating: book.rating || 0,
         despair: book.despair || 0,
-        tags: (book.tags || []).join(", "),
-        favorite: book.favorite === "true" || book.favorite === true ? "true" : "false",
+        tags: customTags.join(", "), // ✅ overwrite book.tags with real tags
+        favorite: isFav ? "true" : "false", // ✅ from localStorage, not book.favorite
         isbn: book.isbn || ""
       }
     ]
@@ -815,7 +827,8 @@ async function saveBookData(book) {
   if (result.result !== "success") {
     throw new Error(result.message || "Backup save failed");
   }
-  console.log("Payload being sent:", payload.books[0]);
+
+  console.log("✅ Saved book:", payload.books[0]);
 }
 
 // --- INITIALIZE ---
