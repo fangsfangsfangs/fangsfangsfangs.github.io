@@ -797,7 +797,7 @@ function showToast(message) {
 
 async function saveBookData(book) {
   const proxyUrl = "https://vercel-cors-proxy-orpin.vercel.app/api/proxy";
-const scriptUrl = "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnetlvY_K_aqozdWYWqt3BSTIxA7tSd-_ZYo2fSV8csoUbshC3/exec";
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnetlvY_K_aqozdWYWqt3BSTIxA7tSd-_ZYo2fSV8csoUbshC3/exec";
 
   const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
   const isFav = localStorage.getItem(key) === "true";
@@ -815,34 +815,49 @@ const scriptUrl = "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnet
         review: book.review,
         rating: book.rating || 0,
         despair: book.despair || 0,
-        tags: customTags.join(", "), // ✅ overwrite book.tags with real tags
-        favorite: isFav ? "true" : "false", // ✅ from localStorage, not book.favorite
+        tags: customTags.join(", "),
+        favorite: isFav ? "true" : "false",
         isbn: book.isbn || ""
       }
     ]
   };
 
-  const username = "peepee696969";
-const password = "poopoo420420";
-const basicAuth = "Basic " + btoa(username + ":" + password);
+  const username = "peepee696969"; // your proxy username
+  const password = "poopoo420420"; // your proxy password
+  const basicAuth = "Basic " + btoa(username + ":" + password);
 
-const response = await fetch(`${proxyUrl}?url=${encodeURIComponent(scriptUrl)}`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": basicAuth
-  },
-  body: JSON.stringify(payload)
-});
+  try {
+    const response = await fetch(`${proxyUrl}?url=${encodeURIComponent(scriptUrl)}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": basicAuth
+      },
+      body: JSON.stringify(payload)
+    });
 
-  const result = await response.json();
+    if (response.status === 401) {
+      throw new Error("Unauthorized: Check your proxy credentials.");
+    }
 
-  if (result.result !== "success") {
-    throw new Error(result.message || "Backup save failed");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.result !== "success") {
+      throw new Error(result.message || "Backup save failed");
+    }
+
+    console.log("✅ Saved book:", payload.books[0]);
+  } catch (error) {
+    console.error("Error saving book data:", error);
+    alert("Failed to save book data: " + error.message);
   }
-
-  console.log("✅ Saved book:", payload.books[0]);
 }
+
 
 // --- INITIALIZE ---
 window.onload = () => {
