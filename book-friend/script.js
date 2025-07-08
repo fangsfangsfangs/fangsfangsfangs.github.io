@@ -408,12 +408,12 @@ function renderSingleCard(book) {
 
   // Toggle favorite save to spreadsheet
   document.getElementById("favoriteHeart").addEventListener("click", async () => {
-  const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
-  const isFav = localStorage.getItem(key) === "true";
-  localStorage.setItem(key, !isFav ? "true" : "false");
-  renderSingleCard(book);
-  await saveBookData(book); // ✅ Save updated favorite
-});
+    const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
+    const isFav = localStorage.getItem(key) === "true";
+    localStorage.setItem(key, !isFav ? "true" : "false");
+    renderSingleCard(book);
+    await saveBookData(book); // ✅ Save updated favorite
+  });
 
   // Tag filtering
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
@@ -427,16 +427,16 @@ function renderSingleCard(book) {
 
   // Delete tag buttons
   bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
-  delBtn.addEventListener("click", async (e) => {
-    e.stopPropagation();
-    const tagSpan = delBtn.parentElement;
-    const tagToRemove = tagSpan.dataset.tag;
-    customTags = customTags.filter((t) => t.toLowerCase() !== tagToRemove);
-    localStorage.setItem(bookKey, JSON.stringify(customTags));
-    renderSingleCard(book);
-    await saveBookData(book); // ✅ Save updated tags
+    delBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const tagSpan = delBtn.parentElement;
+      const tagToRemove = tagSpan.dataset.tag;
+      customTags = customTags.filter((t) => t.toLowerCase() !== tagToRemove);
+      localStorage.setItem(bookKey, JSON.stringify(customTags));
+      renderSingleCard(book);
+      await saveBookData(book); // ✅ Save updated tags
+    });
   });
-});
 
   // Add tag button
   bookCard.querySelector(".add-tag-btn").addEventListener("click", () => {
@@ -686,21 +686,21 @@ function showTagInput(book, isToRead = false) {
   let customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
 
   addBtn.addEventListener("click", async () => {
-  const newTag = input.value.trim();
-  if (newTag && !customTags.map((t) => t.toLowerCase()).includes(newTag.toLowerCase())) {
-    customTags.push(newTag);
-    localStorage.setItem(bookKey, JSON.stringify(customTags));
-    document.body.removeChild(overlay);
-    if (isToRead) {
-      renderToReadCard(book);
+    const newTag = input.value.trim();
+    if (newTag && !customTags.map((t) => t.toLowerCase()).includes(newTag.toLowerCase())) {
+      customTags.push(newTag);
+      localStorage.setItem(bookKey, JSON.stringify(customTags));
+      document.body.removeChild(overlay);
+      if (isToRead) {
+        renderToReadCard(book);
+      } else {
+        renderSingleCard(book);
+        await saveBookData(book); // ✅ Save updated tags
+      }
     } else {
-      renderSingleCard(book);
-      await saveBookData(book); // ✅ Save updated tags
+      alert("Please enter a unique tag.");
     }
-  } else {
-    alert("Please enter a unique tag.");
-  }
-});
+  });
 
   cancelBtn.addEventListener("click", () => {
     document.body.removeChild(overlay);
@@ -773,8 +773,7 @@ function setupEditableField(elementId, book, fieldName) {
 
 //OPTIONS preflight request
 function doOptions(e) {
-  return ContentService.createTextOutput("")
-    .setMimeType(ContentService.MimeType.TEXT);
+  return ContentService.createTextOutput("").setMimeType(ContentService.MimeType.TEXT);
 }
 
 //housekeeping popup
@@ -797,7 +796,10 @@ function showToast(message) {
 
 async function saveBookData(book) {
   const proxyUrl = "https://vercel-cors-proxy-orpin.vercel.app/api/proxy";
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnetlvY_K_aqozdWYWqt3BSTIxA7tSd-_ZYo2fSV8csoUbshC3/exec";
+  const googleScriptUrl =
+    "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnetlvY_K_aqozdWYWqt3BSTIxA7tSd-_ZYo2fSV8csoUbshC3/exec";
+
+  const fullUrl = `${proxyUrl}?url=${encodeURIComponent(googleScriptUrl)}`;
 
   const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
   const isFav = localStorage.getItem(key) === "true";
@@ -827,13 +829,13 @@ async function saveBookData(book) {
   const basicAuth = "Basic " + btoa(username + ":" + password);
 
   try {
-    const response = await fetch(`${proxyUrl}?url=${encodeURIComponent(scriptUrl)}`, {
+    const response = await fetch(proxyUrl + "?url=" + encodeURIComponent(googleScriptUrl), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": basicAuth
+        Authorization: `Basic ${btoa(username + ":" + password)}`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(bookData)
     });
 
     if (response.status === 401) {
@@ -853,11 +855,10 @@ async function saveBookData(book) {
 
     console.log("✅ Saved book:", payload.books[0]);
   } catch (error) {
-    console.error("Error saving book data:", error);
-    alert("Failed to save book data: " + error.message);
+    console.error("Proxy error:", error); // logs in Vercel dashboard
+    res.status(500).json({ error: "Proxy error", details: error.message });
   }
 }
-
 
 // --- INITIALIZE ---
 window.onload = () => {
