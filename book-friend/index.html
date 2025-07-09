@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>book friend :)</title>
+    <title>bookmouse :)</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
@@ -24,14 +25,38 @@
       <div id="bookCard" class="book-card"></div>
     </div>
 
-    <!-- Theme toggle button -->
-    <button id="themeToggleBtn" class="theme-toggle" title="Toggle Theme">
-      <i data-lucide="palette"></i>
-    </button>
-
+    <!-- Add new book button -->
+    <button id="addBookBtn" title="Add New Book"><i data-lucide="plus"></i></button>
     <script>
       lucide.createIcons();
     </script>
     <script src="script.js"></script>
+
+    <!-- Add new book popup -->
+    <div id="addBookPopup" class="popup hidden">
+      <div class="popup-content">
+        <h3>Add a New Book</h3>
+        <input placeholder="Title" id="addTitle" />
+        <input placeholder="Author" id="addAuthor" />
+        <input placeholder="ISBN" id="addIsbn" />
+        <input placeholder="Quote" id="addQuote" />
+        <input placeholder="Review" id="addReview" />
+        <input type="number" placeholder="Rating (0-5)" id="addRating" />
+        <input type="number" placeholder="Despair (1-5)" id="addDespair" />
+        <input placeholder="Tags (comma-separated)" id="addTags" />
+        <div class="popup-buttons">
+          <div class="popup-favorite-container">
+            <div id="addFavoriteHeart" class="favorite-heart" title="Toggle Favorite">&#10084;</div>
+          </div>
+         <!-- Optional visible version for user editing -->
+<label for="dateReadInput">Date Read</label>
+<input type="month" id="dateReadInput" name="dateRead">
+          <div class="popup-action-buttons">
+            <button id="addBookConfirm" class="add-btn">Add</button>
+            <button class="close-btn" id="closePopupBtn">&times;</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
