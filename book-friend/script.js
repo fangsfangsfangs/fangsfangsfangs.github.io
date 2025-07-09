@@ -13,13 +13,30 @@ const placeholderImage = "https://fangsfangsfangs.neocities.org/book-covers/plac
 // Suggested tags (optional)
 const suggestedTags = ["classic", "fantasy", "nonfiction", "sci-fi", "biography", "mystery"];
 
+//Chronological order function
+function compareByDateReadDesc(a, b) {
+  const parseDate = (dateStr) => {
+    if (!dateStr || !/^\d{4}-(0[1-9]|1[0-2])$/.test(dateStr)) return null;
+    return parseInt(dateStr.replace("-", ""), 10); // e.g. "2025-07" -> 202507
+  };
+
+  const aDate = parseDate(a.dateRead);
+  const bDate = parseDate(b.dateRead);
+
+  if (aDate === null && bDate === null) return 0; // both invalid, equal
+  if (aDate === null) return 1; // a missing date, push to bottom
+  if (bDate === null) return -1; // b missing date, push to bottom
+
+  return bDate - aDate; // newest first
+}
+
 // --- FETCH MAIN BOOKS ---
 async function fetchBooks() {
   try {
-    const res = await fetch("https://opensheet.elk.sh/1mba7klBrTyQ3QXRic4Lw97RIt4aU4XeEUcUJ8QjP7WU/review");
+    const res = await fetch("https://bookmouse-backend.onrender.com/books/read");
     const rawBooks = await res.json();
-    const normalizedBooks = rawBooks.map(normalizeBook);
-    // Enhance each book with cover + genres
+    const normalizedBooks = rawBooks.map((b) => normalizeBook(b, false));
+
     allBooks = await Promise.all(normalizedBooks.map(enhanceBookWithCover));
     applyFilters();
   } catch (e) {
@@ -28,48 +45,85 @@ async function fetchBooks() {
   }
 }
 
-function normalizeBook(book) {
-  return {
+// --- FETCH TO-READ BOOKS ---
+async function fetchAndRenderToReadGrid() {
+  try {
+    const res = await fetch("https://opensheet.elk.sh/1mba7klBrTyQ3QXRic4Lw97RIt4aU4XeEUcUJ8QjP7WU/to-read");
+    const rawBooks = await res.json();
+
+    const normalized = rawBooks.map((book) => ({
+      title: (book.title || "").trim(),
+      author: (book.author || "").trim(),
+      isbn: (book.isbn || "").replace(/[-\s]/g, "").trim(),
+      cover: (book.cover || "").trim(),
+      tags: (book.tags || "")
+        .split(",")
+        .map((tag) => tag.trim().toLowerCase())
+        .filter((tag) => tag.length > 0)
+    }));
+
+    toReadBooks = await Promise.all(normalized.map(enhanceBookWithCover));
+    applyToReadFilter();
+  } catch (e) {
+    console.error("Failed to fetch to-read books from spreadsheet:", e);
+    document.getElementById("gridView").innerHTML = `<p style="color:red;">Failed to load to-read books.</p>`;
+  }
+}
+
+// Unified normalization function
+function normalizeBook(book, isToRead = false) {
+  const base = {
     title: (book.title || "").trim(),
     author: (book.author || "").trim(),
     isbn: (book.isbn || "").replace(/[-\s]/g, "").trim(),
-    quote: (book.quote || "").trim(),
-    review: (book.review || "").trim(),
-    cover: (book.cover || "").trim(),
-    rating: parseInt(book.rating || "0"),
-    despair: parseInt(book.despair || "0"),
-    favorite: (book.favorite || "").toLowerCase(),
-    tags: (book.tags || "")
-      .split(",")
-      .map((tag) => tag.trim().toLowerCase())
-      .filter((tag) => tag.length > 0)
+    cover: (book.cover || "").trim()
   };
-}
 
-// --- ENHANCE BOOK WITH COVER ---
-async function enhanceBookWithCover(book) {
-  if (!book.cover || book.cover === "") {
-    book.cover = (await fetchOpenLibraryCover(book.title, book.author, book.isbn)) || placeholderImage;
+  if (isToRead) {
+    return {
+      ...base,
+      notes: (book.notes || "").trim()
+    };
+  } else {
+    return {
+      ...base,
+      quote: (book.quote || "").trim(),
+      review: (book.review || "").trim(),
+      rating: parseInt(book.rating || "0"),
+      despair: parseInt(book.despair || "0"),
+      favorite: (book.favorite || "").toLowerCase(),
+      tags: (book.tags || "")
+        .split(",")
+        .map((tag) => tag.trim().toLowerCase())
+        .filter((tag) => tag.length > 0),
+      dateRead: book.dateRead && isValidDateRead(book.dateRead) ? book.dateRead.trim() : getFallbackDate()
+    };
   }
-  return book;
 }
 
-// --- ENHANCE TO-READ BOOK (use ISBN if available) ---
-async function enhanceToReadBookWithCover(book) {
-  const cleanIsbn = (book.isbn || "").replace(/[-\s]/g, "").trim();
-  book.cover = (await fetchOpenLibraryCover(book.title, book.author, cleanIsbn)) || placeholderImage;
-  return book;
+function isValidDateRead(dateStr) {
+  // Expecting "YYYY-MM", e.g. "2025-07"
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(dateStr);
+}
+
+function getFallbackDate() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
 async function fetchAndRenderToReadGrid() {
   try {
     const res = await fetch("https://opensheet.elk.sh/1mba7klBrTyQ3QXRic4Lw97RIt4aU4XeEUcUJ8QjP7WU/to-read");
     const rawBooks = await res.json();
-    const normalized = rawBooks.map(normalizeToReadBook);
-    toReadBooks = await Promise.all(normalized.map(enhanceToReadBookWithCover));
+
+    const normalized = rawBooks.map((book) =>
+      normalizeBook(book, true) // Use your unified normalizeBook with isToRead = true
+    );
+
+    toReadBooks = await Promise.all(normalized.map(enhanceBookWithCover));
     applyToReadFilter();
   } catch (e) {
-    console.error("Failed to fetch to-read books:", e);
+    console.error("Failed to fetch to-read books from spreadsheet:", e);
     document.getElementById("gridView").innerHTML = `<p style="color:red;">Failed to load to-read books.</p>`;
   }
 }
@@ -84,7 +138,7 @@ function normalizeToReadBook(book) {
   };
 }
 
-// --- FETCH OPEN LIBRARY COVER (try title+author first, then fallback to ISBN direct) ---
+// --- FETCH COVER FROM OPEN LIBRARY ---
 async function fetchOpenLibraryCover(title, author, isbn) {
   const cleanIsbn = isbn?.replace(/[-\s]/g, "").trim();
 
@@ -138,7 +192,7 @@ async function fetchOpenLibraryCover(title, author, isbn) {
   return null;
 }
 
-//Fallback helper
+// --- CHECK IF IMAGE EXISTS (HEAD request) ---
 async function imageExists(url) {
   try {
     const res = await fetch(url, { method: "HEAD" });
@@ -146,6 +200,13 @@ async function imageExists(url) {
   } catch {
     return false;
   }
+}
+
+// --- ENHANCE ANY BOOK (read or to-read) WITH COVER ---
+async function enhanceBookWithCover(book) {
+  const cleanIsbn = (book.isbn || "").replace(/[-\s]/g, "").trim();
+  book.cover = (await fetchOpenLibraryCover(book.title, book.author, cleanIsbn)) || placeholderImage;
+  return book;
 }
 
 // --- WORK KEY + SYNOPSIS FETCH + CACHE ---
@@ -229,7 +290,11 @@ function applyFilters() {
   if (viewMode === "favorites") {
     filteredBooks = allBooks.filter(isBookFavorited);
   } else if (viewMode === "to-read") {
-    fetchAndRenderToReadGrid();
+    if (toReadBooks.length === 0) {
+      fetchAndRenderToReadGrid();
+    } else {
+      applyToReadFilter();
+    }
     return;
   } else {
     filteredBooks = allBooks;
@@ -243,21 +308,28 @@ function applyFilters() {
     });
   }
 
+  filteredBooks.sort(compareByDateReadDesc);
+
   currentIndex = 0;
   renderGridView();
 }
 
 function applyToReadFilter() {
-  if (activeToReadTag) {
-    filteredToReadBooks = toReadBooks.filter((book) => {
-      const bookKey = `customTagsToRead_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
-      const customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
-      return customTags.some((tag) => tag.toLowerCase() === activeToReadTag);
-    });
-  } else {
-    filteredToReadBooks = toReadBooks;
+  try {
+    if (activeToReadTag) {
+      filteredToReadBooks = toReadBooks.filter((book) => {
+        const bookKey = `customTagsToRead_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
+        const customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
+        return customTags.some((tag) => tag.toLowerCase() === activeToReadTag.toLowerCase());
+      });
+    } else {
+      filteredToReadBooks = [...toReadBooks];
+    }
+    renderToReadGrid();
+  } catch (e) {
+    console.error("Error applying to-read filter:", e);
+    document.getElementById("gridView").innerHTML = `<p style="color:red;">Failed to load to-read books.</p>`;
   }
-  renderToReadGrid();
 }
 
 // --- RENDER GRID (Main + To-Read) ---
@@ -318,6 +390,37 @@ function renderToReadGrid() {
   });
 }
 
+function renderToReadGrid() {
+  const grid = document.getElementById("gridView");
+  grid.innerHTML = "";
+
+  if (toReadBooks.length === 0) {
+    grid.innerHTML = `<p style="text-align:center;">No to-read books found.</p>`;
+    return;
+  }
+
+  filteredToReadBooks.forEach((book) => {
+    const item = document.createElement("div");
+    item.className = "to-read-grid-item";
+
+    const img = document.createElement("img");
+    img.src = book.cover || placeholderImage;
+    img.alt = `Cover of ${book.title}`;
+    img.onerror = () => {
+      img.src = placeholderImage;
+    };
+
+    item.appendChild(img);
+
+    item.addEventListener("click", () => {
+      renderToReadCard(book);
+      document.getElementById("cardOverlay").classList.remove("hidden");
+    });
+
+    grid.appendChild(item);
+  });
+}
+
 // Main book card popup with integrated custom tag display and add/delete
 function renderSingleCard(book) {
   if (!book) return;
@@ -326,13 +429,12 @@ function renderSingleCard(book) {
   let customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
 
   // Generate tags HTML
-  const tagsHTML =
-    customTags
-      .map(
-        (tag) =>
-          `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
-      )
-      .join("") + `<span class="tag add-tag-btn" title="Add Tag">+</span>`;
+  const tagsHTML = customTags
+    .map(
+      (tag) =>
+        `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
+    )
+    .join("");
 
   const bookCard = document.getElementById("bookCard");
   const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
@@ -372,14 +474,22 @@ function renderSingleCard(book) {
 </div>
 
     <div class="card-footer">
-      <div class="footer-left">
-        <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
-      </div>
-      <div class="footer-center"></div>
-      <div class="footer-right">
-        <div class="tags">${tagsHTML}</div>
+  <div class="footer-left">
+    <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
+     <div class="date-read-container">
+      <i data-lucide="calendar-1" class="calendar-icon" title="Edit Date Read" style="cursor:pointer;"></i>
+      <div id="dateReadEditable" class="date-read editable" contenteditable="false" title="Click calendar to edit date read">
+        ${book.dateRead || "YYYY-MM"}
+  </div>
+  <div class="footer-center">
+   
       </div>
     </div>
+  </div>
+  <div class="footer-right">
+    <div class="tags">${tagsHTML}<span class="tag add-tag-btn" title="Add Tag">+</span></div>
+  </div>
+</div>
   `;
 
   // Close button
@@ -392,6 +502,51 @@ function renderSingleCard(book) {
   bookCard.appendChild(closeBtn);
 
   lucide.createIcons();
+  const calendarIcon = bookCard.querySelector(".calendar-icon");
+  const dateReadDiv = document.getElementById("dateReadEditable");
+
+  calendarIcon.addEventListener("click", () => {
+    if (dateReadDiv.contentEditable === "true") {
+      // Already editing, ignore
+      return;
+    }
+    dateReadDiv.contentEditable = "true";
+    dateReadDiv.classList.add("editing");
+    dateReadDiv.focus();
+
+    // Select all text on focus
+    document.execCommand("selectAll", false, null);
+  });
+
+  // On blur, validate and save new dateRead
+  dateReadDiv.addEventListener("blur", async () => {
+    dateReadDiv.contentEditable = "false";
+    dateReadDiv.classList.remove("editing");
+
+    let newDate = dateReadDiv.textContent.trim();
+
+    // Validate format YYYY-MM (simple regex)
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(newDate)) {
+      alert("Please enter a valid date in YYYY-MM format.");
+      // Reset to previous valid value
+      dateReadDiv.textContent = book.dateRead || "YYYY-MM";
+      return;
+    }
+
+    if (book.dateRead !== newDate) {
+      book.dateRead = newDate;
+      try {
+        await saveBookData(book);
+        // Optional: toast or confirmation here
+        console.log(`Date Read updated to ${newDate}`);
+      } catch (err) {
+        alert("Failed to save Date Read.");
+        console.error(err);
+        // Reset on failure
+        dateReadDiv.textContent = book.dateRead || "YYYY-MM";
+      }
+    }
+  });
 
   // Navigation buttons
   document.getElementById("prevBtn").addEventListener("click", () => {
@@ -592,6 +747,64 @@ function attachToolbarHandlers() {
     activeToReadTag = null;
     fetchAndRenderToReadGrid();
   };
+  document.getElementById("addBookBtn").addEventListener("click", () => {
+    document.getElementById("addBookPopup").classList.remove("hidden");
+  });
+
+  document.getElementById("closePopupBtn").addEventListener("click", () => {
+    document.getElementById("addBookPopup").classList.add("hidden");
+
+    document.getElementById("addBookPopup").classList.add("hidden");
+  });
+
+  document.getElementById("addBookConfirm").addEventListener("click", async () => {
+  // Parse and clean tags input
+  const rawTags = document.getElementById("addTags").value;
+const tagsArray = tagUtils.parseTags(rawTags);
+
+  const newBook = {
+    title: document.getElementById("addTitle").value.trim(),
+    author: document.getElementById("addAuthor").value.trim(),
+    isbn: document.getElementById("addIsbn").value.trim(),
+    quote: document.getElementById("addQuote").value.trim(),
+    review: document.getElementById("addReview").value.trim(),
+    rating: parseInt(document.getElementById("addRating").value) || 0,
+    despair: parseInt(document.getElementById("addDespair").value) || 0,
+    favorite: addFavoriteHeart && addFavoriteHeart.classList.contains("active") ? "y" : "",
+    tags: tagsArray,
+    dateRead: document.getElementById("dateReadInput").value || getFallbackDate()
+  };
+
+  const enhanced = await enhanceBookWithCover(normalizeBook(newBook));
+  allBooks.push(enhanced);
+
+  // Save custom tags to localStorage
+  const bookKey = `customTags_${newBook.title.toLowerCase()}_${newBook.author.toLowerCase()}`;
+  localStorage.setItem(bookKey, JSON.stringify(tagsArray));
+
+  // Prepare data for backend: convert tags array back to comma string
+  const backendPayload = {
+    ...enhanced,
+    tags: tagsArray.join(", "),
+    favorite: newBook.favorite === "y" ? "true" : "false"
+  };
+
+  try {
+    await fetch("/books/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(backendPayload)
+    });
+    showToast("✅ Book added!");
+    applyFilters();
+    document.getElementById("addBookPopup").classList.add("hidden");
+
+    if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
+  } catch (e) {
+    console.error("Failed to save book:", e);
+    alert("❌ Failed to save new book.");
+  }
+});
 }
 
 // --- UTILS ---
@@ -609,6 +822,42 @@ function getDespairIcon(value) {
   };
   return `<i data-lucide="${icons[value] || "help-circle"}"></i>`;
 }
+
+//  Normalize a raw tags string input into a unique, trimmed, lowercase array
+const tagUtils = {
+  parseTags(rawTags) {
+    if (!rawTags) return [];
+    return rawTags
+      .split(",")
+      .map(t => t.trim().toLowerCase())
+      .filter((t, i, arr) => t && arr.indexOf(t) === i);
+  },
+
+  // Format an array of tags back into a comma-separated string for backend/localStorage
+  formatTags(tagsArray) {
+    if (!Array.isArray(tagsArray)) return "";
+    return tagsArray.join(", ");
+  },
+
+  // Save custom tags to localStorage by book key
+  saveCustomTags(book, tagsArray) {
+    const key = `customTags_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
+    localStorage.setItem(key, JSON.stringify(tagsArray));
+  },
+
+  // Load custom tags array from localStorage for a given book
+  loadCustomTags(book) {
+    const key = `customTags_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
+    try {
+      const stored = localStorage.getItem(key);
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+};
 
 // --- TAG INPUT POPUP ---
 
@@ -744,33 +993,28 @@ function setupEditableField(elementId, book, fieldName) {
   });
 
   // On losing focus, save if content changed
-el.addEventListener("blur", async () => {
-  el.contentEditable = "false";
-  const newValue = el.textContent.trim();
+  el.addEventListener("blur", async () => {
+    el.contentEditable = "false";
+    const newValue = el.textContent.trim();
 
-  console.log(`📝 Blur triggered for "${fieldName}"`);
-  console.log("New value:", newValue);
-  console.log("Old value:", book[fieldName]);
+    console.log(`📝 Blur triggered for "${fieldName}"`);
+    console.log("New value:", newValue);
+    console.log("Old value:", book[fieldName]);
 
-  if (book[fieldName] !== newValue) {
-    book[fieldName] = newValue;
-    try {
-      console.log("📤 Sending updated book data...");
-      await saveBookData(book);
-      console.log(`✅ Saved ${fieldName} successfully`);
-    } catch (err) {
-      alert(`❌ Failed to save ${fieldName}.`);
-      console.error(err);
+    if (book[fieldName] !== newValue) {
+      book[fieldName] = newValue;
+      try {
+        console.log("📤 Sending updated book data...");
+        await saveBookData(book);
+        console.log(`✅ Saved ${fieldName} successfully`);
+      } catch (err) {
+        alert(`❌ Failed to save ${fieldName}.`);
+        console.error(err);
+      }
+    } else {
+      console.log(`ℹ️ No changes to ${fieldName}, not saving.`);
     }
-  } else {
-    console.log(`ℹ️ No changes to ${fieldName}, not saving.`);
-  }
-});
-}
-
-//OPTIONS preflight request
-function doOptions(e) {
-  return ContentService.createTextOutput("").setMimeType(ContentService.MimeType.TEXT);
+  });
 }
 
 //housekeeping popup
@@ -792,59 +1036,35 @@ function showToast(message) {
 }
 
 async function saveBookData(book) {
-  const proxyUrl = "https://vercel-cors-proxy-orpin.vercel.app/api/proxy";
-  const googleScriptUrl =
-    "https://script.google.com/macros/s/AKfycbzaCvrbc8x-R2ygrXvnetlvY_K_aqozdWYWqt3BSTIxA7tSd-_ZYo2fSV8csoUbshC3/exec";
-
-  const fullUrl = `${proxyUrl}?url=${encodeURIComponent(googleScriptUrl)}`;
-
   const key = `favorite_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
   const isFav = localStorage.getItem(key) === "true";
 
   const tagKey = `customtags_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
   const customTags = JSON.parse(localStorage.getItem(tagKey)) || [];
 
-  const payload = {
-    type: "read",
-    books: [
-      {
-        title: book.title,
-        author: book.author,
-        quote: book.quote || "",
-        review: book.review || "",
-        rating: book.rating || 0,
-        despair: book.despair || 0,
-        tags: customTags.join(", "),
-        favorite: isFav ? "true" : "false",
-        isbn: book.isbn || ""
-      }
-    ]
-  };
+  const id = `${encodeURIComponent(book.title)}_${encodeURIComponent(book.author)}`;
 
   try {
-    const response = await fetch(fullUrl, {
-      method: "POST",
+    const response = await fetch(`/books/read/${id}`, {
+      method: "PUT",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${btoa("peepee696969:poopoo420420")}`
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        ...book,
+        favorite: isFav ? "true" : "false",
+        tags: customTags.join(", ")
+      })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`HTTP error ${response.status}: ${errorText}`);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
-    const result = await response.json();
-
-    if (result.result !== "success") {
-      throw new Error(result.message || "Backup save failed");
-    }
-
-    console.log("✅ Saved book:", payload.books[0]);
+    console.log("✅ Book updated:", book.title);
   } catch (error) {
-    console.error("❌ Proxy error:", error.message);
+    console.error("❌ Failed to update book:", error);
   }
 }
 
@@ -852,4 +1072,69 @@ async function saveBookData(book) {
 window.onload = () => {
   fetchBooks();
   attachToolbarHandlers();
+
+  // Setup favorite heart toggle in Add Book popup
+  const addFavoriteHeart = document.getElementById("addFavoriteHeart");
+  if (addFavoriteHeart) {
+    addFavoriteHeart.addEventListener("click", () => {
+      addFavoriteHeart.classList.toggle("active");
+    });
+  }
+
+  // Show Add Book popup
+  document.getElementById("addBookBtn").addEventListener("click", () => {
+    document.getElementById("addBookPopup").classList.remove("hidden");
+  });
+
+  // Close Add Book popup and reset toggle
+  document.getElementById("closePopupBtn").addEventListener("click", () => {
+    document.getElementById("addBookPopup").classList.add("hidden");
+    if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
+  });
+
+  // Confirm Add Book, read toggle state and reset it after add
+document.getElementById("addBookConfirm").addEventListener("click", async () => {
+  const rawTags = document.getElementById("addTags").value;
+  const tagsArray = tagUtils.parseTags(rawTags); // 🧹 Step 1: Clean tags
+
+  const newBook = {
+    title: document.getElementById("addTitle").value.trim(),
+    author: document.getElementById("addAuthor").value.trim(),
+    isbn: document.getElementById("addIsbn").value.trim(),
+    quote: document.getElementById("addQuote").value.trim(),
+    review: document.getElementById("addReview").value.trim(),
+    rating: parseInt(document.getElementById("addRating").value) || 0,
+    despair: parseInt(document.getElementById("addDespair").value) || 0,
+    favorite: addFavoriteHeart && addFavoriteHeart.classList.contains("active") ? "y" : "",
+    tags: tagsArray, // Use array form in memory
+    dateRead: document.getElementById("dateReadInput").value || getFallbackDate()
+  };
+
+  tagUtils.saveCustomTags(newBook, tagsArray); // 💾 Step 2: Save tags locally
+
+  const enhanced = await enhanceBookWithCover(normalizeBook(newBook));
+
+  // 📨 Step 3: Prepare data for server
+  const backendPayload = {
+    ...enhanced,
+    tags: tagUtils.formatTags(tagsArray), // 📤 Convert array to comma string
+    favorite: newBook.favorite === "y" ? "true" : "false"
+  };
+
+  try {
+    await fetch("/books/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(backendPayload)
+    });
+
+    showToast("✅ Book added!");
+    applyFilters(); // Refresh view
+    document.getElementById("addBookPopup").classList.add("hidden");
+    if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
+  } catch (e) {
+    console.error("❌ Failed to save book:", e);
+    alert("❌ Failed to save new book.");
+  }
+});
 };
