@@ -470,10 +470,7 @@ body,
 }
 
 /* ===== Base Tag/Button Styles ===== */
-.tag,
-.cancel-btn,
-.add-btn,
-.tag.add-tag-btn {
+.tag, add-tag-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -538,8 +535,7 @@ body,
   background-color: #fff8ec;
 }
 
-.tag-submit,
-.tag-cancel {
+.tag-submit {
   padding: 0.4rem 0.85rem;
   font-size: 0.85rem;
   border: none;
@@ -555,17 +551,44 @@ body,
   background-color: #f49c48;
 }
 
+.tag-cancel {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-weight: bold;
+  background-color: #eee;
+  color: #666;
+}
+
 .tag-cancel:hover {
   background-color: #ccc;
 }
 
-.delete-tag-btn:hover {
-  color: #ff6161;
+.tag-input-buttons button {
+   background-color: var(--tag-hover-bg, #eaeaea);
+  color: var(--tag-hover-bg, #7a7a7a);
+  font-family: inherit;
+  font-weight: 550;
+  text-transform: lowercase;
+  border: none;
+  border-radius: 15px;
+  padding: 0.7rem 0.8rem;
+  margin: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.cancel-btn {
-  background: #eee;
-  color: #666;
+.tag-input-buttons button:hover {
+  background-color: var(--tag-hover-bg, #555);
+  color: var(--tag-hover-text, #fff);
+}
+
+.delete-tag-btn:hover {
+  color: #ff6161;
 }
 
 .cancel-btn:hover {
@@ -661,26 +684,6 @@ body,
 .suggested-tag-btn:hover {
   background-color: #f9b274;
   color: #7a7a7a;
-}
-
-.tag-input-buttons {
-  background-color: var(--tag-hover-bg, #eaeaea);
-  color: var(--tag-hover-bg, #7a7a7a);
-  font-family: inherit;
-  font-weight: 550;
-  text-transform: lowercase;
-  border: none;
-  border-radius: 13px;
-  padding: 0.6rem 0.9rem;
-  margin: 10px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.tag-input-buttons {
-  background-color: var(--tag-hover-bg, #7a7a7a);
-  color: var(--tag-hover-text, #efefef);
 }
 
 /* QUICKLIST stlye */
