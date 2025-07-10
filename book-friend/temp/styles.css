@@ -1,0 +1,900 @@
+/* Overlay that contains the book card */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: flex-start; /* prevent overflow at bottom */
+  justify-content: center;
+  z-index: 999;
+  overflow-y: auto; /* allow scrolling on small screens */
+  padding: 2.5rem 1rem 2rem; /* merged original padding and mobile override */
+  box-sizing: border-box;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Grid CSS */
+
+.fixed-toolbar {
+  position: fixed;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem;
+  background: #fcc255;
+  margin-bottom: 2rem;
+  box-sizing: border-box;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+
+.fixed-toolbar button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f314b;
+  transition: color 0.3s ease;
+}
+
+.fixed-toolbar button i {
+  width: clamp(1.25rem, 2vw, 1.75rem);
+  height: clamp(1.25rem, 2vw, 1.75rem);
+  stroke-width: 1.5;
+}
+
+.fixed-toolbar button:hover {
+  color: #1aadaa;
+}
+
+.toolbar-logo-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbar-logo {
+  width: clamp(1.25rem, 2vw, 1.75rem);
+  height: clamp(1.25rem, 2vw, 1.75rem);
+  object-fit: contain;
+  transition: filter 0.3s ease;
+}
+
+/* Optional: make the logo "light up" on hover */
+.toolbar-logo-btn:hover .toolbar-logo {
+  content: url("https://fangsfangsfangs.github.io/book-friend/bookmouse1-hover.png");
+}
+
+/* Close button for overlay and popup cards */
+.close-btn,
+.popup .close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  transition: color 0.3s ease;
+  z-index: 1000;
+}
+
+.close-btn {
+  font-size: 2rem;
+}
+
+.popup .close-btn {
+  font-size: 1.75rem;
+}
+
+.close-btn:hover,
+.popup .close-btn:hover {
+  color: #ff6161;
+}
+
+/* Ensure the grid takes full height & scrolls behind the fixed toolbar */
+body {
+  display: block;
+  overflow-x: hidden;
+  margin: 0;
+  padding-top: 3.5rem; /* leave space for fixed toolbar */
+}
+
+/* Grid area full height with vertical scroll */
+.grid-area {
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-height: calc(100vh - 3.5rem);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Hide scrollbars */
+body::-webkit-scrollbar,
+.grid-area::-webkit-scrollbar {
+  display: none;
+}
+body,
+.grid-area {
+  scrollbar-width: none;
+}
+
+/* Grid item styling combined with To-Read grid item */
+.grid-item,
+.to-read-grid-item {
+  cursor: pointer;
+  border-radius: 8px;
+  aspect-ratio: 2 / 3.2; /* Ensures consistent shape */
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.grid-item img,
+.to-read-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Crop edges to fill container */
+  display: block;
+  border-radius: 8px;
+}
+
+.grid-item:hover,
+.to-read-grid-item:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.to-read-notes {
+  font-size: 0.9rem;
+  color: #333;
+  text-align: left;
+  min-height: 80px;
+  max-height: 250px;
+  margin-top: 1.2em;
+  overflow-y: auto;
+  padding: 10px 0.25rem 10px 10px; /* combined */
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  background-color: #f9f7f7;
+  flex-grow: 1;
+}
+
+/* Navigation arrows */
+.nav-button {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px; /* reduced for balance */
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  user-select: none;
+  color: #f25b5b;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-button:hover {
+  background-color: #d4d7d8;
+}
+
+/* Book card */
+.book-card,
+#bookCard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 350px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px #b1bcbf;
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+  align-items: center;
+  min-height: 50vh;
+  flex-grow: 1;
+}
+
+.book-card {
+  align-items: stretch;
+  min-height: auto;
+  flex-grow: 0;
+}
+
+/* Cover container */
+.cover-container,
+.to-read-cover-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.cover-container img,
+.to-read-cover-container img {
+  width: 175px;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 1rem;
+  border: 15px solid #c4c4c4;
+}
+
+/* Title, author, review container */
+.title-author-review {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.title,
+.to-read-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #353535;
+  margin-top: 1rem;
+}
+
+.author,
+.to-read-author {
+  font-style: italic;
+  color: #828282;
+}
+
+.quote-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  font-size: 1rem;
+  color: #555;
+  background-color: #ececec;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.quote-icon {
+  width: 18px;
+  height: 18px;
+  color: #838383;
+  flex-shrink: 0;
+}
+
+.quote-icon.close-quote {
+  transform: scaleX(-1);
+}
+
+.rating-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 1.4rem; /* Uniform scale */
+  font-family: "Courier New", monospace;
+  line-height: 1; /* Prevent vertical misalignment */
+}
+
+.rating-header-left,
+.rating-header-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.rating-header-left {
+  justify-content: flex-start;
+}
+
+.rating-header-right {
+  justify-content: flex-end;
+}
+
+.rating {
+  font-size: inherit; /* Inherit from parent box */
+  line-height: inherit;
+  user-select: none;
+  color: #f9cb74;
+}
+
+.despair-level {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #376469;
+}
+
+.review {
+  font-size: 0.9rem;
+  color: #333333;
+  text-align: left;
+  min-height: 80px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #eaeaea; /* thin light gray border */
+  border-radius: 8px; /* rounded corners */
+  padding: 10px; /* space inside the border */
+  background-color: #f9f7f7; /* optional: subtle background */
+  flex-grow: 1; /* grow to fill the space inside title-author-review */
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: auto;
+  min-height: 3.2vh;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.card-footer-left,
+.card-footer-center,
+.card-footer-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.card-footer-left {
+  justify-content: flex-start;
+}
+
+.card-footer-center {
+  justify-content: center;
+}
+
+.card-footer-right {
+  justify-content: flex-end;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.calendar-icon {
+  color: #376469;
+}
+
+.calendar-icon:hover {
+  color: #f9b274;
+}
+
+/* Favorite heart */
+.favorite-heart,
+#addFavoriteHeart {
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #c0c0c0;
+  transition: color 0.3s ease;
+}
+
+.favorite-heart.active,
+#addFavoriteHeart.active {
+  color: #f46a6a;
+}
+
+.to-read-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #353535;
+  margin-top: 1rem;
+}
+
+.to-read-author {
+  font-style: italic;
+  color: #828282;
+}
+
+.to-read-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 1rem;
+  justify-content: flex-start;
+}
+
+#prevBtn,
+#nextBtn {
+  position: absolute;
+  top: 35%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  color: #ff6161;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+#prevBtn {
+  left: 10px;
+}
+
+#nextBtn {
+  right: 10px;
+}
+
+#prevBtn:hover,
+#nextBtn:hover {
+  background: rgba(255, 255, 255, 0);
+}
+/* Tags container to group footer tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* ===== Base Tag/Button Styles ===== */
+.tag, add-tag-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  border-radius: 15px;
+  padding: 0.4rem 0.7rem;
+  gap: 0.3rem;
+  background: #376469;
+  color: white;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.tag:hover {
+  background-color: #f9b274;
+  color: #376469;
+}
+
+/* Delete button inside tags */
+.delete-tag-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0 0.1rem 0 0.2rem;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+/* Add tags popup */
+.tag-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+.tag-input {
+  padding: 0.6rem;
+  border: 1px solid #f9cb74;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  background: #fffdf5;
+  color: #333;
+  box-sizing: border-box;
+  width: 100%;
+  outline: none;
+}
+
+.tag-input:focus {
+  border-color: #f9b274;
+  background-color: #fff8ec;
+}
+
+.tag-submit {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-weight: bold;
+  background-color: #eee;
+  color: #666;
+}
+
+.tag-submit:hover {
+  background-color: #f49c48;
+}
+
+.tag-cancel {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-weight: bold;
+  background-color: #eee;
+  color: #666;
+}
+
+.tag-cancel:hover {
+  background-color: #ccc;
+}
+
+.tag-input-buttons button {
+   background-color: var(--tag-hover-bg, #eaeaea);
+  color: var(--tag-hover-bg, #7a7a7a);
+  font-family: inherit;
+  font-weight: 550;
+  text-transform: lowercase;
+  border: none;
+  border-radius: 15px;
+  padding: 0.7rem 0.8rem;
+  margin: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tag-input-buttons button:hover {
+  background-color: var(--tag-hover-bg, #555);
+  color: var(--tag-hover-text, #fff);
+}
+
+.delete-tag-btn:hover {
+  color: #ff6161;
+}
+
+.cancel-btn:hover {
+  background: #ccc;
+}
+
+/* Main add + button */
+.add-btn:disabled {
+  background: #f9cb7466;
+  cursor: default;
+  color: #fff;
+}
+
+.add-btn:not(:disabled):hover {
+  background: #f49c48;
+}
+
+/* Buttons container */
+.popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* ===== opacity BG layer =====*/
+.tag-input-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+}
+
+/* ===== popup box bg =====*/
+.tag-input-popup {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  padding: 1.5rem 2rem;
+  width: 320px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: center;
+}
+/* ===== Add a Tag header =====*/
+.tag-input-popup h3 {
+  margin: 0;
+  font-weight: 700;
+  color: #353535;
+  font-size: 1.25rem;
+}
+/* ===== Enter tag box =====*/
+.tag-input-popup input[type="text"] {
+  padding: 0.6rem 0.9rem;
+  font-size: 1rem;
+  border: 2px solid #dadada;
+  border-radius: 12px;
+  outline-offset: 2px;
+  outline-color: #ffffff;
+  transition: border-color 0.3s ease;
+}
+
+.tag-input-popup input[type="text"]:focus {
+  border-color: #b6b6b6;
+  background-color: #f9f5ec;
+}
+/* ===== Add a Tag/Suggested Popup Styles ===== */
+.suggested-tag-btn {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  border-radius: 15px;
+  padding: 0.5rem 0.7rem;
+  margin: 0.2rem;
+  background: #f9cb74;
+  color: white;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.suggested-tag-btn:hover {
+  background-color: #f9b274;
+  color: #7a7a7a;
+}
+
+/* QUICKLIST stlye */
+
+/* Optional header styling */
+.quicklist-header {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #e66767;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  text-align: left;
+}
+
+/* Scrollable list that fills remaining height */
+.quicklist-content {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 60vh;
+  padding-right: rem;
+  margin-bottom: 1rem;
+  scrollbar-width: none; /* Firefox */
+}
+.quicklist-content::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+/* List items are left-aligned and spaced */
+.quicklist-item {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #f6bf9e;
+  padding-bottom: 0.5rem;
+  text-align: left;
+}
+
+/* Mobile override */
+@media (max-width: 600px) {
+  .book-card {
+    padding: 1rem 0.8rem;
+    min-height: auto;
+    flex-grow: 0;
+  }
+}
+
+/* === Big add book button (+) === */
+#addBookBtn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 48px;
+  height: 48px;
+  background-color: #f78a37;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: background-color 0.3s ease;
+}
+
+#addBookBtn:hover {
+  background-color: #3698ff;
+  color: #f4b584;
+}
+
+/* === Add book popup container === */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.popup-content {
+  background: #ffffff;
+  color: #3698ff;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 350px;
+  min-height: 45vh;
+  box-shadow: 0 4px 10px #424242;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  text-align: center;
+  align-items: stretch;
+}
+
+.addBookConfirm-btn {
+  display: flex;
+  justify-content: center;
+  background: #f9cb74;
+  color: white;
+  font-weight: bold;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+}
+
+.popup input {
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+/* Calendar and date input style */
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.popup-favorite-container {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.date-read-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 1rem;
+}
+
+.date-read {
+  border: 1px solid transparent;
+  padding: 2px 6px;
+  border-radius: 4px;
+  min-width: 70px;
+  text-align: center;
+  user-select: text;
+  font-family: monospace;
+  font-size: 0.9em;
+  color: #555;
+  display: none; /* hidden initially */
+}
+
+.date-read.editing {
+  border-color: #666;
+  background-color: #f0f0f0;
+  display: inline-block; /* visible when editing */
+}
+
+/* Mousekeeping text */
+.toast-message {
+  position: fixed;
+  font-size: 2.5vw;
+  font-weight: 500;
+  font-family: Arial, Helvetica, sans-serif;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  background: #ffffff;
+  color: #60abff;
+  border: 2px dotted #60abff;
+  padding: 20px 20px;
+  border-radius: 30px;
+  opacity: 0;
+  z-index: 9999;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+  pointer-events: none;
+}
+
+.toast-message.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* MOUSEKEEPING glitter rain */
+.glitter-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2000;
+  overflow: hidden;
+}
+
+.glitter {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: fall 2s ease-out forwards;
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-10%) scale(2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) scale(2);
+    opacity: 0;
+  }
+}
