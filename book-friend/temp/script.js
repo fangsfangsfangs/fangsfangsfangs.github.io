@@ -1,5 +1,6 @@
-const supabaseUrl = "https://pnpjlsjxlbrihxlkirwj.supabase.co"; 
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBucGpsc2p4bGJyaWh4bGtpcndqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwODIyNDMsImV4cCI6MjA2NzY1ODI0M30.KP6YZtDGsH6_MtSJF03r2nhmEcXTvpd4Ppb-M3HYkhg";
+const supabaseUrl = "https://pnpjlsjxlbrihxlkirwj.supabase.co";
+const supabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBucGpsc2p4bGJyaWh4bGtpcndqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwODIyNDMsImV4cCI6MjA2NzY1ODI0M30.KP6YZtDGsH6_MtSJF03r2nhmEcXTvpd4Ppb-M3HYkhg";
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 let allBooks = [],
@@ -39,24 +40,6 @@ async function fetchBooks() {
   } catch (error) {
     console.error("Error fetching books:", error);
   }
-}
-
-function normalizeBook(book) {
-  return {
-    id: book.id,
-    title: book.title || "",
-    author: book.author || "",
-    quote: book.quote || "",
-    review: book.review || "",
-    rating: book.rating || 0,
-    despair: book.despair || 0,
-    favorite: book.favorite === "y",
-    isbn: book.isbn || "",
-    tags: (book.tags || "").split(",").map((t) => t.trim()).filter(Boolean),
-    cover: book.cover || "",
-    dateRead: book.date_read || "", // yyyy-mm
-    synopsis: book.synopsis || "",
-  };
 }
 
 function applyFiltersAndRender() {
@@ -125,13 +108,10 @@ function normalizeBook(book, isToRead = false) {
         .split(",")
         .map((tag) => tag.trim().toLowerCase())
         .filter((tag) => tag.length > 0),
-      dateRead: book.dateRead && isValidDateRead(book.dateRead)
-        ? book.dateRead.trim()
-        : getFallbackDate()
+      dateRead: book.dateRead && isValidDateRead(book.dateRead) ? book.dateRead.trim() : getFallbackDate()
     };
   }
 }
-
 function isValidDateRead(dateStr) {
   // Expecting "YYYY-MM", e.g. "2025-07"
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(dateStr);
@@ -151,7 +131,6 @@ function normalizeToReadBook(book) {
     cover: (book.cover || "").trim()
   };
 }
-
 // --- FETCH COVER FROM OPEN LIBRARY ---
 async function fetchOpenLibraryCover(title, author, isbn) {
   const cleanIsbn = isbn?.replace(/[-\s]/g, "").trim();
@@ -199,7 +178,6 @@ async function fetchOpenLibraryCover(title, author, isbn) {
   localStorage.setItem(cacheKey, "null");
   return null;
 }
-
 // --- CHECK IF IMAGE EXISTS (HEAD request) ---
 async function imageExists(url) {
   try {
@@ -209,7 +187,6 @@ async function imageExists(url) {
     return false;
   }
 }
-
 // --- ENHANCE ANY BOOK (read or to-read) WITH COVER ---
 const placeholderImage = "https://fangsfangsfangs.neocities.org/book-covers/placeholder.jpg";
 
@@ -305,12 +282,12 @@ function saveCustomTags(book, tags) {
 }
 
 // --- GRID RENDERING ---
-function applyFilters() {
+async function applyFilters() {
   if (viewMode === "favorites") {
     filteredBooks = allBooks.filter(isBookFavorited);
   } else if (viewMode === "to-read") {
     if (toReadBooks.length === 0) {
-      fetchAndRenderToReadGrid();
+      await fetchToReadBooks();
     } else {
       applyToReadFilter();
     }
@@ -321,7 +298,6 @@ function applyFilters() {
 
   if (activeTag) {
     filteredBooks = filteredBooks.filter((book) => {
-      // Check custom tags for filtering
       const customTags = getCustomTags(book).map((t) => t.toLowerCase());
       return customTags.includes(activeTag.toLowerCase());
     });
@@ -350,12 +326,14 @@ function applyToReadFilter() {
 }
 
 // --- RENDER GRID (Main + To-Read) ---
-function renderGridView() {
+async function renderGridView() {
   const gridContainer = document.getElementById("gridView");
   gridContainer.innerHTML = "";
 
+  const coverUrls = await Promise.all(filteredBooks.map((book) => getCoverUrl(book)));
+
   filteredBooks.forEach((book, index) => {
-    const coverUrl = getCoverUrl(book);
+    const coverUrl = coverUrls[index];
     const card = document.createElement("div");
     card.className = "book-card";
     card.dataset.index = index;
@@ -404,14 +382,6 @@ function renderToReadGrid() {
 
     grid.appendChild(item);
   });
-}
-
-//Book cover helper -- come back to this 
-function getCoverUrl(book) {
-  if (book.cover) return book.cover;
-  if (book.isbn) return `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg`;
-  // fallback placeholder
-  return "https://via.placeholder.com/128x193?text=No+Cover";
 }
 
 // Main book card popup with integrated custom tag display and add/delete
@@ -484,62 +454,6 @@ function renderSingleCard(book) {
 </div>
   `;
 
-  // Close button
-  const closeBtn = document.createElement("button");
-  closeBtn.textContent = "×";
-  closeBtn.classList.add("close-btn");
-  closeBtn.addEventListener("click", () => {
-    document.getElementById("cardOverlay").classList.add("hidden");
-  });
-  bookCard.appendChild(closeBtn);
-
-  lucide.createIcons();
-  const calendarIcon = bookCard.querySelector(".calendar-icon");
-  const dateReadDiv = document.getElementById("dateReadEditable");
-
-  calendarIcon.addEventListener("click", () => {
-    if (dateReadDiv.contentEditable === "true") {
-      // Already editing, ignore
-      return;
-    }
-    dateReadDiv.contentEditable = "true";
-    dateReadDiv.classList.add("editing");
-    dateReadDiv.focus();
-
-    // Select all text on focus
-    document.execCommand("selectAll", false, null);
-  });
-
-  // On blur, validate and save new dateRead
-  dateReadDiv.addEventListener("blur", async () => {
-    dateReadDiv.contentEditable = "false";
-    dateReadDiv.classList.remove("editing");
-
-    let newDate = dateReadDiv.textContent.trim();
-
-    // Validate format YYYY-MM (simple regex)
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(newDate)) {
-      alert("Please enter a valid date in YYYY-MM format.");
-      // Reset to previous valid value
-      dateReadDiv.textContent = book.dateRead || "YYYY-MM";
-      return;
-    }
-
-    if (book.dateRead !== newDate) {
-      book.dateRead = newDate;
-      try {
-        await saveBookData(book);
-        // Optional: toast or confirmation here
-        console.log(`Date Read updated to ${newDate}`);
-      } catch (err) {
-        alert("Failed to save Date Read.");
-        console.error(err);
-        // Reset on failure
-        dateReadDiv.textContent = book.dateRead || "YYYY-MM";
-      }
-    }
-  });
-
   // Navigation buttons
   document.getElementById("prevBtn").addEventListener("click", () => {
     if (filteredBooks.length === 0) return;
@@ -559,7 +473,6 @@ function renderSingleCard(book) {
     const isFav = localStorage.getItem(key) === "true";
     localStorage.setItem(key, !isFav ? "true" : "false");
     renderSingleCard(book);
-    await saveBookData(book); // ✅ Save updated favorite
   });
 
   // Tag filtering
@@ -580,7 +493,6 @@ function renderSingleCard(book) {
       const tagToRemove = tagSpan.dataset.tag;
       customTags = customTags.filter((t) => t.toLowerCase() !== tagToRemove);
       renderSingleCard(book);
-      await saveBookData(book); // ✅ Save updated tags
     });
   });
 
@@ -592,10 +504,8 @@ function renderSingleCard(book) {
   // Setup editable fields for quote and review with autosave
   setupEditableField("quoteEditable", book, "quote");
   setupEditableField("reviewEditable", book, "review");
-
   attachToolbarHandlers();
 }
-
 // To-read card popup (unchanged except for tags if needed)
 async function renderToReadCard(book) {
   if (!book) return;
@@ -673,10 +583,7 @@ async function renderToReadCard(book) {
 //Quick-list Render
 async function renderQuickListCard() {
   try {
-    const { data, error } = await supabase
-      .from("books_to_read")
-      .select("title, author")
-      .order("title");
+    const { data, error } = await supabase.from("books_to_read").select("title, author").order("title");
 
     if (error) throw error;
 
@@ -708,7 +615,7 @@ async function renderQuickListCard() {
 }
 
 // --- TOOLBAR ---
-  function attachToolbarHandlers() {
+function attachToolbarHandlers() {
   document.getElementById("logoBtn").addEventListener("click", () => {
     // Clear failed cover cache
     Object.keys(localStorage).forEach((key) => {
@@ -745,12 +652,12 @@ async function renderQuickListCard() {
       overlay.innerHTML = "";
     }, 2000);
   }
-// Add-book popup event listeners
-  document.getElementById("homeBtn").onclick = () => {
-    viewMode = "all";
-    activeTag = null;
-    fetchBooks();
-  };
+
+document.getElementById("homeBtn").onclick = async () => {
+  viewMode = "all";
+  activeTag = null;
+  await fetchBooks();
+};
 
   document.getElementById("favoritesBtn").onclick = () => {
     viewMode = viewMode === "favorites" ? "all" : "favorites";
@@ -762,21 +669,12 @@ async function renderQuickListCard() {
     renderQuickListCard();
   };
 
-  document.getElementById("showToReadBtn").onclick = () => {
-    viewMode = "to-read";
-    activeToReadTag = null;
-    fetchAndRenderToReadGrid();
-  };
-  document.getElementById("addBookBtn").addEventListener("click", () => {
-    document.getElementById("addBookPopup").classList.remove("hidden");
-  });
-
-  document.getElementById("closePopupBtn").addEventListener("click", () => {
-    document.getElementById("addBookPopup").classList.add("hidden");
-
-    document.getElementById("addBookPopup").classList.add("hidden");
-  });
-   
+ document.getElementById("showToReadBtn").onclick = async () => {
+  viewMode = "to-read";
+  activeToReadTag = null;
+  await fetchToReadBooks();
+};
+}
 // Parse and clean tags input
 async function addBook() {
   const rawTags = document.getElementById("addTags").value;
@@ -882,119 +780,19 @@ function showTagInput(book, isToRead = false) {
     });
     suggestionsContainer.appendChild(tagEl);
   });
-
-  // --- Helper to check if image URL is valid ---
-  function checkImageValid(url) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        if (img.naturalWidth > 10 && img.naturalHeight > 10) resolve(true);
-        else resolve(false);
-      };
-      img.onerror = () => resolve(false);
-      img.src = url;
-    });
-  }
-
-  popup.appendChild(title);
-  popup.appendChild(input);
-  popup.appendChild(suggestionsContainer);
-  popup.appendChild(buttonContainer);
-  overlay.appendChild(popup);
-  document.body.appendChild(overlay);
-
-  input.focus();
-
-  // Determine localStorage key prefix based on book type
-  const bookKey = isToRead
-    ? `customTagsToRead_${book.title.toLowerCase()}_${book.author.toLowerCase()}`
-    : `customTags_${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
-
-  let customTags = JSON.parse(localStorage.getItem(bookKey)) || [];
-
-  addBtn.addEventListener("click", async () => {
-    const newTag = input.value.trim();
-    if (newTag && !customTags.map((t) => t.toLowerCase()).includes(newTag.toLowerCase())) {
-      customTags.push(newTag);
-      document.body.removeChild(overlay);
-      if (isToRead) {
-        renderToReadCard(book);
-      } else {
-        renderSingleCard(book);
-        await saveBookData(book); // ✅ Save updated tags
-      }
-    } else {
-      alert("Please enter a unique tag.");
-    }
-  });
-
-  cancelBtn.addEventListener("click", () => {
-    document.body.removeChild(overlay);
-  });
-
-  // Close on clicking outside popup
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) {
-      document.body.removeChild(overlay);
-    }
-  });
-
-  // Allow pressing Enter to add tag
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") addBtn.click();
-    else if (e.key === "Escape") cancelBtn.click();
+}
+// --- Helper to check if image URL is valid ---
+function checkImageValid(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth > 10 && img.naturalHeight > 10) resolve(true);
+      else resolve(false);
+    };
+    img.onerror = () => resolve(false);
+    img.src = url;
   });
 }
-function setupEditableField(elementId, book, fieldName) {
-  const el = document.getElementById(elementId);
-  if (!el) {
-    console.warn(`Element with ID "${elementId}" not found.`);
-    return;
-  }
-
-  // Enable editing on click
-  el.addEventListener("click", () => {
-    el.contentEditable = "true";
-    el.focus();
-
-    // Optional: select all text on focus
-    document.execCommand("selectAll", false, null);
-  });
-
-  // Handle Enter key: prevent newline and blur to trigger save
-  el.addEventListener("keydown", async (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      el.blur(); // force save
-    }
-  });
-
-  // On losing focus, save if content changed
-  el.addEventListener("blur", async () => {
-    el.contentEditable = "false";
-    const newValue = el.textContent.trim();
-
-    console.log(`📝 Blur triggered for "${fieldName}"`);
-    console.log("New value:", newValue);
-    console.log("Old value:", book[fieldName]);
-
-    if (book[fieldName] !== newValue) {
-      book[fieldName] = newValue;
-      try {
-        console.log("📤 Sending updated book data...");
-        await saveBookData(book);
-        console.log(`✅ Saved ${fieldName} successfully`);
-      } catch (err) {
-        alert(`❌ Failed to save ${fieldName}.`);
-        console.error(err);
-      }
-    } else {
-      console.log(`ℹ️ No changes to ${fieldName}, not saving.`);
-    }
-  });
-}
-
-//housekeeping popup
 function showToast(message) {
   const toast = document.createElement("div");
   toast.className = "toast-message";
@@ -1011,92 +809,7 @@ function showToast(message) {
   }, 3000);
 }
 
-async function saveBookData(book) {
-  try {
-    const updates = {
-      quote: book.quote,
-      review: book.review,
-      date_read: book.dateRead || getFallbackDate(),
-      favorite: book.favorite === "y" ? true : false,
-      tags: Array.isArray(book.tags) ? book.tags.join(", ") : "",
-      rating: book.rating || 0,
-      despair: book.despair || 0,
-    };
-
-    const { error } = await supabase
-      .from("books_read")
-      .update(updates)
-      .eq("id", book.id);
-
-    if (error) throw error;
-    console.log("✅ Supabase updated:", book.title);
-  } catch (error) {
-    console.error("❌ Supabase update failed:", error);
-  }
-}
-
-// --- INITIALIZE ---
-window.onload = () => {
-  fetchBooks();
+document.addEventListener("DOMContentLoaded", () => {
   attachToolbarHandlers();
-
-  // Setup favorite heart toggle in Add Book popup
-  const addFavoriteHeart = document.getElementById("addFavoriteHeart");
-  if (addFavoriteHeart) {
-    addFavoriteHeart.addEventListener("click", () => {
-      addFavoriteHeart.classList.toggle("active");
-    });
-  }
-
-  // Show Add Book popup
-  document.getElementById("addBookBtn").addEventListener("click", () => {
-    document.getElementById("addBookPopup").classList.remove("hidden");
-  });
-
-  // Close Add Book popup and reset toggle
-  document.getElementById("closePopupBtn").addEventListener("click", () => {
-    document.getElementById("addBookPopup").classList.add("hidden");
-    if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
-  });
-
-  // Confirm Add Book, read toggle state and reset it after add
-document.getElementById("addBookConfirm").addEventListener("click", async () => {
-  const rawTags = document.getElementById("addTags").value;
-  const tagsArray = tagUtils.parseTags(rawTags); // Clean tags
-
-  const newBook = {
-    title: document.getElementById("addTitle").value.trim(),
-    author: document.getElementById("addAuthor").value.trim(),
-    isbn: document.getElementById("addIsbn").value.trim(),
-    quote: document.getElementById("addQuote").value.trim(),
-    review: document.getElementById("addReview").value.trim(),
-    rating: parseInt(document.getElementById("addRating").value) || 0,
-    despair: parseInt(document.getElementById("addDespair").value) || 0,
-    favorite: addFavoriteHeart && addFavoriteHeart.classList.contains("active") ? "y" : "",
-    tags: tagsArray,
-    dateRead: document.getElementById("dateReadInput").value || getFallbackDate()
-  };
-
-  const enhanced = await enhanceBookWithCover(normalizeBook(newBook));
-
-  const backendPayload = {
-    ...enhanced,
-    tags: tagUtils.formatTags(tagsArray),
-    favorite: newBook.favorite === "y" ? "true" : "false"
-  };
-
-  try {
-    const { data, error } = await supabase.from("books_read").insert([backendPayload]);
-    if (error) throw error;
-
-    showToast("✅ Book added!");
-    allBooks.push({ ...backendPayload, id: data[0].id });
-    applyFilters();
-    document.getElementById("addBookPopup").classList.add("hidden");
-    if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
-  } catch (e) {
-    console.error("❌ Supabase save failed:", e);
-    alert("❌ Failed to save new book.");
-  }
+  fetchBooks();
 });
-};
