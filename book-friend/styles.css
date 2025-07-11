@@ -220,12 +220,6 @@ body,
   flex-grow: 1;
 }
 
-.book-card {
-  align-items: stretch;
-  min-height: auto;
-  flex-grow: 0;
-}
-
 /* Cover container */
 .cover-container,
 .to-read-cover-container {
@@ -286,6 +280,15 @@ body,
   margin-top: 1rem;
 }
 
+.quote-text {
+  flex: 1;
+  padding: 0 0.5rem;
+  text-align: center;
+  font-style: italic;
+  font-size: 1rem;
+  color: #555;
+}
+
 .quote-icon {
   width: 18px;
   height: 18px;
@@ -326,11 +329,17 @@ body,
   justify-content: flex-end;
 }
 
-.rating {
-  font-size: inherit; /* Inherit from parent box */
-  line-height: inherit;
+.rating-star {
+  cursor: pointer;
+  padding: 0 2px;
+  transition: transform 0.2s ease;
   user-select: none;
   color: #f9cb74;
+}
+
+.rating-star:hover {
+  transform: scale(1.2);
+  color: #ffbb3b;
 }
 
 .despair-level {
@@ -338,6 +347,26 @@ body,
   align-items: center;
   gap: 0.25rem;
   color: #376469;
+}
+
+.despair-icon:hover {
+  transform: scale(1.2);
+  opacity: 1;
+  color: mediumvioletred;
+}
+
+.despair-icon[data-selected="true"] {
+  color: var(--despair-selected-color);
+  opacity: 1;
+}
+
+.despair-icon:not([data-selected="true"]):not(:hover) {
+  color: var(--despair-default-color);
+}
+
+.upside-down {
+  display: inline-block;
+  transform: rotate(180deg);
 }
 
 .review {
@@ -412,18 +441,6 @@ body,
   color: #f46a6a;
 }
 
-.to-read-title {
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: #353535;
-  margin-top: 1rem;
-}
-
-.to-read-author {
-  font-style: italic;
-  color: #828282;
-}
-
 .to-read-footer {
   display: flex;
   flex-wrap: wrap;
@@ -462,6 +479,7 @@ body,
 #nextBtn:hover {
   background: rgba(255, 255, 255, 0);
 }
+
 /* Tags container to group footer tags */
 .tags {
   display: flex;
@@ -470,7 +488,9 @@ body,
 }
 
 /* ===== Base Tag/Button Styles ===== */
-.tag, add-tag-btn {
+.tag,
+.add-tag-btn,
+.add-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -488,7 +508,8 @@ body,
   transition: background-color 0.3s ease;
 }
 
-.tag:hover {
+.tag:hover,
+.add-btn:not(:disabled):hover {
   background-color: #f9b274;
   color: #376469;
 }
@@ -568,7 +589,7 @@ body,
 }
 
 .tag-input-buttons button {
-   background-color: var(--tag-hover-bg, #eaeaea);
+  background-color: var(--tag-hover-bg, #eaeaea);
   color: var(--tag-hover-bg, #7a7a7a);
   font-family: inherit;
   font-weight: 550;
@@ -595,17 +616,6 @@ body,
   background: #ccc;
 }
 
-/* Main add + button */
-.add-btn:disabled {
-  background: #f9cb7466;
-  cursor: default;
-  color: #fff;
-}
-
-.add-btn:not(:disabled):hover {
-  background: #f49c48;
-}
-
 /* Buttons container */
 .popup-buttons {
   display: flex;
@@ -628,7 +638,7 @@ body,
   z-index: 1500;
 }
 
-/* ===== popup box bg =====*/
+/* ===== TAG popup box bg =====*/
 .tag-input-popup {
   background: white;
   border-radius: 16px;
@@ -729,6 +739,14 @@ body,
     flex-grow: 0;
   }
 }
+.grid-area {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 400px) {
+  .grid-area {
+    grid-template-columns: 2fr;
+  }
+}
 
 /* === Big add book button (+) === */
 #addBookBtn {
@@ -768,10 +786,12 @@ body,
   justify-content: center;
   z-index: 9999;
 }
-
+/* === Add book popup container === */
 .popup-content {
   background: #ffffff;
   color: #3698ff;
+  font-family: Arial, Helvetica, sans-serif;
+  text-transform: lowercase;
   padding: 2rem;
   border-radius: 12px;
   width: 100%;
@@ -786,6 +806,14 @@ body,
   align-items: stretch;
 }
 
+/* === Add book input fields === */
+.popup input {
+  padding: 0.5rem;
+  border-radius: 8px;
+  color: #d86631;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 .addBookConfirm-btn {
   display: flex;
   justify-content: center;
@@ -796,11 +824,12 @@ body,
   padding: 0.2rem 0.6rem;
 }
 
-.popup input {
-  padding: 0.5rem;
-  border-radius: 8px;
+/* Popup card add button */
+.add-btn:disabled {
+  background: #f9cb7466;
+  cursor: default;
+  color: #fff;
 }
-
 /* Calendar and date input style */
 .popup-buttons {
   display: flex;
@@ -839,6 +868,18 @@ body,
   border-color: #666;
   background-color: #f0f0f0;
   display: inline-block; /* visible when editing */
+}
+
+#dateReadInput {
+  background-color: #f6daa4; /* dark background example */
+  color: #82838c; /* light text */
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  font-family: "helvetica";
+  width: 100px; /* suitable width for YYYY-MM */
+  cursor: pointer;
 }
 
 /* Mousekeeping text */
@@ -897,4 +938,10 @@ body,
     transform: translateY(110vh) scale(2);
     opacity: 0;
   }
+}
+
+:root {
+  --despair-default-color: #376469; /* gray for unclicked */
+  --despair-hover-color: #640763; /* pink/purple for hover */
+  --despair-selected-color: #c1003e; /* red/black/purple for clicked */
 }
