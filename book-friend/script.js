@@ -371,7 +371,7 @@ async function renderSingleCard(book) {
   const coverSrc = book.cover || placeholderImage;
 
   bookCard.innerHTML = `
-    <div class="book-card" id="bookCard">
+
     <button id="closeCardBtn" class="close-btn" aria-label="Close">&times;</button>
     <button id="prevBtn" class="nav-button" aria-label="Previous Book">&#10094;</button>
     <button id="nextBtn" class="nav-button" aria-label="Next Book">&#10095;</button>
@@ -825,29 +825,11 @@ function attachToolbarHandlers() {
   };
 }
 
-//Clear book form after each use
-function clearAddBookForm() {
-  [
-    "addTitle",
-    "addAuthor",
-    "addIsbn",
-    "addQuote",
-    "addReview",
-    "addRating",
-    "addDespair",
-    "dateReadInput",
-    "addTags"
-  ].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-  });
-  addFavoriteHeart.classList.remove("active");
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
-document.getElementById("addBookBtn").addEventListener("click", () => {
-  document.getElementById("addBookPopup").classList.remove("hidden");
-});
+  // Open Add Book popup
+  document.getElementById("addBookBtn").addEventListener("click", () => {
+    document.getElementById("addBookPopup").classList.remove("hidden");
+  });
 
 document.getElementById("addBookConfirm").addEventListener("click", async () => {
   const title = document.getElementById("addTitle").value.trim();
@@ -896,11 +878,36 @@ document.getElementById("addBookConfirm").addEventListener("click", async () => 
   }
 });
 
-document.getElementById("closePopupBtn").addEventListener("click", () => {
-  document.getElementById("addBookPopup").classList.add("hidden");
-  clearAddBookForm();
-});
+function clearAddBookForm() {
+    [
+      "addTitle",
+      "addAuthor",
+      "addIsbn",
+      "addQuote",
+      "addReview",
+      "addRating",
+      "addDespair",
+      "dateReadInput",
+      "addTags"
+    ].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    const addFavoriteHeart = document.getElementById("addFavoriteHeart");
+    if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
+  }
 
+  // Close popup via event delegation
+  document.getElementById("addBookPopup").addEventListener("click", (event) => {
+    if (event.target.id === "closePopupBtn") {
+      event.preventDefault();
+      console.log("Close popup clicked");
+      document.getElementById("addBookPopup").classList.add("hidden");
+      clearAddBookForm();
+    }
+  });
+
+  // Attach other handlers, fetch books, etc.
   attachToolbarHandlers();
   await fetchBooks();
 });
