@@ -371,6 +371,7 @@ async function renderSingleCard(book) {
   const coverSrc = book.cover || placeholderImage;
 
   bookCard.innerHTML = `
+    <div class="book-card" id="bookCard">
     <button id="closeCardBtn" class="close-btn" aria-label="Close">&times;</button>
     <button id="prevBtn" class="nav-button" aria-label="Previous Book">&#10094;</button>
     <button id="nextBtn" class="nav-button" aria-label="Next Book">&#10095;</button>
@@ -423,6 +424,7 @@ async function renderSingleCard(book) {
       <div class="card-footer-right">
         <div class="tags">${tagsHTML}</div>
       </div>
+    </div>
     </div>
   `;
 
@@ -843,6 +845,62 @@ function clearAddBookForm() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+document.getElementById("addBookBtn").addEventListener("click", () => {
+  document.getElementById("addBookPopup").classList.remove("hidden");
+});
+
+document.getElementById("addBookConfirm").addEventListener("click", async () => {
+  const title = document.getElementById("addTitle").value.trim();
+  const author = document.getElementById("addAuthor").value.trim();
+  const isbn = document.getElementById("addIsbn").value.trim().replace(/[-\s]/g, "");
+  const quote = document.getElementById("addQuote").value.trim();
+  const review = document.getElementById("addReview").value.trim();
+  const rating = parseInt(document.getElementById("addRating").value) || 0;
+  const despair = parseInt(document.getElementById("addDespair").value) || 0;
+  const tags = document
+    .getElementById("addTags")
+    .value.split(",")
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean);
+  const dateRead = document.getElementById("dateReadInput").value || getFallbackDate();
+  const favorite = document.getElementById("addFavoriteHeart").classList.contains("active") ? "y" : "";
+
+  if (!title || !author) {
+    alert("Title and author are required.");
+    return;
+  }
+
+  const book = {
+    title,
+    author,
+    isbn,
+    quote,
+    review,
+    rating,
+    despair,
+    favorite,
+    tags,
+    dateRead,
+    cover: await getCoverUrl({ title, author, isbn }),
+  };
+
+  try {
+    const added = await addBookToSupabase(book);
+    allBooks.unshift(normalizeBook(added));
+    applyFiltersAndRender();
+    document.getElementById("addBookPopup").classList.add("hidden");
+    clearAddBookForm();
+  } catch (e) {
+    console.error("Error adding book:", e);
+    alert("Failed to add book.");
+  }
+});
+
+document.getElementById("closePopupBtn").addEventListener("click", () => {
+  document.getElementById("addBookPopup").classList.add("hidden");
+  clearAddBookForm();
+});
+
   attachToolbarHandlers();
   await fetchBooks();
 });
