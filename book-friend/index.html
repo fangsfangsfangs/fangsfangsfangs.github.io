@@ -7,13 +7,14 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   </head>
   <body>
     <!-- Fixed toolbar -->
     <div id="fixedToolbar" class="icon-bar fixed-toolbar">
       <button id="logoBtn" class="toolbar-logo-btn" title="Home">
-  <img src="https://fangsfangsfangs.github.io/book-friend/bookmouse1-logo.png" alt="Logo" class="toolbar-logo" />
-</button>
+        <img src="https://fangsfangsfangs.github.io/book-friend/bookmouse1-logo.png" alt="Logo" class="toolbar-logo" />
+      </button>
       <button id="homeBtn" title="welcome home"><i data-lucide="home"></i></button>
       <button id="showToReadBtn" title="to-read"><i data-lucide="notebook-pen"></i></button>
       <button id="favoritesBtn" title="faves"><i data-lucide="book-heart"></i></button>
@@ -44,16 +45,16 @@
         <input placeholder="ISBN" id="addIsbn" />
         <input placeholder="Quote" id="addQuote" />
         <input placeholder="Review" id="addReview" />
-        <input type="number" placeholder="Rating (0-5)" id="addRating" />
-        <input type="number" placeholder="Despair (1-5)" id="addDespair" />
+        <input type="number" placeholder="Rating" id="addRating" />
+        <input type="number" placeholder="Despair Level" id="addDespair" />
         <input placeholder="Tags (comma-separated)" id="addTags" />
         <div class="popup-buttons">
           <div class="popup-favorite-container">
             <div id="addFavoriteHeart" class="favorite-heart" title="Toggle Favorite">&#10084;</div>
           </div>
-         <!-- Optional visible version for user editing -->
-<label for="dateReadInput">Date Read</label>
-<input type="month" id="dateReadInput" name="dateRead">
+          <!-- Optional visible version for user editing -->
+          <label for="dateReadInput">Date Read</label>
+          <input type="month" id="dateReadInput" name="dateRead" />
           <div class="popup-action-buttons">
             <button id="addBookConfirm" class="add-btn">Add</button>
             <button class="close-btn" id="closePopupBtn">&times;</button>
@@ -61,7 +62,7 @@
         </div>
       </div>
     </div>
-<!-- Glitter button -->
+    <!-- Glitter button -->
     <div id="glitterOverlay" class="glitter-overlay"></div>
   </body>
 </html>
