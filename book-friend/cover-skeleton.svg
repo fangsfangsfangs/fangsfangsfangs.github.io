@@ -1,0 +1,13 @@
+<svg width="160" height="192" viewBox="0 0 160 192" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Loading placeholder">
+  <rect width="160" height="192" fill="#ddd"></rect>
+  <defs>
+    <linearGradient id="shimmer" x1="0" y1="0" x2="160" y2="0">
+      <stop offset="0%" stop-color="#eee"></stop>
+      <stop offset="50%" stop-color="#ddd"></stop>
+      <stop offset="100%" stop-color="#eee"></stop>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="192" fill="url(#shimmer)">
+    <animate attributeName="x" from="-160" to="160" dur="1.5s" repeatCount="indefinite"></animate>
+  </rect>
+</svg>
