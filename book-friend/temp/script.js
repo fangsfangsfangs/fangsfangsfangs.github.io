@@ -381,16 +381,16 @@ async function renderSingleCard(book) {
   const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
   const isFavorited = book.favorite === "y";
   const favoriteClass = isFavorited ? "favorite-heart active" : "favorite-heart";
-  bookCard.className = "book-popup";
-  
+  bookCard.className = "book-card-base book-popup";
+
   bookCard.innerHTML = `
 <button id="closeCardBtn" class="close-btn" aria-label="Close">&times;</button>
 <div class="book-card-content">
- <div class="cover-container">
-      <img src="${coverSrc}" alt="Cover of ${book.title}" onerror="this.onerror=null;this.src='${placeholderImage}'" />
+<div class="cover-container">
+      <img src="${coverSrc}" alt="Cover of ${book.title}" onerror="this.onerror=null;this.src='${placeholderImage}'"/>
     </div>
-    <div class="rating-header">
-    <div class="rating" title="Rating">
+<div class="rating-header">
+<div class="rating" title="Rating">
       ${[1, 2, 3, 4, 5]
         .map(
           (i) =>
@@ -408,43 +408,39 @@ async function renderSingleCard(book) {
         )
         .join("")}
     </div>
-  </div>
-  <div class="quote-box">
+</div>
+<div class="quote-box">
       <i data-lucide="quote" class="quote-icon close-quote"></i>
       <div id="quoteEditable" class="quote-text editable" contenteditable="false" title="Click to edit quote">${book.quote || "No quote available"}</div>
       <i data-lucide="quote" class="quote-icon open-quote"></i>
     </div>
-       <div class="title">${book.title || "Untitled"}</div>
-    <div class="author">${book.author || "Unknown"}</div>
-    <div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
+<div class="title">${book.title || "Untitled"}</div>
+<div class="author">${book.author || "Unknown"}</div>
+<div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
   ${book.review || "No review yet"}
 </div>
-
-</div> 
+</div>
 <div class="card-footer">
-  <div class="card-footer-left">
+<div class="card-footer-left">
     <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
-    <div class="date-read-container">
-      <i data-lucide="calendar-1" class="calendar-icon calendar-toggle" style="cursor:pointer;"></i>
-    </div>
   </div>
-  <div class="card-footer-right">
+ <div class="card-footer-right">
     <div class="tags">${tagsHTML}</div>
   </div>
 </div>
-  `;
-
+</div>
+ `;
   lucide.createIcons();
 
-    // Close button
+  // Close button
   const closeBtn = bookCard.querySelector("#closeCardBtn");
   if (closeBtn) {
     closeBtn.addEventListener("click", () => {
       document.getElementById("cardOverlay").classList.add("hidden");
     });
   }
-  
-    // Star rating click handlers
+
+  // Star rating click handlers
   bookCard.querySelectorAll(".rating-star").forEach((star) => {
     star.addEventListener("click", async () => {
       const newRating = parseInt(star.dataset.value);
@@ -462,22 +458,22 @@ async function renderSingleCard(book) {
       renderSingleCard(book);
     });
   });
-  
-//Editable quote + review fields
-["quote", "review"].forEach((field) => {
-  const el = document.getElementById(`${field}Editable`);
-  if (el) makeEditableOnClick(el, book, field);
-});
 
-// Toggle favorite
+  //Editable quote + review fields
+  ["quote", "review"].forEach((field) => {
+    const el = document.getElementById(`${field}Editable`);
+    if (el) makeEditableOnClick(el, book, field);
+  });
+
+  // Toggle favorite
   document.getElementById("favoriteHeart").addEventListener("click", async () => {
     const newFav = book.favorite === "y" ? "" : "y";
     await updateBookInSupabase(book.id, { favorite: newFav });
     book.favorite = newFav;
     renderSingleCard(book);
   });
-  
-// Tag filtering and delete tag buttons
+
+  // Tag filtering and delete tag buttons
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
     if (tagEl.classList.contains("add-tag-btn")) return;
 
@@ -498,8 +494,8 @@ async function renderSingleCard(book) {
       });
     }
   });
-  
-// Add tag button opens tag input popup (defined below)
+
+  // Add tag button opens tag input popup (defined below)
   bookCard.querySelector(".add-tag-btn").addEventListener("click", () => {
     showTagInput(book, false);
   });
@@ -537,7 +533,7 @@ function showTagInput(book, isToRead = false) {
   buttonContainer.appendChild(addBtn);
   buttonContainer.appendChild(cancelBtn);
 
-// Suggested tags
+  // Suggested tags
   const suggestionsContainer = document.createElement("div");
   suggestionsContainer.className = "tag-suggestions";
 
@@ -590,7 +586,7 @@ function showTagInput(book, isToRead = false) {
     renderSingleCard(book); // refresh card to show new tags
   });
 
-// Close popup if clicked outside
+  // Close popup if clicked outside
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) {
       document.body.removeChild(overlay);
@@ -614,7 +610,7 @@ async function renderToReadCard(book) {
 
   const bookCard = document.getElementById("bookCard");
   const coverSrc = await getCoverUrl(book);
-  bookCard.className = "book-popup";
+  bookCard.className = "book-card-base book-popup";
 
   bookCard.innerHTML = `
   <button id="closeToReadCard" class="close-btn" aria-label="Close">&times;</button>
@@ -677,11 +673,11 @@ async function renderToReadCard(book) {
   });
 
   // Add tag button
-bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    showTagInput(book, false);
+  bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      showTagInput(book, false);
+    });
   });
-});
 
   // Fetch and show synopsis
   const synopsis = await fetchSynopsis(book.title, book.author);
@@ -704,6 +700,7 @@ async function renderQuickListCard() {
       .join("");
 
     const bookCard = document.getElementById("bookCard");
+    bookCard.className = "book-card-base book-popup";
     bookCard.innerHTML = `
       <button class="close-btn" id="closeQuickList">&times;</button>
       <div class="quicklist-header">Quick List</div>
@@ -834,19 +831,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       .value.split(",")
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
-let dateReadText = document.getElementById("dateReadInput").textContent.trim();
+    let dateReadText = document.getElementById("dateReadInput").textContent.trim();
 
-// Validate format YYYY-MM
-if (/^\d{4}-(0[1-9]|1[0-2])$/.test(dateReadText)) {
-  // If only year-month, append day
-  dateReadText = dateReadText + "-01"; 
-} else if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(dateReadText)) {
-  // If invalid format, fallback to full date string (already with day)
-  dateReadText = getFallbackDate(); 
-}
+    // Validate format YYYY-MM
+    if (/^\d{4}-(0[1-9]|1[0-2])$/.test(dateReadText)) {
+      // If only year-month, append day
+      dateReadText = dateReadText + "-01";
+    } else if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(dateReadText)) {
+      // If invalid format, fallback to full date string (already with day)
+      dateReadText = getFallbackDate();
+    }
 
-// Now dateReadText is guaranteed to be a valid YYYY-MM-DD string
-const date_read = dateReadText;
+    // Now dateReadText is guaranteed to be a valid YYYY-MM-DD string
+    const date_read = dateReadText;
 
     const dateReadDiv = document.getElementById("dateReadInput");
 
