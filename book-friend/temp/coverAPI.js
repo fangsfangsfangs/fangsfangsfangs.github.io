@@ -75,7 +75,7 @@ function getCacheKeySynopsis(title, author) {
   return `synopsis_${title.toLowerCase()}_${author.toLowerCase()}`;
 }
 
-async function getWorkKey(title, author) {
+export async function getWorkKey(title, author) {
   const cacheKey = getCacheKeyWorkKey(title, author);
   const cached = localStorage.getItem(cacheKey);
   if (cached) return cached === "null" ? null : cached;
@@ -96,7 +96,7 @@ async function getWorkKey(title, author) {
   }
 }
 
-async function fetchSynopsisByWorkKey(workKey, title, author) {
+export async function fetchSynopsisByWorkKey(workKey, title, author) {
   if (!workKey) return null;
 
   const cacheKey = getCacheKeySynopsis(title, author);
