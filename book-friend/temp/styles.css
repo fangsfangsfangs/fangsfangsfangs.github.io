@@ -227,7 +227,7 @@ body,
   padding: 2rem;
   border-radius: 12px;
   width: 100%;
-  max-width: 350px;
+  max-width: 320px;
   box-shadow: 0 4px 10px #424242;
   display: flex;
   flex-direction: column;
@@ -235,7 +235,7 @@ body,
   position: relative;
   text-align: center;
   align-items: stretch;
-  min-height: 30vh;
+  min-height: 35vh;
   max-height: 52vh;
   overflow-y: auto;
 }
