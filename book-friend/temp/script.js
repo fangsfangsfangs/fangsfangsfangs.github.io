@@ -400,14 +400,12 @@ async function renderSingleCard(book) {
         )
         .join("")}
     </div>
-    <div class="despair-level" title="Despair Level">
-      ${[1, 2, 3, 4, 5]
-        .map(
-          (i) =>
-            `<span class="despair-icon" data-value="${i}" title="Despair ${i}" ${i <= (book.despair || 0) ? 'data-selected="true"' : ""}>${getDespairIcon(i)}</span>`
-        )
-        .join("")}
-    </div>
+<div class="despair-level" title="Despair Level">
+  ${typeof book.despair === "number" && book.despair > 0
+    ? `<span class="despair-icon" data-value="${book.despair}" title="Despair ${book.despair}" data-selected="true">${getDespairIcon(book.despair)}</span>`
+    : `<span class="despair-icon no-despair" title="No Despair" data-value="0">${getDespairIcon(0)}</span>`
+  }
+</div>
 </div>
 <div class="quote-box">
       <i data-lucide="quote" class="quote-icon close-quote"></i>
@@ -450,15 +448,20 @@ async function renderSingleCard(book) {
     });
   });
   // Despair icon click handlers
-  bookCard.querySelectorAll(".despair-icon").forEach((icon) => {
-    icon.addEventListener("click", async () => {
-      const newDespair = parseInt(icon.dataset.value);
-      await updateBookInSupabase(book.id, { despair: newDespair });
-      book.despair = newDespair;
-      renderSingleCard(book);
-    });
-  });
+const despairIcon = bookCard.querySelector(".despair-icon");
+if (despairIcon) {
+  despairIcon.addEventListener("click", async () => {
+    let current = parseInt(despairIcon.dataset.value) || 0;
+    // Cycle from 0 (no despair) up to 5, then back to 0
+    let newDespair = (current + 1) % 6;  // cycles 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 0
 
+    await updateBookInSupabase(book.id, { despair: newDespair });
+    book.despair = newDespair;
+    renderSingleCard(book);
+  });
+}
+
+  
   //Editable quote + review fields
   ["quote", "review"].forEach((field) => {
     const el = document.getElementById(`${field}Editable`);
@@ -719,9 +722,9 @@ async function renderQuickListCard() {
   }
 }
 
-// --- UTILITIES ---
 function getDespairIcon(value) {
   const icons = {
+    0: "cloud-rain",   // no despair
     1: "smile",
     2: "meh",
     3: "frown",
@@ -729,12 +732,15 @@ function getDespairIcon(value) {
     5: "skull"
   };
 
-  const iconName = icons[value] || "help-circle";
-  // Flip smile only when value is 4
-  const upsideDownClass = value === 4 ? "upside-down" : "";
+  const validValue = typeof value === "number" && value >= 0 && value <= 5 ? value : 0;
+
+  const iconName = icons[validValue] || "help-circle";
+
+  const upsideDownClass = validValue === 4 ? "upside-down" : "";
 
   return `<i data-lucide="${iconName}" class="${upsideDownClass}"></i>`;
 }
+
 
 // === Editable field helper ===
 function makeEditableOnClick(el, book, field) {
