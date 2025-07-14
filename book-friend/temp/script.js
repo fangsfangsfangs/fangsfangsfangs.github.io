@@ -15,7 +15,7 @@ let toReadBooks = [],
   activeToReadTag = null;
 
 // Suggested tags (optional)
-const suggestedTags = ["classic", "fantasy", "nonfiction", "sci-fi", "biography", "mystery"];
+const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
 //SUPABASE HELPERS
 async function addBookToSupabase(book) {
@@ -365,7 +365,6 @@ async function renderToReadGrid() {
 // Main book card popup with integrated custom tag display and add/delete
 async function renderSingleCard(book) {
   if (!book) return;
-  document.getElementById("cardOverlay").classList.remove("hidden");
 
   let tags = Array.isArray(book.tags) ? book.tags : [];
 
@@ -378,12 +377,12 @@ async function renderSingleCard(book) {
       .join("") + `<span class="tag add-tag-btn" title="Add Tag">+</span>`;
 
   const bookCard = document.getElementById("bookCard");
-  bookCard.className = "book-popup";
+  const coverSrc = await getCoverUrl(book);
   const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
   const isFavorited = book.favorite === "y";
   const favoriteClass = isFavorited ? "favorite-heart active" : "favorite-heart";
-  const coverSrc = await getCoverUrl(book);
-
+  bookCard.className = "book-popup";
+  
   bookCard.innerHTML = `
 <button id="closeCardBtn" class="close-btn" aria-label="Close">&times;</button>
 <div class="book-card-content">
@@ -417,6 +416,10 @@ async function renderSingleCard(book) {
     </div>
        <div class="title">${book.title || "Untitled"}</div>
     <div class="author">${book.author || "Unknown"}</div>
+    <div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
+  ${book.review || "No review yet"}
+</div>
+
 </div> 
 <div class="card-footer">
   <div class="card-footer-left">
@@ -433,21 +436,15 @@ async function renderSingleCard(book) {
 
   lucide.createIcons();
 
-  // Make quote editable
-  const quoteEl = document.getElementById("quoteEditable");
-  if (quoteEl) {
-    quoteEl.setAttribute("contenteditable", "true");
-    quoteEl.addEventListener("blur", async () => {
-      const newQuote = quoteEl.innerText.trim();
-      if (newQuote !== book.quote) {
-        await supabase.from("read_books").update({ quote: newQuote }).eq("id", book.id);
-        book.quote = newQuote;
-      }
+    // Close button
+  const closeBtn = bookCard.querySelector("#closeCardBtn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      document.getElementById("cardOverlay").classList.add("hidden");
     });
-
-    makeEditableOnClick(quoteEl, book, "quote");
   }
-  // Star rating click handlers
+  
+    // Star rating click handlers
   bookCard.querySelectorAll(".rating-star").forEach((star) => {
     star.addEventListener("click", async () => {
       const newRating = parseInt(star.dataset.value);
@@ -465,36 +462,22 @@ async function renderSingleCard(book) {
       renderSingleCard(book);
     });
   });
-  // Close button
-  const closeBtn = bookCard.querySelector("#closeCardBtn");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      document.getElementById("cardOverlay").classList.add("hidden");
-    });
-  }
-  // Navigation buttons
-  document.getElementById("prevBtn").addEventListener("click", () => {
-    if (filteredBooks.length === 0) return;
-    currentIndex = (currentIndex - 1 + filteredBooks.length) % filteredBooks.length;
-    renderSingleCard(filteredBooks[currentIndex]);
-  });
-  document.getElementById("nextBtn").addEventListener("click", () => {
-    if (filteredBooks.length === 0) return;
-    currentIndex = (currentIndex + 1) % filteredBooks.length;
-    renderSingleCard(filteredBooks[currentIndex]);
-  });
-  // Toggle favorite
+  
+//Editable quote + review fields
+["quote", "review"].forEach((field) => {
+  const el = document.getElementById(`${field}Editable`);
+  if (el) makeEditableOnClick(el, book, field);
+});
+
+// Toggle favorite
   document.getElementById("favoriteHeart").addEventListener("click", async () => {
     const newFav = book.favorite === "y" ? "" : "y";
     await updateBookInSupabase(book.id, { favorite: newFav });
     book.favorite = newFav;
     renderSingleCard(book);
   });
-  //Editable quote + review fields
-  makeEditableOnClick(document.getElementById("quoteEditable"), book, "quote");
-  makeEditableOnClick(document.getElementById("reviewEditable"), book, "review");
-
-  // Tag filtering and delete tag buttons
+  
+// Tag filtering and delete tag buttons
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
     if (tagEl.classList.contains("add-tag-btn")) return;
 
@@ -515,11 +498,13 @@ async function renderSingleCard(book) {
       });
     }
   });
-  // Add tag button opens tag input popup (defined below)
+  
+// Add tag button opens tag input popup (defined below)
   bookCard.querySelector(".add-tag-btn").addEventListener("click", () => {
     showTagInput(book, false);
   });
 }
+
 //ADD TAG BUTTONS IN FOOTER - suggested, etc //
 function showTagInput(book, isToRead = false) {
   // Create overlay
@@ -552,7 +537,7 @@ function showTagInput(book, isToRead = false) {
   buttonContainer.appendChild(addBtn);
   buttonContainer.appendChild(cancelBtn);
 
-  // Suggested tags
+// Suggested tags
   const suggestionsContainer = document.createElement("div");
   suggestionsContainer.className = "tag-suggestions";
 
@@ -605,7 +590,7 @@ function showTagInput(book, isToRead = false) {
     renderSingleCard(book); // refresh card to show new tags
   });
 
-  // Close popup if clicked outside
+// Close popup if clicked outside
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) {
       document.body.removeChild(overlay);
@@ -692,9 +677,11 @@ async function renderToReadCard(book) {
   });
 
   // Add tag button
-  bookCard.querySelector(".add-tag-btn").addEventListener("click", () => {
-    showTagInput(book, true);
+bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    showTagInput(book, false);
   });
+});
 
   // Fetch and show synopsis
   const synopsis = await fetchSynopsis(book.title, book.author);
@@ -847,11 +834,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       .value.split(",")
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
-    let dateReadText = document.getElementById("dateReadInput").textContent.trim();
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(dateReadText)) {
-      dateReadText = getFallbackDate(); // fallback if invalid or empty
-    }
-    const date_read = dateReadText;
+let dateReadText = document.getElementById("dateReadInput").textContent.trim();
+
+// Validate format YYYY-MM
+if (/^\d{4}-(0[1-9]|1[0-2])$/.test(dateReadText)) {
+  // If only year-month, append day
+  dateReadText = dateReadText + "-01"; 
+} else if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(dateReadText)) {
+  // If invalid format, fallback to full date string (already with day)
+  dateReadText = getFallbackDate(); 
+}
+
+// Now dateReadText is guaranteed to be a valid YYYY-MM-DD string
+const date_read = dateReadText;
+
     const dateReadDiv = document.getElementById("dateReadInput");
 
     dateReadDiv.addEventListener("blur", () => {
@@ -869,7 +865,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    const favorite = document.getElementById("addFavoriteHeart").classList.contains("active") ? "y" : "";
+    const favorite = document.getElementById("addFavoriteHeart").classList.contains("active");
 
     if (!title || !author) {
       alert("Title and author are required.");
