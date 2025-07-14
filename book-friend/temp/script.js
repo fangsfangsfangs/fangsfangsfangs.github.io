@@ -1,4 +1,5 @@
 import { showToast, rainGlitter } from "./glitter.js";
+import { getCoverUrl, placeholderImage, fetchSynopsis } from "./coverAPI.js";
 
 const supabaseUrl = "https://pnpjlsjxlbrihxlkirwj.supabase.co";
 const supabaseAnonKey =
@@ -121,135 +122,6 @@ function getFallbackDate() {
   const now = new Date();
   // Return full date string with day = 01
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-}
-
-// --- FETCH COVER FROM OPEN LIBRARY ---
-async function fetchOpenLibraryCover(title, author, isbn) {
-  const cleanIsbn = isbn?.replace(/[-\s]/g, "").trim();
-  const cacheKey = `cover_${title.toLowerCase()}_${author.toLowerCase()}`;
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) return cached === "null" ? null : cached;
-  try {
-    const res = await fetch(
-      `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
-    );
-    const data = await res.json();
-    if (data.docs && data.docs.length > 0) {
-      const docWithCover = data.docs.find((d) => d.cover_i);
-      if (docWithCover?.cover_i) {
-        const coverUrl = `https://covers.openlibrary.org/b/id/${docWithCover.cover_i}-L.jpg`;
-        localStorage.setItem(cacheKey, coverUrl);
-        return coverUrl;
-      }
-      // Try any ISBN from search
-      const allIsbns = data.docs.flatMap((d) => d.isbn || []);
-      for (const fallbackIsbn of allIsbns) {
-        const url = `https://covers.openlibrary.org/b/isbn/${fallbackIsbn}-L.jpg`;
-        if (await imageExists(url)) {
-          localStorage.setItem(cacheKey, url);
-          return url;
-        }
-      }
-    }
-  } catch (e) {
-    console.warn("OpenLibrary search failed:", e);
-  }
-  // Final fallback: direct ISBN fetch
-  if (cleanIsbn) {
-    const url = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
-    if (await imageExists(url)) {
-      localStorage.setItem(cacheKey, url);
-      return url;
-    }
-  }
-  localStorage.setItem(cacheKey, "null");
-  return null;
-}
-// --- CHECK IF IMAGE EXISTS (HEAD request) ---
-async function imageExists(url) {
-  try {
-    const res = await fetch(url, { method: "HEAD" });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-// --- ENHANCE ANY BOOK (read or to-read) WITH COVER ---
-const placeholderImage = "https://fangsfangsfangs.neocities.org/book-covers/placeholder.jpg";
-
-async function getCoverUrl(book) {
-  // Try Open Library cover first
-  const openLibCover = await fetchOpenLibraryCover(book.title, book.author, book.isbn);
-  if (openLibCover) return openLibCover;
-
-  // Fallback to Supabase cover URL (assuming `book.cover` is the Supabase cover field)
-  if (book.cover?.trim()) return book.cover.trim();
-
-  // Final fallback: placeholder image
-  return placeholderImage;
-}
-// --- WORK KEY + SYNOPSIS FETCH + CACHE ---
-function getCacheKeyWorkKey(title, author) {
-  return `workkey_${title.toLowerCase()}_${author.toLowerCase()}`;
-}
-function getCacheKeySynopsis(title, author) {
-  return `synopsis_${title.toLowerCase()}_${author.toLowerCase()}`;
-}
-async function getWorkKey(title, author) {
-  const cacheKey = getCacheKeyWorkKey(title, author);
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) return cached === "null" ? null : cached;
-
-  const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.docs && data.docs.length > 0 && data.docs[0].key) {
-      localStorage.setItem(cacheKey, data.docs[0].key);
-      return data.docs[0].key;
-    } else {
-      localStorage.setItem(cacheKey, "null");
-      return null;
-    }
-  } catch (e) {
-    console.error("Error fetching work key:", e);
-    return null;
-  }
-}
-async function fetchSynopsisByWorkKey(workKey, title, author) {
-  if (!workKey) return null;
-
-  const cacheKey = getCacheKeySynopsis(title, author);
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) return cached === "null" ? null : cached;
-
-  try {
-    const res = await fetch(`https://openlibrary.org${workKey}.json`);
-    const data = await res.json();
-    let description = null;
-    if (data.description) {
-      if (typeof data.description === "string") description = data.description;
-      else if (data.description.value) description = data.description.value;
-    }
-    if (description) {
-      localStorage.setItem(cacheKey, description);
-      return description;
-    } else {
-      localStorage.setItem(cacheKey, "null");
-      return null;
-    }
-  } catch (e) {
-    console.error("Error fetching synopsis:", e);
-    return null;
-  }
-}
-async function fetchSynopsis(title, author) {
-  const cacheKey = getCacheKeySynopsis(title, author);
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) return cached === "null" ? null : cached;
-
-  const workKey = await getWorkKey(title, author);
-  return await fetchSynopsisByWorkKey(workKey, title, author);
 }
 
 // --- APPLY FILTERS ---
@@ -401,9 +273,10 @@ async function renderSingleCard(book) {
         .join("")}
     </div>
 <div class="despair-level" title="Despair Level">
-  ${typeof book.despair === "number" && book.despair > 0
-    ? `<span class="despair-icon" data-value="${book.despair}" title="Despair ${book.despair}" data-selected="true">${getDespairIcon(book.despair)}</span>`
-    : `<span class="despair-icon no-despair" title="No Despair" data-value="0">${getDespairIcon(0)}</span>`
+  ${
+    typeof book.despair === "number" && book.despair > 0
+      ? `<span class="despair-icon" data-value="${book.despair}" title="Despair ${book.despair}" data-selected="true">${getDespairIcon(book.despair)}</span>`
+      : `<span class="despair-icon no-despair" title="No Despair" data-value="0">${getDespairIcon(0)}</span>`
   }
 </div>
 </div>
@@ -448,20 +321,19 @@ async function renderSingleCard(book) {
     });
   });
   // Despair icon click handlers
-const despairIcon = bookCard.querySelector(".despair-icon");
-if (despairIcon) {
-  despairIcon.addEventListener("click", async () => {
-    let current = parseInt(despairIcon.dataset.value) || 0;
-    // Cycle from 0 (no despair) up to 5, then back to 0
-    let newDespair = (current + 1) % 6;  // cycles 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 0
+  const despairIcon = bookCard.querySelector(".despair-icon");
+  if (despairIcon) {
+    despairIcon.addEventListener("click", async () => {
+      let current = parseInt(despairIcon.dataset.value) || 0;
+      // Cycle from 0 (no despair) up to 5, then back to 0
+      let newDespair = (current + 1) % 6; // cycles 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 0
 
-    await updateBookInSupabase(book.id, { despair: newDespair });
-    book.despair = newDespair;
-    renderSingleCard(book);
-  });
-}
+      await updateBookInSupabase(book.id, { despair: newDespair });
+      book.despair = newDespair;
+      renderSingleCard(book);
+    });
+  }
 
-  
   //Editable quote + review fields
   ["quote", "review"].forEach((field) => {
     const el = document.getElementById(`${field}Editable`);
@@ -724,7 +596,7 @@ async function renderQuickListCard() {
 
 function getDespairIcon(value) {
   const icons = {
-    0: "cloud-rain",   // no despair
+    0: "cloud-rain", // no despair
     1: "smile",
     2: "meh",
     3: "frown",
@@ -740,7 +612,6 @@ function getDespairIcon(value) {
 
   return `<i data-lucide="${iconName}" class="${upsideDownClass}"></i>`;
 }
-
 
 // === Editable field helper ===
 function makeEditableOnClick(el, book, field) {
