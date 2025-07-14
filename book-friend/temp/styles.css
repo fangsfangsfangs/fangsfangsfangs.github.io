@@ -219,7 +219,7 @@ body,
   aspect-ratio: 2 / 3;       /* Match the image's 2:3 ratio */
   max-width: 80dvw;          /* Keep your max width */
   width: 100dvw;             /* Or desired width */
-  min-height: 40vh;
+  /*min-height: 40vh;*/
   max-height: calc(80dvh - 5rem);
 }
 
