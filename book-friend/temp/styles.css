@@ -120,10 +120,10 @@ body {
 
 /* Grid area full height with vertical scroll */
 .grid-area {
-  padding: 2rem;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 1rem;
+  padding: 2rem;
   max-height: calc(100vh - 3.5rem);
   overflow-y: auto;
   box-sizing: border-box;
@@ -819,17 +819,11 @@ body,
 }
 
 /* Mobile override */
-@media (max-width: 600px) {
+@media (max-width: 320px) {
   .book-card {
     padding: 1rem 0.8rem;
-    min-height: auto;
+    min-height: 35vh;
     flex-grow: 0;
-  }
-}
-
-@media (max-width: 400px) {
-  .grid-area {
-    grid-template-columns: 3fr;
   }
 }
 
