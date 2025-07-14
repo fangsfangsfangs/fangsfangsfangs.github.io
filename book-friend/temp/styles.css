@@ -228,7 +228,7 @@ body,
   max-width: 80dvw;          /* Keep your max width */
   width: 100dvw;             /* Or desired width */
   min-height: 35vh;
-  max-height: calc(90dvh - 5rem);
+  height: calc(var(--vh) - 5rem);
 }
 
 /* === Book popup container === */
