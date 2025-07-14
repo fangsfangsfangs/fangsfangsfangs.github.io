@@ -132,6 +132,7 @@ body.popup-open {
 .grid-area {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  
   gap: 1rem;
   padding: 2rem;  max-height: calc(100dvh - 3.5rem);
   overflow-y: auto;
@@ -806,7 +807,7 @@ body,
 /* === Big add book button (+) === */
 #addBookBtn {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 1.5rem) + 1.5rem);
+  bottom: 5rem;
   right: 1.5rem;
   width: 48px;
   height: 48px;
