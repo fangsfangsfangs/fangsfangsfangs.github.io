@@ -795,7 +795,6 @@ body,
 .quicklist-content {
   flex: 1;
   overflow-y: auto;
-  max-height: 60vh;
   padding-right: rem;
   margin-bottom: 1rem;
   scrollbar-width: none; /* Firefox */
@@ -811,16 +810,6 @@ body,
   border-bottom: 1px solid #f6bf9e;
   padding-bottom: 0.5rem;
   text-align: left;
-}
-
-/* Mobile override */
-@media (max-width: 320px) {
-  #bookCard,
-  .book-popup {
-    padding: 1rem 0.8rem;
-    min-height: 35vh;
-    flex-grow: 0;
-  }
 }
 
 /* === Big add book button (+) === */
