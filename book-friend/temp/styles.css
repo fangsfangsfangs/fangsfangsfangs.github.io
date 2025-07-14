@@ -217,9 +217,9 @@ body,
 
 #bookCard {
   aspect-ratio: 2 / 3;       /* Match the image's 2:3 ratio */
-  max-width: 70dvw;          /* Keep your max width */
+  max-width: 80dvw;          /* Keep your max width */
   width: 100dvw;             /* Or desired width */
-  min-height: 35vh;
+  min-height: 40vh;
   max-height: calc(80dvh - 5rem);
 }
 
@@ -230,7 +230,7 @@ body,
   text-transform: lowercase;
   overflow-y: auto;
   aspect-ratio: 2 / 3;       /* Match the image's 2:3 ratio */
-  max-width: 70dvw;          /* Keep your max width */
+  max-width: 80dvw;          /* Keep your max width */
   width: 100dvw;             /* Or desired width */
   min-height: unset;         /* Remove min-height if conflicting */
   max-height: unset;         /* Remove max-height if conflicting */
