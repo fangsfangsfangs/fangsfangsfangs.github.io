@@ -225,7 +225,7 @@ body,
   padding: 2rem;
   border-radius: 12px;
   width: 100%;
-  max-width: 320px;
+  max-width: 75vvw;
   box-shadow: 0 4px 10px #424242;
   display: flex;
   flex-direction: column;
@@ -246,7 +246,7 @@ body,
   padding: 2rem;
   border-radius: 12px;
   width: 100%;
-  max-width: 350px;
+  max-width: 75vw;
   box-shadow: 0 4px 10px #424242;
   display: flex;
   flex-direction: column;
@@ -788,7 +788,7 @@ body,
   margin-top: 1rem;
   margin-bottom: 2rem;
   gap: 1rem;
-  text-align: left;
+  text-align: center;
 }
 
 /* Scrollable list that fills remaining height */
