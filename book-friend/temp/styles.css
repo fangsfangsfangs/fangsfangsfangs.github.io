@@ -123,8 +123,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 1rem;
-  padding: 2rem;
-  max-height: calc(100dvh - 3.5rem);
+  padding: 2rem;  max-height: calc(100dvh - 3.5rem);
   overflow-y: auto;
   box-sizing: border-box;
   overscroll-behavior: contain;
@@ -236,7 +235,7 @@ body,
   text-align: center;
   align-items: stretch;
   min-height: 35vh;
-  max-height: 49vh;
+   max-height: calc(56dvh - 5rem);;
   overflow-y: auto;
 }
 
