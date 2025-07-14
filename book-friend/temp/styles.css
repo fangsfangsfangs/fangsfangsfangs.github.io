@@ -235,7 +235,7 @@ body,
   text-align: center;
   align-items: stretch;
   min-height: 35vh;
-   max-height: calc(56dvh - 5rem);;
+  max-height: calc(56dvh - 5rem);;
   overflow-y: auto;
 }
 
@@ -262,9 +262,7 @@ body,
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  flex: 1;
   padding: 0.5rem; /* optional */
-  height: 100%; /* or fixed height you want for the card */
   width: 100%;
   box-sizing: border-box;
 }
@@ -419,26 +417,30 @@ body,
 }
 
 #reviewEditable {
+  display: block;
   font-size: 0.9rem;
-  color: #333333;
-  text-align: left;
+  color: #333;
   min-height: 80px;
-  padding-right: 0.25rem;
+  padding: 10px;
   width: 100%;
-  min-width: 300px;
   box-sizing: border-box;
   border: 1px solid #eaeaea;
   border-radius: 8px;
-  padding: 10px;
   background-color: #f9f7f7;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
-
-  /* ✨ Important: remove height constraints and overflow */
+  line-height: 1.5;
+  /* Remove these if set: */
   height: auto;
   overflow: visible;
-  flex-grow: 0; /* Prevent it from forcefully stretching */
+  flex-grow: 0;
+}
+
+.review-text.editing {
+  background-color: #fffdf5;
+  outline: 2px dashed #f9cb74;
+  cursor: text;
 }
 
 .card-footer {
