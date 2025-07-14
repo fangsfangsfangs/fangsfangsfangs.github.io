@@ -820,7 +820,8 @@ body,
 
 /* Mobile override */
 @media (max-width: 320px) {
-  .book-card {
+  #bookCard,
+  .book-popup {
     padding: 1rem 0.8rem;
     min-height: 35vh;
     flex-grow: 0;
