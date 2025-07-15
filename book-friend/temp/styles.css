@@ -188,7 +188,7 @@ body,
   font-size: 0.9rem;
   color: #333;
   text-align: left;
-  min-height: 300px;
+  min-height: 200px;
   margin-top: 0.5rem;
   overflow-y: auto;
   padding: 12px;
@@ -209,7 +209,7 @@ body,
 }
 
 #bookCard {
-  aspect-ratio: 11 / 24;       /* Match the image's 2:3 ratio */
+  aspect-ratio: 1.2 / 2;       /* Match the image's 2:3 ratio */
   max-width: 85dvw;          /* Keep your max width */
   width: 100dvw;             /* Or desired width */
   min-height: 35vh;
@@ -270,8 +270,8 @@ body,
 
 .cover-container img,
 .to-read-cover-container img {
-  width: 90%;
-  aspect-ratio: 11 / 24;
+  width: 81%;
+  aspect-ratio: 2 / 3;
   object-fit: cover;
   background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
   position: relative;
@@ -404,7 +404,7 @@ body,
   min-height: 4vh;
   border-bottom: 1px solid #eee;
   flex-wrap: wrap;
-  margin-bottom:0.5rem;
+  margin:auto;
   font-size: 1rem;
 }
 
@@ -416,8 +416,7 @@ body,
   min-height: 4vh;
   border-bottom: 1px solid #eee;
   flex-wrap: wrap;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
+  margin:auto;
 }
 
 .rating-star {
