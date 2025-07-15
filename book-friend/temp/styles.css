@@ -191,7 +191,7 @@ body,
   min-height: 200px;
   margin-top: 0.5rem;
   overflow-y: auto;
-  padding: 12px 12px 12px 12px;
+  padding: 12px;
   width: 100%;
   box-sizing: border-box;
   border: 1px solid #eaeaea;
@@ -206,21 +206,6 @@ body,
 
 .to-read-notes::-webkit-scrollbar {
   display: none;                  /* Chrome, Safari, Edge */
-}
-
-/* Move to-read button/ Add to read */
-.move-to-read-btn {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.move-to-read-btn:hover {
-  background-color: #45a049;
 }
 
 #bookCard {
@@ -272,7 +257,7 @@ body,
   -webkit-overflow-scrolling: touch; /* for smooth iOS scroll */
 }
 
-/* Cover container *JUST FOR NAV ARROWS?*/
+/* Cover container */
 .cover-container,
 .to-read-cover-container {
   flex: 0 0 50%;
@@ -309,38 +294,6 @@ body,
   color: #828282;
   padding-top: 0.3rem;
   padding-bottom: 1rem;
-}
-
-.quote-box {
-  display: flex;
-  justify-content: center;
-  font-style: italic;
-  color: #555;
-  background-color: #ececec;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.quote-text {
-  flex: 1;
-  padding: 0 0.5rem;
-  text-align: center;
-  font-style: italic;
-  font-size: 0.95rem;
-  color: #555;
-}
-
-.quote-icon {
-  width: 18px;
-  height: 18px;
-  color: #838383;
-  flex-shrink: 0;
-}
-
-.quote-icon.close-quote {
-  transform: scaleX(-1);
 }
 
 .rating-header {
@@ -403,48 +356,121 @@ body,
 }
 
 .editable {
+  user-select: none;
+  pointer-events: auto;
+  cursor: pointer;
+  white-space: pre-wrap;
+  min-height: 1em;
+  outline: none;
+}
+
+.editable.editing {
   cursor: text;
   user-select: text;
   pointer-events: auto;
-  min-height: 1em; /* makes empty fields still editable */
-  white-space: pre-wrap; /* so multiline quotes work */
+  background-color: #fffdf5;
+  outline: 2px dashed #f9cb74;
+}
+
+.quote-box {
+  display: flex;
+  justify-content: center;
+  font-style: italic;
+  color: #555;
+  background-color: #ececec;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quote-text {
+  flex: 1;
+  padding: 0 0.5rem;
+  text-align: center;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.quote-icon {
+  width: 18px;
+  height: 18px;
+  color: #838383;
+  flex-shrink: 0;
+}
+
+.quote-icon.close-quote {
+  transform: scaleX(-1);
 }
 
 #reviewEditable {
   display: block;
   font-size: 0.9rem;
   color: #333;
-  min-height: 80px;
+  min-height: 40px;
   padding: 10px;
   width: 100%;
-  box-sizing: border-box;
   border: 1px solid #eaeaea;
   border-radius: 8px;
   background-color: #f9f7f7;
   white-space: pre-wrap;
-  word-break: break-word;
   overflow-wrap: anywhere;
-  line-height: 1.5;
-  /* Remove these if set: */
+  line-height: 1.4; /* was 1.2 — gives better spacing */
+
+  /* Try disabling these two if they’re causing ghost spacing */
   height: auto;
   overflow: visible;
+
   flex-grow: 0;
+
+  /* New additions */
+  margin-top: 0;   /* Remove unwanted spacing */
+  margin-bottom: 0;
 }
 
-.review-text.editing {
-  background-color: #fffdf5;
-  outline: 2px dashed #f9cb74;
-  cursor: text;
+.review-box {
+  display: block;
+  text-align: left;
+  color: #555;
+  background-color: #ececec;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.card-footer {
+/* Move to-read button/ Add to read */
+.move-to-read-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.move-to-read-btn:hover {
+  background-color: #45a049;
+}
+
+.card-footer, .to-read-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-top: auto;
-  min-height: 3.2vh;
-  /*border-top: 1px solid #eee;*/
+  min-height: 4vh;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+}
+
+.tag-footer{
+ display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  min-height: 4vh;
 }
 
 .card-footer-left,
@@ -453,6 +479,10 @@ body,
   flex: 1;
   display: flex;
   align-items: center;
+}
+
+.card-footer-center {
+  justify-content: flex-end;
 }
 
 .card-footer-left {
@@ -519,14 +549,6 @@ body,
   color: #f46a6a;
 }
 
-.to-read-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-top: 1rem;
-  justify-content: flex-start;
-}
-
 #prevBtn,
 #nextBtn {
   position: absolute;
@@ -568,23 +590,42 @@ body,
 
 /* ===== Base Tag/Button Styles ===== */
 .tag,
-.add-tag-btn,
 .add-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-family: inherit;
   cursor: pointer;
   user-select: none;
   border: none;
   border-radius: 15px;
-  padding: 0.4rem 0.7rem;
-  gap: 0.3rem;
+  padding: 0.4rem 0.6rem;
+  gap: 0.2rem;
   background: #376469;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   transition: background-color 0.3s ease;
+}
+
+.add-tag-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  border-radius: 15px;
+  padding: 0.4rem 0.6em;
+  gap: 0.2rem;
+  background: #f9b274;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.add-tag-btn:hover {
+  background: #f9b274;
+  color: white; 
 }
 
 .tag:hover,
@@ -858,16 +899,6 @@ width: 100dvw;
   overflow: hidden; 
 }
 
-.popup-footer-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-top: auto;
-  min-height: 3.2vh;
-  /*border-top: 1px solid #eee;*/
-}
-
 /* === Add book input fields === */
 .popup input {
   padding: 0.5rem;
@@ -971,4 +1002,25 @@ width: 100dvw;
   --color-orange: #f78a37;
   --color-orange-hover: #f4b584;
   /* add more as needed */
+}
+
+.book-card-base {
+  gap: 0; /* prevent unexpected spacing between .book-card-content and footers */
+}
+
+.book-card-content {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.card-footer,
+.tag-footer {
+  margin-top: 0;
+}
+
+.review-box:last-child,
+.to-read-notes:last-child,
+.quote-box:last-child {
+  margin-bottom: 0;
+  margin-top: 0;
 }
