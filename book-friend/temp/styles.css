@@ -210,7 +210,7 @@ body,
 
 #bookCard {
   aspect-ratio: 2 / 3;       /* Match the image's 2:3 ratio */
-  max-width: 80dvw;          /* Keep your max width */
+  max-width: 85dvw;          /* Keep your max width */
   width: 100dvw;             /* Or desired width */
   min-height: 35vh;
   height: calc(var(--vh) - 5rem);
@@ -294,65 +294,6 @@ body,
   color: #828282;
   padding-top: 0.3rem;
   padding-bottom: 1rem;
-}
-
-.rating-header {
-  display: flex;
-  align-items: center;         /* vertically center icons */
-  justify-content: space-between;
-  padding-top: 0.5rem;
-  padding-bottom: 1rem;     /* control spacing inside box */
-  font-size: 1.25rem;          /* slightly reduced to fit better */
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.rating-star {
-  cursor: pointer;
-  padding: 0.1rem;
-  transition: transform 0.2s ease;
-  user-select: none;
-  color: #f9cb74;
-}
-
-.rating-star,
-.despair-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  vertical-align: middle;
-  line-height: 1;
-}
-
-.rating-star:hover {
-  transform: scale(1.2);
-  color: #ffbb3b;
-}
-
-.despair-level {
-  display: flex;
-  gap: 0.25rem;
-  color: #376469;
-}
-
-.despair-icon:hover {
-  transform: scale(1.2);
-  opacity: 1;
-  color: #690768;
-}
-
-.despair-icon[data-selected="true"] {
-  color: var(--despair-selected-color);
-  opacity: 1;
-}
-
-.despair-icon:not([data-selected="true"]):not(:hover) {
-  color: var(--despair-default-color);
-}
-
-.upside-down {
-  display: inline-block;
-  transform: rotate(180deg);
 }
 
 .editable {
@@ -455,7 +396,19 @@ body,
   background-color: #45a049;
 }
 
-.card-footer, .to-read-footer {
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  min-height: 4vh;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+  margin:auto;
+  font-size: 1rem;
+}
+
+.to-read-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -463,6 +416,54 @@ body,
   min-height: 4vh;
   border-bottom: 1px solid #eee;
   flex-wrap: wrap;
+  margin:auto;
+}
+
+.rating-star {
+  cursor: pointer;
+  padding: 0.1rem;
+  transition: transform 0.2s ease;
+  user-select: none;
+  color: #f9cb74;
+}
+
+.rating-star,
+.despair-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.rating-star:hover {
+  transform: scale(1.2);
+  color: #ffbb3b;
+}
+
+.despair-level {
+  display: flex;
+  gap: 0.25rem;
+  color: #376469;
+}
+
+.despair-icon:hover {
+  transform: scale(1.2);
+  opacity: 1;
+  color: #690768;
+}
+
+.despair-icon[data-selected="true"] {
+  color: var(--despair-selected-color);
+  opacity: 1;
+}
+
+.despair-icon:not([data-selected="true"]):not(:hover) {
+  color: var(--despair-default-color);
+}
+
+.upside-down {
+  display: inline-block;
+  transform: rotate(180deg);
 }
 
 .tag-footer{
@@ -471,28 +472,7 @@ body,
   justify-content: space-evenly;
   width: 100%;
   min-height: 4vh;
-}
-
-.card-footer-left,
-.card-footer-center,
-.card-footer-right {
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.card-footer-center {
-  justify-content: flex-end;
-}
-
-.card-footer-left {
-  justify-content: flex-start;
-}
-
-.card-footer-right {
-  justify-content: flex-end;
-  gap: 0.4rem;
-  flex-wrap: wrap;
+  margin:auto;
 }
 
 /* BOOK CARD CALENDAR SETTINGS */
@@ -897,6 +877,15 @@ width: 100dvw;
   min-height: 35vh;
   max-height: calc(56dvh - 5rem);
   overflow: hidden; 
+}
+
+.popup-footer-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  min-height: 4vh;
+  margin:auto;
 }
 
 /* === Add book input fields === */
