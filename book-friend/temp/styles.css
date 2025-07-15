@@ -398,32 +398,39 @@ body,
 
 .card-footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-evenly;
   width: 100%;
   min-height: 4vh;
-  border-bottom: 1px solid #eee;
-  flex-wrap: wrap;
-  margin:auto;
+  gap: 0.5rem;
   font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0.5rem 0;
 }
 
-.to-read-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 4vh;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
+/* Favorite heart */
+.favorite-heart,
+#addFavoriteHeart {
+
 }
 
-.tag-footer{
-  display: flex;
+.favorite-heart.active,
+#addFavoriteHeart.active {
+  color: #f46a6a;
+}
+
+.favorite-heart,
+#addFavoriteHeart {
+  font-size: 1.6rem;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-evenly;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
+  justify-content: center;
+  box-sizing: border-box;
+  vertical-align: middle;
+  cursor: pointer;
+  color: #c0c0c0;
+  transition: color 0.3s ease;
 }
 
 .rating-star {
@@ -432,19 +439,30 @@ body,
   transition: transform 0.2s ease;
   user-select: none;
   color: #f9cb74;
-}
-
-.rating-star,
-.despair-icon {
+  font-size: 1.9rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   vertical-align: middle;
 }
 
 .rating-star:hover {
   transform: scale(1.2);
   color: #ffbb3b;
+}
+
+.despair-icon {
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.25rem;
+  padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  vertical-align: middle;
+  cursor: pointer;
 }
 
 .despair-level {
@@ -473,90 +491,23 @@ body,
   transform: rotate(180deg);
 }
 
-/* BOOK CARD CALENDAR SETTINGS */
-.calendar-icon {
-  color: #376469;
-}
-
-.calendar-icon:hover {
-  color: #f9b274;
-}
-
-.date-read-container {
+.to-read-footer {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 1rem;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 4vh;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.date-read {
-  border: 1px solid transparent;
-  padding: 2px 6px;
-  border-radius: 4px;
-  min-width: 70px;
-  text-align: center;
-  user-select: text;
-  font-family: monospace;
-  font-size: 0.9em;
-  color: #555;
-  display: none; /* hidden initially */
-}
-
-.date-read.visible {
-  display: inline-block;
-}
-
-.date-read-label {
-  font-family: monospace;
-  font-size: 0.9em;
-  color: #555;
-  min-width: 70px;
-}
-
-/* Favorite heart */
-.favorite-heart,
-#addFavoriteHeart {
-  cursor: pointer;
-  font-size: 1.5rem;
-  color: #c0c0c0;
-  transition: color 0.3s ease;
-}
-
-.favorite-heart.active,
-#addFavoriteHeart.active {
-  color: #f46a6a;
-}
-
-#prevBtn,
-#nextBtn {
-  position: absolute;
-  top: 50%; /* center vertically */
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  color: #f25b5b;
-  border-radius: 4px;
+.tag-footer{
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 2; /* ensure it’s above the image */
-}
-
-#prevBtn {
-  left: -20px; /* adjust based on your spacing needs */
-}
-
-#nextBtn {
-  right: -20px;
-}
-
-#prevBtn:hover,
-#nextBtn:hover {
-  background: rgba(255, 255, 255, 0);
+  justify-content: space-evenly;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
 }
 
 /* Tags container to group footer tags */
@@ -873,7 +824,7 @@ body,
 width: 100dvw;
   max-width: 75dvw;
   min-height: 35vh;
-  max-height: calc(56dvh - 5rem);
+  max-height: calc(58dvh - 3.5rem);
   overflow: hidden; 
 }
 
