@@ -135,14 +135,9 @@ export async function fetchSynopsis(title, author) {
 
 // ===Genre tag fetch=== //
 
-//allowed tags
-export const allowedSubjects = [
-  "fiction", "fantasy", "horror", "romance", "science fiction", "thriller", "mystery", 
-  "historical fiction", "poetry", "drama", "memoir", "young adult", "folklore", "classic"
-];
 
 function normalizeSubject(subject) {
-  return subject.toLowerCase().replace(/[^a-z0-9\s\-]/gi, "").trim();
+  return subject.toLowerCase().replace(/_/g, " ").trim();
 }
 
 export async function fetchFilteredSubjects(title, author) {
@@ -153,13 +148,13 @@ export async function fetchFilteredSubjects(title, author) {
   try {
     const res = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`);
     const data = await res.json();
+
     const work = data?.docs?.[0];
-    if (work?.subject?.length) {
-      const filtered = work.subject
-        .map(normalizeSubject)
-        .filter((s) => allowedSubjects.includes(s));
-      localStorage.setItem(cacheKey, JSON.stringify(filtered));
-      return filtered;
+    if (work?.subject_key?.length) {
+      const normalized = work.subject_key.map(normalizeSubject);
+
+      localStorage.setItem(cacheKey, JSON.stringify(normalized));
+      return normalized;
     }
   } catch (e) {
     console.error("Failed to fetch subjects:", e);
