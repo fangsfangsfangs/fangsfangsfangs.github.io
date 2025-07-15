@@ -36,7 +36,7 @@ h3 {
   top: 0;
   left: 0;
   width: 100dvw;
-  height: 100dvh;
+  height: 100lvh;
   background: rgba(255, 255, 255, 0.95);
   display: flex;
   align-items: flex-start; 
@@ -144,7 +144,7 @@ body.popup-open .grid-area {
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 1rem;
   padding: 2rem;  
-  height: calc(var(--vh) - 3.5rem);
+  height: calc(100lvh - 3.5rem);
   overflow-y: auto;
   box-sizing: border-box;
   overscroll-behavior: contain;
@@ -215,7 +215,7 @@ body,
   max-width: 87%;          /* Keep your max width */
   width: 100%;             /* Or desired width */
   min-height: 35%;
-  height: calc(var(--vh) - 3.5rem);
+  height: calc(100lvh - 3.5rem);
 }
 
 /* === Book popup container === */
@@ -454,10 +454,7 @@ body,
 }
 
 .despair-icon {
-  width: 2rem;
-  height: 2rem;
   font-size: 1.25rem;
-  padding: 0.25rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -468,7 +465,6 @@ body,
 
 .despair-level {
   display: flex;
-  gap: 0.25rem;
   color: #376469;
 }
 
@@ -941,4 +937,5 @@ width: 100dvw;
   --color-orange: #f78a37;
   --color-orange-hover: #f4b584;
   /* add more as needed */
+
 }
