@@ -270,7 +270,7 @@ body,
 
 .cover-container img,
 .to-read-cover-container img {
-  width: 86%;
+  width: 90%;
   aspect-ratio: 2 / 3;
   object-fit: cover;
   background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
@@ -404,7 +404,7 @@ body,
   min-height: 4vh;
   border-bottom: 1px solid #eee;
   flex-wrap: wrap;
-  margin:auto;
+  margin-bottom:0.5rem;
   font-size: 1rem;
 }
 
@@ -417,6 +417,7 @@ body,
   border-bottom: 1px solid #eee;
   flex-wrap: wrap;
   margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
 .rating-star {
