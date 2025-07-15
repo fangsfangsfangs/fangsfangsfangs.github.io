@@ -414,9 +414,16 @@ body,
   justify-content: space-between;
   width: 100%;
   min-height: 4vh;
-  border-bottom: 1px solid #eee;
   flex-wrap: wrap;
-  margin:auto;
+  margin-top: 0.5rem;
+}
+
+.tag-footer{
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
 }
 
 .rating-star {
@@ -464,15 +471,6 @@ body,
 .upside-down {
   display: inline-block;
   transform: rotate(180deg);
-}
-
-.tag-footer{
- display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  width: 100%;
-  min-height: 4vh;
-  margin:auto;
 }
 
 /* BOOK CARD CALENDAR SETTINGS */
