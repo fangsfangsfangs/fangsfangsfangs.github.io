@@ -1003,19 +1003,3 @@ width: 100dvw;
   --color-orange-hover: #f4b584;
   /* add more as needed */
 }
-
-.book-card-base {
-  gap: 0; /* prevent unexpected spacing between .book-card-content and footers */
-}
-
-.card-footer,
-.tag-footer {
-  margin-top: 0;
-}
-
-.review-box:last-child,
-.to-read-notes:last-child,
-.quote-box:last-child {
-  margin-bottom: 0;
-  margin-top: 0;
-}
