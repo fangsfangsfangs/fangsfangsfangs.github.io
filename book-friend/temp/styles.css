@@ -49,8 +49,10 @@ h3 {
 } 
 
 /* Prevents grid bg from scrolling when a popup is open */
-body.popup-open {
-  overflow: hidden;
+body.popup-open .grid-area {
+  overflow: hidden !important;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .hidden {
@@ -210,7 +212,7 @@ body,
 
 #bookCard {
   aspect-ratio: 1.2 / 2;       /* Match the image's 2:3 ratio */
-  max-width: 85%;          /* Keep your max width */
+  max-width: 87%;          /* Keep your max width */
   width: 100%;             /* Or desired width */
   min-height: 35%;
   height: calc(var(--vh) - 3.5rem);
@@ -422,7 +424,7 @@ body,
 
 .favorite-heart,
 #addFavoriteHeart {
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -438,7 +440,7 @@ body,
   transition: transform 0.2s ease;
   user-select: none;
   color: #f9cb74;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
