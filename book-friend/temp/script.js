@@ -1,5 +1,5 @@
 import { showToast, rainGlitter } from "./glitter.js";
-import { getCoverUrl, placeholderImage, fetchSynopsis } from "./coverAPI.js";
+import { getCoverUrl, placeholderImage, fetchSynopsis, fetchFilteredSubjects, allowedSubjects } from "./coverAPI.js";
 
 const supabaseUrl = "https://pnpjlsjxlbrihxlkirwj.supabase.co";
 const supabaseAnonKey =
@@ -25,6 +25,17 @@ async function addBookToSupabase(book) {
   if (error) throw error;
   return data;
 }
+// Update to-read tags
+async function updateToReadBookTags(id, tags) {
+  const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id);
+
+  if (error) {
+    console.error("Error updating to-read tags:", error);
+    return null;
+  }
+  return data;
+}
+
 //SUPABASE UPDATE
 async function updateBookInSupabase(id, updates) {
   const { data, error } = await supabase.from("books_read").update(updates).eq("id", id);
@@ -79,7 +90,8 @@ function normalizeBook(book, isToRead = false) {
     title: (book.title || "").trim(),
     author: (book.author || "").trim(),
     isbn: (book.isbn || "").replace(/[-\s]/g, "").trim(),
-    cover: (book.cover || "").trim()
+    cover: (book.cover || "").trim(),
+    tags: Array.isArray(book.tags) ? book.tags.map((t) => t.trim().toLowerCase()) : []
   };
 
   if (isToRead) {
@@ -88,14 +100,11 @@ function normalizeBook(book, isToRead = false) {
       notes: (book.notes || "").trim()
     };
   } else {
-    // Default fallback full date (YYYY-MM-01)
     let normalizedDateRead = getFallbackDate();
 
     if (book.date_read && /^\d{4}-\d{2}-\d{2}$/.test(book.date_read)) {
-      // Use full date as is
       normalizedDateRead = book.date_read;
     } else if (book.date_read && /^\d{4}-\d{2}$/.test(book.date_read)) {
-      // If only YYYY-MM stored, append day for full date
       normalizedDateRead = book.date_read + "-01";
     }
 
@@ -106,9 +115,8 @@ function normalizeBook(book, isToRead = false) {
       rating: parseInt(book.rating || "0"),
       despair: parseInt(book.despair || "0"),
       favorite: String(book.favorite || "").toLowerCase(),
-      tags: Array.isArray(book.tags) ? book.tags.map((t) => t.trim().toLowerCase()) : [],
-      dateRead: normalizedDateRead, // full date, for DB and logic
-      dateReadDisplay: normalizedDateRead.slice(0, 7) // YYYY-MM, for UI display
+      dateRead: normalizedDateRead,
+      dateReadDisplay: normalizedDateRead.slice(0, 7)
     };
   }
 }
@@ -238,7 +246,7 @@ async function renderToReadGrid() {
 async function renderSingleCard(book) {
   if (!book) return;
 
-  let tags = Array.isArray(book.tags) ? book.tags : [];
+  let tags = book.tags;
 
   const tagsHTML =
     tags
@@ -287,8 +295,10 @@ async function renderSingleCard(book) {
     </div>
 <div class="title">${book.title || "Untitled"}</div>
 <div class="author">${book.author || "Unknown"}</div>
+<div class="review-box">
 <div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
   ${book.review || "No review yet"}
+</div>
 </div>
 </div>
 <div class="card-footer">
@@ -334,6 +344,15 @@ async function renderSingleCard(book) {
     });
   }
 
+  // 🧼 Clean review text before making it editable to remove extra blank lines
+  const reviewEl = document.getElementById("reviewEditable");
+  if (reviewEl) {
+    const cleanReview = (book.review || "")
+      .replace(/^\s+|\s+$/g, "") // Trim start/end whitespace
+      .replace(/\n{2,}/g, "\n"); // Collapse multiple newlines
+    reviewEl.textContent = cleanReview;
+  }
+
   //Editable quote + review fields
   ["quote", "review"].forEach((field) => {
     const el = document.getElementById(`${field}Editable`);
@@ -362,10 +381,14 @@ async function renderSingleCard(book) {
       delBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const tagToRemove = tagEl.dataset.tag;
-        const newTags = tags.filter((t) => t.toLowerCase() !== tagToRemove);
-        await updateBookInSupabase(book.id, { tags: newTags });
-        book.tags = newTags;
-        renderSingleCard(book);
+        const newTags = book.tags.filter((t) => t.toLowerCase() !== tagToRemove);
+        const result = await updateBookInSupabase(book.id, { tags: newTags });
+        if (result !== null) {
+          book.tags = newTags;
+          renderSingleCard(book); // or renderToReadCard(book)
+        } else {
+          console.warn("Failed to delete tag from Supabase.");
+        }
       });
     }
   });
@@ -443,28 +466,24 @@ function showTagInput(book, isToRead = false) {
     const newTag = input.value.trim();
     if (!newTag) return;
 
-    let currentTags = Array.isArray(book.tags) ? book.tags : [];
+    let currentTags = book.tags || [];
     if (!currentTags.some((t) => t.toLowerCase() === newTag.toLowerCase())) {
       currentTags.push(newTag);
+      if (isToRead) {
+        await updateToReadBookTags(book.id, currentTags);
+      } else {
+        await updateBookInSupabase(book.id, { tags: currentTags });
+      }
+      book.tags = currentTags; // ✅ Reassign AFTER push
     }
 
-    if (isToRead) {
-      // if you handle to-read tags separately
-      await updateToReadBookTags(book.id, currentTags);
-    } else {
-      await updateBookInSupabase(book.id, { tags: currentTags });
-    }
-
-    book.tags = currentTags;
     document.body.removeChild(overlay);
 
-    renderSingleCard(book); // refresh card to show new tags
-  });
-
-  // Close popup if clicked outside
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) {
-      document.body.removeChild(overlay);
+    // ✅ RENDER the correct card type
+    if (isToRead) {
+      renderToReadCard(book);
+    } else {
+      renderSingleCard(book);
     }
   });
 }
@@ -473,15 +492,34 @@ function showTagInput(book, isToRead = false) {
 async function renderToReadCard(book) {
   if (!book) return;
 
-  let tags = Array.isArray(book.tags) ? book.tags : [];
+  // Existing tags from the book
+  let tags = book.tags;
 
-  const tagsHTML =
-    tags
-      .map(
-        (tag) =>
-          `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
-      )
-      .join("") + `<span class="tag add-tag-btn" title="Add Tag">+</span>`;
+  // Fetch filtered subjects from OpenLibrary API
+  const subjectTags = await fetchFilteredSubjects(book.title, book.author);
+  const mergedTags = Array.from(new Set([...book.tags, ...subjectTags]));
+
+  // Merge existing tags and fetched subject tags, deduplicated
+  tags = Array.from(new Set([...tags, ...subjectTags]));
+
+  // ✅ Check merged tag array and update only if changed
+  if (mergedTags.length !== book.tags.length) {
+    const result = await updateBookInSupabase(book.id, { tags: mergedTags });
+    if (result !== null) {
+      book.tags = mergedTags;
+      tags = mergedTags;
+    } else {
+      console.warn("Failed to update merged tags to Supabase.");
+    }
+  }
+
+  // Build tags HTML
+  const tagsHTML = tags
+    .map(
+      (tag) =>
+        `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
+    )
+    .join("");
 
   const bookCard = document.getElementById("bookCard");
   const coverSrc = await getCoverUrl(book);
@@ -490,45 +528,48 @@ async function renderToReadCard(book) {
   bookCard.innerHTML = `
   <button id="closeToReadCard" class="close-btn" aria-label="Close">&times;</button>
   <div class="book-card-content">
-  <div class="to-read-cover-container">
-    <img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" />
+    <div class="to-read-cover-container">
+      <img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" />
+    </div>
+    <div class="to-read-title">${book.title || "Untitled"}</div>
+    <div class="to-read-author">${book.author || "Unknown"}</div>
+    <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
   </div>
-  <div class="to-read-title">${book.title || "Untitled"}</div>
-  <div class="to-read-author">${book.author || "Unknown"}</div>
-  <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
-</div>
   <div class="card-footer">
     <div class="card-footer-left">
       <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
     </div>
     <div class="card-footer-right">
       <div class="tags">${tagsHTML}</div>
+      <span class="tag add-tag-btn" title="Add Tag">+</span>
     </div>
   </div>
 `;
 
-  // Add to read button
+  // Add to read button handler
   document.getElementById("moveToReadAddBtn").addEventListener("click", () => {
     const popup = document.getElementById("addBookPopup");
     popup.classList.remove("hidden");
-    // Pre-fill title and author
+
     document.getElementById("addTitle").value = book.title || "";
     document.getElementById("addAuthor").value = book.author || "";
     document.getElementById("addIsbn").value = book.isbn || "";
-    document.getElementById("addBookPopup").classList.remove("hidden");
 
-    // Store the to-read book id for later deletion
+    // ✅ Add this line to transfer tags
+    const tagField = document.getElementById("addTags");
+    tagField.value = Array.isArray(book.tags) ? book.tags.join(", ") : "";
+
+    // Preserve to-read ID so we can delete it after saving
     popup.dataset.toReadId = book.id;
   });
 
-  //Card close button
+  // Close button handler
   document.getElementById("closeToReadCard").addEventListener("click", () => {
     document.getElementById("cardOverlay").classList.add("hidden");
   });
 
-  // Tag filtering
+  // Tag click: filter books by tag, then close popup
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
-    if (tagEl.classList.contains("add-tag-btn")) return;
     tagEl.addEventListener("click", () => {
       activeToReadTag = tagEl.dataset.tag.toLowerCase();
       applyToReadFilter();
@@ -536,21 +577,30 @@ async function renderToReadCard(book) {
     });
   });
 
-  // Delete tag buttons
+  // Add tag button
+  bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      showTagInput(book, true);
+    });
+  });
+
+  // Delete tag button
   bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
-    delBtn.addEventListener("click", (e) => {
+    delBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const tagSpan = delBtn.parentElement;
       const tagToRemove = tagSpan.dataset.tag;
       tags = tags.filter((t) => t.toLowerCase() !== tagToRemove);
-      renderToReadCard(book);
-    });
-  });
 
-  // Add tag button
-  bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      showTagInput(book, false);
+      // Update tags in Supabase
+      const updateResult = await updateBookInSupabase(book.id, { tags });
+      if (updateResult !== null) {
+        book.tags = tags; // Update local book object
+        renderToReadCard(book);
+      } else {
+        console.error("Failed to update tags in Supabase.");
+        // Optionally, show error feedback to user here
+      }
     });
   });
 
@@ -559,6 +609,7 @@ async function renderToReadCard(book) {
   const synopsisEl = document.getElementById("toReadSynopsis");
   synopsisEl.textContent = synopsis || "No synopsis available.";
 }
+
 //Quick-list Render
 async function renderQuickListCard() {
   try {
@@ -616,23 +667,43 @@ function getDespairIcon(value) {
 // === Editable field helper ===
 function makeEditableOnClick(el, book, field) {
   el.addEventListener("click", () => {
-    el.contentEditable = "true";
-    el.classList.add("editing");
-    el.focus();
+    if (!el.classList.contains("editing")) {
+      el.contentEditable = "true";
+      el.classList.add("editing");
+      el.focus();
+
+      // Move caret to end
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
   });
 
   el.addEventListener("blur", async () => {
-    el.contentEditable = "false";
-    el.classList.remove("editing");
-    const newVal = el.textContent.trim();
-    if (book[field] !== newVal) {
-      await updateBookInSupabase(book.id, { [field]: newVal });
-      book[field] = newVal;
+    if (el.classList.contains("editing")) {
+      el.classList.remove("editing");
+      el.contentEditable = "false";
+
+      // Clean text content: remove all leading/trailing newlines
+      let newValue = el.innerText.replace(/^\s+|\s+$/g, "");
+
+      // Normalize multiple blank lines to a single space
+      newValue = newValue.replace(/\n{2,}/g, "\n");
+
+      if (newValue !== (book[field] || "").trim()) {
+        const updateObj = {};
+        updateObj[field] = newValue;
+        await updateBookInSupabase(book.id, updateObj);
+        book[field] = newValue;
+      }
     }
   });
 
   el.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       el.blur();
     }
