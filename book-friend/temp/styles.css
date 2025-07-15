@@ -270,7 +270,7 @@ body,
 
 .cover-container img,
 .to-read-cover-container img {
-  width: 83%;
+  width: 86%;
   aspect-ratio: 2 / 3;
   object-fit: cover;
   background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
