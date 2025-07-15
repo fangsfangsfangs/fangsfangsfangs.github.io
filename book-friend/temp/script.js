@@ -1,5 +1,6 @@
 import { showToast, rainGlitter } from "./glitter.js";
-import { getCoverUrl, placeholderImage, fetchSynopsis, fetchFilteredSubjects, allowedSubjects } from "./coverAPI.js";
+import { getCoverUrl, placeholderImage, fetchSynopsis} from "./coverAPI.js";
+import {fetchFilteredSubjects} from "./coverAPI.js";
 
 const supabaseUrl = "https://pnpjlsjxlbrihxlkirwj.supabase.co";
 const supabaseAnonKey =
@@ -28,7 +29,6 @@ async function addBookToSupabase(book) {
 // Update to-read tags
 async function updateToReadBookTags(id, tags) {
   const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id);
-
   if (error) {
     console.error("Error updating to-read tags:", error);
     return null;
@@ -248,13 +248,12 @@ async function renderSingleCard(book) {
 
   let tags = book.tags;
 
-  const tagsHTML =
-    tags
-      .map(
-        (tag) =>
-          `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
-      )
-      .join("");
+  const tagsHTML = tags
+    .map(
+      (tag) =>
+        `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
+    )
+    .join("");
 
   const bookCard = document.getElementById("bookCard");
   const coverSrc = await getCoverUrl(book);
@@ -270,6 +269,22 @@ async function renderSingleCard(book) {
       <img src="${coverSrc}" alt="Cover of ${book.title}" onerror="this.onerror=null;this.src='${placeholderImage}'"/>
     </div>
 <div class="rating-header">
+</div>
+<div class="quote-box">
+      <i data-lucide="quote" class="quote-icon close-quote"></i>
+      <div id="quoteEditable" class="quote-text editable" contenteditable="false" title="Click to edit quote">${book.quote || "No quote available"}</div>
+      <i data-lucide="quote" class="quote-icon open-quote"></i>
+    </div>
+<div class="title">${book.title || "Untitled"}</div>
+<div class="author">${book.author || "Unknown"}</div>
+<div class="review-box">
+<div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
+  ${book.review || "No review yet"}
+</div>
+</div>
+</div>
+<div class="card-footer">
+    <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
 <div class="rating" title="Rating">
       ${[1, 2, 3, 4, 5]
         .map(
@@ -287,27 +302,7 @@ async function renderSingleCard(book) {
       : `<span class="despair-icon no-despair" title="No Despair" data-value="0">${getDespairIcon(0)}</span>`
   }
 </div>
-</div>
-<div class="quote-box">
-      <i data-lucide="quote" class="quote-icon close-quote"></i>
-      <div id="quoteEditable" class="quote-text editable" contenteditable="false" title="Click to edit quote">${book.quote || "No quote available"}</div>
-      <i data-lucide="quote" class="quote-icon open-quote"></i>
-    </div>
-<div class="title">${book.title || "Untitled"}</div>
-<div class="author">${book.author || "Unknown"}</div>
-<div class="review-box">
-<div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
-  ${book.review || "No review yet"}
-</div>
-</div>
-</div>
-<div class="card-footer">
-<div class="card-footer-left">
-    <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
-  </div>
- <div class="card-footer-right">
       <span class="tag add-tag-btn" title="Add Tag">+</span>
-    </div>
   </div>
    <div class="tag-footer">
       <div class="tags">${tagsHTML}</div></div>
@@ -490,7 +485,7 @@ function showTagInput(book, isToRead = false) {
   });
 }
 
-// To-read card popup (unchanged except for tags if needed)
+// To-read card popup (unchanged except for tags if needed) //
 async function renderToReadCard(book) {
   if (!book) return;
 
@@ -506,10 +501,13 @@ async function renderToReadCard(book) {
 
   // ✅ Check merged tag array and update only if changed
   if (mergedTags.length !== book.tags.length) {
-    const result = await updateBookInSupabase(book.id, { tags: mergedTags });
+    const result = await updateToReadBookTags(book.id, mergedTags); // ✅ correct table
     if (result !== null) {
       book.tags = mergedTags;
       tags = mergedTags;
+
+      // ✅ Refresh grid view if tag list changed (important for active tag filters)
+      await fetchToReadBooks();
     } else {
       console.warn("Failed to update merged tags to Supabase.");
     }
@@ -537,14 +535,10 @@ async function renderToReadCard(book) {
     <div class="to-read-author">${book.author || "Unknown"}</div>
     <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
   </div>
-  <div class="card-footer">
-    <div class="card-footer-left">
+  <div class="to-read-footer">
       <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
-    </div>
-    <div class="card-footer-right">
       <span class="tag add-tag-btn" title="Add Tag">+</span>
     </div>
-  </div>
    <div class="tag-footer">
       <div class="tags">${tagsHTML}</div></div>
     </div>
@@ -597,7 +591,7 @@ async function renderToReadCard(book) {
       tags = tags.filter((t) => t.toLowerCase() !== tagToRemove);
 
       // Update tags in Supabase
-      const updateResult = await updateBookInSupabase(book.id, { tags });
+      const updateResult = await updateToReadBookTags(book.id, tags);
       if (updateResult !== null) {
         book.tags = tags; // Update local book object
         renderToReadCard(book);
@@ -757,6 +751,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("addBookBtn").addEventListener("click", () => {
     document.getElementById("addBookPopup").classList.remove("hidden");
   });
+  // Favorite heart toggle
+  const favHeart = document.getElementById("addFavoriteHeart");
+  if (favHeart) {
+    favHeart.addEventListener("click", () => {
+      favHeart.classList.toggle("active");
+    });
+  }
   // Now that popup is visible, attach calendar toggle logic
   const calendarToggle = document.querySelector("#addBookPopup .calendar-toggle");
   const monthPicker = document.querySelector("#addBookPopup .month-picker");
