@@ -209,7 +209,7 @@ body,
 }
 
 #bookCard {
-  aspect-ratio: 2 / 3;       /* Match the image's 2:3 ratio */
+  aspect-ratio: 11 / 24;       /* Match the image's 2:3 ratio */
   max-width: 85dvw;          /* Keep your max width */
   width: 100dvw;             /* Or desired width */
   min-height: 35vh;
@@ -271,7 +271,7 @@ body,
 .cover-container img,
 .to-read-cover-container img {
   width: 90%;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 11 / 24;
   object-fit: cover;
   background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
   position: relative;
