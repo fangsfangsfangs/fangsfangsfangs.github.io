@@ -268,8 +268,6 @@ async function renderSingleCard(book) {
 <div class="cover-container">
       <img src="${coverSrc}" alt="Cover of ${book.title}" onerror="this.onerror=null;this.src='${placeholderImage}'"/>
     </div>
-<div class="rating-header">
-</div>
 <div class="quote-box">
       <i data-lucide="quote" class="quote-icon close-quote"></i>
       <div id="quoteEditable" class="quote-text editable" contenteditable="false" title="Click to edit quote">${book.quote || "No quote available"}</div>
@@ -305,7 +303,7 @@ async function renderSingleCard(book) {
       <span class="tag add-tag-btn" title="Add Tag">+</span>
   </div>
    <div class="tag-footer">
-      <div class="tags">${tagsHTML}</div></div>
+      <div class="tags">${tagsHTML}</div>
     </div>
  `;
   lucide.createIcons();
@@ -526,7 +524,7 @@ async function renderToReadCard(book) {
   bookCard.className = "book-card-base book-popup";
 
   bookCard.innerHTML = `
-  <button id="closeToReadCard" class="close-btn" aria-label="Close">&times;</button>
+<button id="closeToReadCard" class="close-btn" aria-label="Close">&times;</button>
   <div class="book-card-content">
     <div class="to-read-cover-container">
       <img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" />
@@ -540,8 +538,8 @@ async function renderToReadCard(book) {
       <span class="tag add-tag-btn" title="Add Tag">+</span>
     </div>
    <div class="tag-footer">
-      <div class="tags">${tagsHTML}</div></div>
-    </div>
+      <div class="tags">${tagsHTML}</div>
+</div>
 `;
 
   // Add to read button handler
