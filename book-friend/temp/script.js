@@ -254,7 +254,7 @@ async function renderSingleCard(book) {
         (tag) =>
           `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
       )
-      .join("") + `<span class="tag add-tag-btn" title="Add Tag">+</span>`;
+      .join("");
 
   const bookCard = document.getElementById("bookCard");
   const coverSrc = await getCoverUrl(book);
@@ -306,10 +306,12 @@ async function renderSingleCard(book) {
     <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
   </div>
  <div class="card-footer-right">
-    <div class="tags">${tagsHTML}</div>
+      <span class="tag add-tag-btn" title="Add Tag">+</span>
+    </div>
   </div>
-</div>
-</div>
+   <div class="tag-footer">
+      <div class="tags">${tagsHTML}</div></div>
+    </div>
  `;
   lucide.createIcons();
 
@@ -540,10 +542,12 @@ async function renderToReadCard(book) {
       <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
     </div>
     <div class="card-footer-right">
-      <div class="tags">${tagsHTML}</div>
       <span class="tag add-tag-btn" title="Add Tag">+</span>
     </div>
   </div>
+   <div class="tag-footer">
+      <div class="tags">${tagsHTML}</div></div>
+    </div>
 `;
 
   // Add to read button handler
