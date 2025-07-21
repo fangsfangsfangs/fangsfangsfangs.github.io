@@ -1,20 +1,7 @@
-/* Base Reset & Typography */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow-x: hidden;
-}
-
 body {
   display: block;
   overflow-x: hidden;
+  height: 100%;
   margin: 0;
   padding-top: 3.5rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
