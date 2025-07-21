@@ -1,3 +1,4 @@
+
 /* Base Reset & Typography */
 *,
 *::before,
@@ -36,7 +37,7 @@ h3 {
   top: 0;
   left: 0;
   width: 100dvw;
-  height: 100lvh;
+  height: 100dvh;
   background: rgba(255, 255, 255, 0.95);
   display: flex;
   align-items: flex-start; 
@@ -50,9 +51,7 @@ h3 {
 
 /* Prevents grid bg from scrolling when a popup is open */
 body.popup-open {
-  overflow: hidden !important;
-  touch-action: none;
-  overscroll-behavior: contain;
+  overflow: hidden;
 }
 
 .hidden {
