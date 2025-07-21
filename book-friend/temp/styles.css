@@ -197,7 +197,7 @@ body,
 
 #bookCard {
   aspect-ratio: 1.2 / 2;       /* Match the image's 2:3 ratio */
-  max-width: 87%;          /* Keep your max width */
+  max-height: 92%;          /* Keep your max width */
   width: 100%;             /* Or desired width */
   min-height: 35%;
   height: calc(100lvh - 3.5rem);
