@@ -2,52 +2,10 @@
 
 const placeholderImage = "https://fangsfangsfangs.neocities.org/book-covers/placeholder.jpg";
 
-export async function fetchOpenLibraryCover(title, author, isbn) {
-  const cleanIsbn = isbn?.replace(/[-\s]/g, "").trim();
-  const cacheKey = `cover_${title.toLowerCase()}_${author.toLowerCase()}`;
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) return cached === "null" ? null : cached;
-
-  try {
-    const res = await fetch(
-      `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
-    );
-    const data = await res.json();
-    if (data.docs && data.docs.length > 0) {
-      const docWithCover = data.docs.find((d) => d.cover_i);
-      if (docWithCover?.cover_i) {
-        const coverUrl = `https://covers.openlibrary.org/b/id/${docWithCover.cover_i}-L.jpg`;
-        localStorage.setItem(cacheKey, coverUrl);
-        return coverUrl;
-      }
-
-      // Try any ISBN from search
-      const allIsbns = data.docs.flatMap((d) => d.isbn || []);
-      for (const fallbackIsbn of allIsbns) {
-        const url = `https://covers.openlibrary.org/b/isbn/${fallbackIsbn}-L.jpg`;
-        if (await imageExists(url)) {
-          localStorage.setItem(cacheKey, url);
-          return url;
-        }
-      }
-    }
-  } catch (e) {
-    console.warn("OpenLibrary search failed:", e);
-  }
-
-  // Final fallback: direct ISBN fetch
-  if (cleanIsbn) {
-    const url = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
-    if (await imageExists(url)) {
-      localStorage.setItem(cacheKey, url);
-      return url;
-    }
-  }
-
-  localStorage.setItem(cacheKey, "null");
-  return null;
-}
-
+/**
+ * Check if an image URL exists by sending a HEAD request.
+ * Returns true if response is ok, else false.
+ */
 export async function imageExists(url) {
   try {
     const res = await fetch(url, { method: "HEAD" });
@@ -57,16 +15,120 @@ export async function imageExists(url) {
   }
 }
 
+/**
+ * Fetch a cover image URL from OpenLibrary given book info.
+ * Implements caching to localStorage to reduce API calls.
+ * Tries multiple strategies:
+ *   1. Search by title + author, use cover_i if present
+ *   2. Search by ISBNs in search results (parallel check)
+ *   3. Direct fetch by provided ISBN
+ * Returns cover URL string or null if none found.
+ */
+export async function fetchOpenLibraryCover(title, author, isbn) {
+  // Normalize inputs & cache key
+  if (!title || !author) {
+    console.warn("fetchOpenLibraryCover: Missing title or author");
+    return null;
+  }
+  const cleanIsbn = isbn?.replace(/[-\s]/g, "").trim();
+  const cacheKey = `cover_${title.toLowerCase()}_${author.toLowerCase()}`;
+
+  // Check cache first
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    if (cached === "null") return null;
+    console.log(`fetchOpenLibraryCover: Cache hit for "${title}" by "${author}"`);
+    return cached;
+  }
+
+  try {
+    // Search OpenLibrary by title and author
+    const res = await fetch(
+      `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
+    );
+    const data = await res.json();
+
+    if (data.docs && data.docs.length > 0) {
+      // Find first doc with a cover_i ID
+      const docWithCover = data.docs.find((d) => d.cover_i);
+      if (docWithCover?.cover_i) {
+        const coverUrl = `https://covers.openlibrary.org/b/id/${docWithCover.cover_i}-L.jpg`;
+        localStorage.setItem(cacheKey, coverUrl);
+        console.log(`fetchOpenLibraryCover: Found cover_i for "${title}" by "${author}"`);
+        return coverUrl;
+      }
+
+      // Parallel check for any ISBN-based covers from search results
+      const allIsbns = data.docs.flatMap((d) => d.isbn || []);
+      if (allIsbns.length > 0) {
+        const promises = allIsbns.map((isbn) => {
+          const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+          return imageExists(url).then((exists) => (exists ? url : null));
+        });
+        const results = await Promise.all(promises);
+        const validUrl = results.find((url) => url !== null);
+        if (validUrl) {
+          localStorage.setItem(cacheKey, validUrl);
+          console.log(`fetchOpenLibraryCover: Found cover via ISBN in search results for "${title}" by "${author}"`);
+          return validUrl;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("fetchOpenLibraryCover: OpenLibrary search failed:", e);
+  }
+
+  // Final fallback: direct fetch by cleaned ISBN (if provided)
+  if (cleanIsbn) {
+    const url = `https://covers.openlibrary.org/b/isbn/${cleanIsbn}-L.jpg`;
+    if (await imageExists(url)) {
+      localStorage.setItem(cacheKey, url);
+      console.log(`fetchOpenLibraryCover: Found cover via direct ISBN fetch for "${title}" by "${author}"`);
+      return url;
+    }
+  }
+
+  // No cover found - cache null to avoid repeat checks
+  localStorage.setItem(cacheKey, "null");
+  console.log(`fetchOpenLibraryCover: No cover found for "${title}" by "${author}"`);
+  return null;
+}
+
+/**
+ * Get cover URL for a book object.
+ * Uses OpenLibrary fetch first, then fallback to book.cover,
+ * then placeholder image.
+ * Validates fallback cover URL existence.
+ */
 export async function getCoverUrl(book) {
+  if (!book) {
+    console.warn("getCoverUrl: Missing book object");
+    return placeholderImage;
+  }
+
+  // Try OpenLibrary cover first
   const openLibCover = await fetchOpenLibraryCover(book.title, book.author, book.isbn);
   if (openLibCover) return openLibCover;
-  if (book.cover?.trim()) return book.cover.trim();
+
+  // Validate fallback book.cover URL before returning
+  if (book.cover?.trim()) {
+    const fallbackCover = book.cover.trim();
+    if (await imageExists(fallbackCover)) {
+      console.log(`getCoverUrl: Using fallback book.cover for "${book.title}"`);
+      return fallbackCover;
+    } else {
+      console.warn(`getCoverUrl: Fallback book.cover URL invalid for "${book.title}": ${fallbackCover}`);
+    }
+  }
+
+  // Fallback to placeholder image
   return placeholderImage;
 }
 
 export { placeholderImage };
 
 // --- SYNOPSIS FETCHING & CACHING ---
+
 function getCacheKeyWorkKey(title, author) {
   return `workkey_${title.toLowerCase()}_${author.toLowerCase()}`;
 }
@@ -81,7 +143,9 @@ export async function getWorkKey(title, author) {
   if (cached) return cached === "null" ? null : cached;
 
   try {
-    const res = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`);
+    const res = await fetch(
+      `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
+    );
     const data = await res.json();
     if (data.docs && data.docs.length > 0 && data.docs[0].key) {
       localStorage.setItem(cacheKey, data.docs[0].key);
@@ -133,8 +197,7 @@ export async function fetchSynopsis(title, author) {
   return await fetchSynopsisByWorkKey(workKey, title, author);
 }
 
-// ===Genre tag fetch=== //
-
+// === Genre tag fetch ===
 
 function normalizeSubject(subject) {
   return subject.toLowerCase().replace(/_/g, " ").trim();
@@ -146,7 +209,9 @@ export async function fetchFilteredSubjects(title, author) {
   if (cached) return JSON.parse(cached);
 
   try {
-    const res = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`);
+    const res = await fetch(
+      `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
+    );
     const data = await res.json();
 
     const work = data?.docs?.[0];
