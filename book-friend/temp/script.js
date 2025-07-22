@@ -20,12 +20,6 @@ cardOverlay.addEventListener("click", (e) => {
   }
 });
 
-//SET VIEWPORT HEIGHT using: height: calc(var(--vh, 1vh) * 100); in CSS
-function setRealViewportHeight() {
-  const vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty('--vh', `${vh}px`);
-}
-
 // Global state
 let allBooks = [],
   filteredBooks = [],
