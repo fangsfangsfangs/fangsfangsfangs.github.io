@@ -202,9 +202,9 @@ body,
   text-transform: lowercase;
   overflow-y: auto;
   aspect-ratio: 2 / 2.8;       /* Match the image's 2:3 ratio */
-  max-width: 85%;          /* Keep your max width */
+  max-width: 80%;          /* Keep your max width */
   width: 100%;             /* Or desired width */
-  height: calc(65lvh - 3.5rem);        /* Remove max-height if conflicting */
+  height: calc(80lvh - 3.5rem);        /* Remove max-height if conflicting */
   overflow: hidden;          /* Hide overflow if needed */
   display: flex;
   flex-direction: column;
