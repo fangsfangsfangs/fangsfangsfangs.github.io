@@ -21,15 +21,14 @@ cardOverlay.addEventListener("click", (e) => {
 });
 
 // Global state
-let allBooks = [];
-let filteredBooks = [];
-let currentIndex = 0;
-let viewMode = "all"; // all, favorites, to-read, quicklist
-let activeTag = null;
-
-let toReadBooks = [];
-let filteredToReadBooks = [];
-let activeToReadTag = null;
+let allBooks = [],
+  filteredBooks = [],
+  currentIndex = 0,
+  viewMode = "all",
+  activeTag = null;
+let toReadBooks = [],
+  filteredToReadBooks = [],
+  activeToReadTag = null;
 
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
@@ -82,7 +81,7 @@ function normalizeBook(book, isToRead = false) {
       review: (book.review || "").trim(),
       rating: parseInt(book.rating || "0"),
       despair: parseInt(book.despair || "0"),
-      favorite: String(book.favorite || "").toLowerCase(),
+      favorite: !!book.favorite,
       dateRead: normalizedDateRead,
       dateReadDisplay: normalizedDateRead.slice(0, 7)
     };
@@ -248,7 +247,7 @@ async function renderToReadGrid() {
   const coverUrls = await Promise.all(filteredToReadBooks.map((book) => getCoverUrl(book)));
   filteredToReadBooks.forEach((book, index) => {
     const item = document.createElement("div");
-    item.className = "to-read-grid-item";
+    item.className = "grid-item";
 
     const img = document.createElement("img");
     img.src = coverUrls[index] || placeholderImage;
@@ -285,7 +284,7 @@ async function renderSingleCard(book) {
   const bookCard = document.getElementById("bookCard");
   const coverSrc = await getCoverUrl(book);
   const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
-  const isFavorited = book.favorite === "y";
+  const isFavorited = !!book.favorite;
   const favoriteClass = isFavorited ? "favorite-heart active" : "favorite-heart";
   bookCard.className = "book-card book-popup";
 
@@ -374,12 +373,13 @@ async function renderSingleCard(book) {
   });
 
   // Toggle favorite
-  document.getElementById("favoriteHeart").addEventListener("click", async () => {
-    const newFav = book.favorite === "y" ? "" : "y";
-    await updateBookInSupabase(book.id, { favorite: newFav });
-    book.favorite = newFav;
-    renderSingleCard(book);
-  });
+document.getElementById("favoriteHeart").addEventListener("click", async () => {
+  // Toggle boolean favorite
+  const newFav = book.favorite === true ? false : true;
+  await updateBookInSupabase(book.id, { favorite: newFav });
+  book.favorite = newFav;
+  renderSingleCard(book);
+});
 
   // Tag filtering and delete tag buttons
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
@@ -749,10 +749,11 @@ function attachToolbarHandlers() {
   };
 
   document.getElementById("favoritesBtn").onclick = () => {
-    viewMode = viewMode === "favorites" ? "all" : "favorites";
-    activeTag = null;
-    applyFilters();
-  };
+  viewMode = "favorites";
+  activeTag = null;
+  applyFilters();
+};
+  
   document.getElementById("showReadBtn").onclick = () => {
     renderQuickListCard();
   };
