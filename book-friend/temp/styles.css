@@ -202,11 +202,10 @@ body::-webkit-scrollbar,
   overflow-y: auto;
   overflow-x: hidden;
   aspect-ratio: 1.2 / 2;      
-  max-width: 80%;         
+  max-width: 75lvh;         
   height: calc(85lvh - 3.5rem);       
   gap: 1rem;
-  padding: 2rem;
-  padding-top: 2rem;
+  padding: 0.2rem 1.5rem 1.5rem 1.5rem;
   border-radius: 10px;
   box-shadow: 0 4px 10px #424242;
 }
@@ -724,12 +723,14 @@ body::-webkit-scrollbar,
 
 /* Scrollable list that fills remaining height */
 .quicklist-content {
+  width: 90%;
+  text-transform: none;
   flex: 1;
   overflow-y: auto;
-  padding-right: rem;
   margin-bottom: 1rem;
   scrollbar-width: none; /* Firefox */
 }
+
 .quicklist-content::-webkit-scrollbar {
   width: 0;
   background: transparent;
@@ -775,13 +776,18 @@ body::-webkit-scrollbar,
   top: 0;
   left: 0;
   width: 100dvw;
-  height: 100dvh;
+  height: calc(var(--vh, 1vh) * 100);
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9997;
   overscroll-behavior: contain;
+}
+
+.popup {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
 }
 
 .popup-content{
