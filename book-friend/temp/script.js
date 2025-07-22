@@ -14,9 +14,9 @@ const gridContainer = document.getElementById("gridContainer");
 
 // Add delegated click listener for close buttons inside overlay
 cardOverlay.addEventListener("click", (e) => {
-  if (e.target.classList.contains("close-btn")) {
+  if (e.target.matches("[data-close]") || e.target === cardOverlay) {
     cardOverlay.classList.add("hidden");
-    unlockScroll(); // Unlock scroll when overlay closes
+    unlockScroll();
   }
 });
 
@@ -290,7 +290,7 @@ async function renderSingleCard(book) {
   bookCard.className = "book-card book-popup";
 
   bookCard.innerHTML = `
-<button id="closeCardBtn" class="close-btn" aria-label="Close">&times;</button>
+<button class="close-btn" data-close aria-label="Close">&times;</button>
 <div class="book-card-content">
 <div class="cover-container">
       <img src="${coverSrc}" alt="Cover of ${book.title}" onerror="this.onerror=null;this.src='${placeholderImage}'"/>
@@ -418,7 +418,9 @@ function showTagInput(book, isToRead = false) {
   // Create overlay
   const overlay = document.createElement("div");
   overlay.className = "tag-input-overlay";
-
+document.body.appendChild(overlay);
+  lockScroll();
+  
   // Popup container
   const popup = document.createElement("div");
   popup.className = "tag-input-popup";
@@ -473,8 +475,9 @@ function showTagInput(book, isToRead = false) {
   });
 
   cancelBtn.addEventListener("click", () => {
-    document.body.removeChild(overlay);
-  });
+  document.body.removeChild(overlay);
+  unlockScroll();  // Add this!
+});
 
   addBtn.addEventListener("click", async () => {
     const newTag = input.value.trim();
@@ -490,8 +493,8 @@ function showTagInput(book, isToRead = false) {
       }
       book.tags = currentTags; // ✅ Reassign AFTER push
     }
-
     document.body.removeChild(overlay);
+    unlockScroll();
 
     // ✅ RENDER the correct card type
     if (isToRead) {
@@ -543,7 +546,7 @@ async function renderToReadCard(book) {
   bookCard.className = "book-card book-popup";
 
   bookCard.innerHTML = `
-<button id="closeToReadCard" class="close-btn" aria-label="Close">&times;</button>
+<button class="close-btn" data-close aria-label="Close">&times;</button>
   <div class="book-card-content">
     <div class="cover-container">
       <img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" />
