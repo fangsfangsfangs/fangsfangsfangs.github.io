@@ -196,9 +196,10 @@ body::-webkit-scrollbar,
   text-transform: lowercase;
   overflow-y: auto;
   aspect-ratio: 2 / 2.8;       /* Match the image's 2:3 ratio */
-  max-width: 80%;          /* Keep your max width */       
-  height: calc(85lvh - 3.5rem);        /* Remove max-height if conflicting */
-  overflow: hidden;          /* Hide overflow if needed */
+  max-width: 80%;         
+  width: 100%;
+  height: calc(85lvh - 3.5rem);       
+  overflow: hidden;          
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -206,7 +207,7 @@ body::-webkit-scrollbar,
   border-radius: 12px;
   box-shadow: 0 4px 10px #424242;
   text-align: center;
-  align-items: stretch;
+  align-items: center;
   position: relative;
 }
 
