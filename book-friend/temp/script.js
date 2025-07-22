@@ -20,6 +20,12 @@ cardOverlay.addEventListener("click", (e) => {
   }
 });
 
+//SET VIEWPORT HEIGHT using: height: calc(var(--vh, 1vh) * 100); in CSS
+function setRealViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
 // Global state
 let allBooks = [],
   filteredBooks = [],
@@ -286,7 +292,7 @@ async function renderSingleCard(book) {
   const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
   const isFavorited = !!book.favorite;
   const favoriteClass = isFavorited ? "favorite-heart active" : "favorite-heart";
-  bookCard.className = "book-card book-popup";
+  bookCard.className = "book-card";
 
   bookCard.innerHTML = `
 <button class="close-btn" data-close aria-label="Close">&times;</button>
@@ -543,7 +549,7 @@ async function renderToReadCard(book) {
 
   const bookCard = document.getElementById("bookCard");
   const coverSrc = await getCoverUrl(book);
-  bookCard.className = "book-card book-popup";
+  bookCard.className = "book-card";
 
   bookCard.innerHTML = `
 <button class="close-btn" data-close aria-label="Close">&times;</button>
@@ -639,7 +645,7 @@ async function renderQuickListCard() {
       .join("");
 
     const bookCard = document.getElementById("bookCard");
-    bookCard.className = "book-card book-popup";
+    bookCard.className = "book-card";
     bookCard.innerHTML = `
       <button class="close-btn" id="closeQuickList">&times;</button>
       <div class="quicklist-header">Quick List</div>
