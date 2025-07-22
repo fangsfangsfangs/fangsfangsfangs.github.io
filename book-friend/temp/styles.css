@@ -205,19 +205,25 @@ body::-webkit-scrollbar,
   max-width: 80%;         
   height: calc(85lvh - 3.5rem);       
   gap: 1rem;
-  padding: 1rem;
+  padding: 2rem;
   padding-top: 2rem;
   border-radius: 10px;
   box-shadow: 0 4px 10px #424242;
 }
 
 .book-card-content {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0.5rem; /* optional */
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.book-card-content * {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
   box-sizing: border-box;
 }
 
@@ -293,8 +299,11 @@ body::-webkit-scrollbar,
   background-color: #ececec;
   padding: 0.75rem 1rem;
   border-radius: 10px;
-  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .quote-text {
@@ -334,10 +343,7 @@ body::-webkit-scrollbar,
   /* Try disabling these two if they’re causing ghost spacing */
   height: auto;
   overflow: visible;
-
   flex-grow: 0;
-
-  /* New additions */
   margin-top: 0;   /* Remove unwanted spacing */
   margin-bottom: 0;
 }
@@ -467,6 +473,15 @@ body::-webkit-scrollbar,
 }
 
 /* ===== Base Tag/Button Styles ===== */
+.tag-list,
+.button-row,
+.flex-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
 .tag,
 .add-btn {
   display: inline-flex;
