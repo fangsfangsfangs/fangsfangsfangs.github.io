@@ -18,23 +18,6 @@ h3 {
   font-size: 1.25rem;
 }
 
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100dvw;
-  height: 100dvh;
-  background: rgba(255, 255, 255, 0.95);
-  display: flex;
-  align-items: flex-start;  
-  justify-content: center;
-  z-index: 999;
-  overflow-y: auto; 
-  padding: 2.5rem 1rem 2rem; 
-  box-sizing: border-box;
-  overscroll-behavior: contain;
-} 
-
 /* Prevents grid bg from scrolling when a popup is open */
 body.popup-open {
   overflow: hidden;
@@ -202,7 +185,7 @@ body::-webkit-scrollbar,
   overflow-y: auto;
   overflow-x: hidden;
   aspect-ratio: 1.2 / 2;      
-  max-width: 75lvh;         
+  max-width: 70lvh;         
   height: calc(var(--vh, 1vh) * 90);    
   gap: 1rem;
   padding: 0.2rem 1.5rem 1.5rem 1.5rem;
@@ -771,23 +754,20 @@ body::-webkit-scrollbar,
 }
 
 /* === Add book popup overlay === */
-.popup {
+.overlay-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100dvw;
-  height: calc(var(--vh, 1vh) * 100);
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9997;
+  z-index: 998;
   overscroll-behavior: contain;
-}
-
-.popup {
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .popup-content{
