@@ -218,6 +218,7 @@ body::-webkit-scrollbar,
   padding: 0.5rem; /* optional */
   width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Hide scrollbars */
