@@ -5,7 +5,7 @@ body {
   height: 100%;
   padding-top: 3.5rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   background: #f8f8f8;
   color: #575757;
   line-height: 1;
@@ -140,14 +140,9 @@ body::-webkit-scrollbar,
 .grid-area::-webkit-scrollbar {
   display: none;
 }
-body,
-.grid-area {
-  scrollbar-width: none;
-}
 
 /* Grid item styling combined with To-Read grid item */
-.grid-item,
-.to-read-grid-item {
+.grid-item {
   cursor: pointer;
   border-radius: 8px;
   aspect-ratio: 2 / 3;
@@ -155,8 +150,7 @@ body,
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.grid-item img,
-.to-read-grid-item img {
+.grid-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -202,9 +196,8 @@ body,
   text-transform: lowercase;
   overflow-y: auto;
   aspect-ratio: 2 / 2.8;       /* Match the image's 2:3 ratio */
-  max-width: 80%;          /* Keep your max width */
-  width: 100%;             /* Or desired width */
-  height: calc(80lvh - 3.5rem);        /* Remove max-height if conflicting */
+  max-width: 80%;          /* Keep your max width */       
+  height: calc(85lvh - 3.5rem);        /* Remove max-height if conflicting */
   overflow: hidden;          /* Hide overflow if needed */
   display: flex;
   flex-direction: column;
