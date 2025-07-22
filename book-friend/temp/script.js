@@ -1,89 +1,57 @@
 import { showToast, rainGlitter } from "./glitter.js";
-import { getCoverUrl, placeholderImage, fetchSynopsis} from "./coverAPI.js";
-import {fetchFilteredSubjects} from "./coverAPI.js";
+import { getCoverUrl, placeholderImage, fetchSynopsis, fetchFilteredSubjects } from "./coverAPI.js";
 
 const supabaseUrl = "https://pnpjlsjxlbrihxlkirwj.supabase.co";
 const supabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBucGpsc2p4bGJyaWh4bGtpcndqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwODIyNDMsImV4cCI6MjA2NzY1ODI0M30.KP6YZtDGsH6_MtSJF03r2nhmEcXTvpd4Ppb-M3HYkhg";
+
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-let allBooks = [],
-  filteredBooks = [],
-  currentIndex = 0,
-  viewMode = "all",
-  activeTag = null;
-let toReadBooks = [],
-  filteredToReadBooks = [],
-  activeToReadTag = null;
+// DOM elements
+const cardOverlay = document.getElementById("cardOverlay");
+const bookCard = document.getElementById("bookCard");
+const gridContainer = document.getElementById("gridContainer");
 
-// Suggested tags (optional)
+// Add delegated click listener for close buttons inside overlay
+cardOverlay.addEventListener("click", (e) => {
+  if (e.target.classList.contains("close-btn")) {
+    cardOverlay.classList.add("hidden");
+    unlockScroll(); // Unlock scroll when overlay closes
+  }
+});
+
+// Global state
+let allBooks = [];
+let filteredBooks = [];
+let currentIndex = 0;
+let viewMode = "all"; // all, favorites, to-read, quicklist
+let activeTag = null;
+
+let toReadBooks = [];
+let filteredToReadBooks = [];
+let activeToReadTag = null;
+
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
-//SUPABASE HELPERS
-async function addBookToSupabase(book) {
-  const { data, error } = await supabase.from("books_read").insert([book]).select().single();
-
-  if (error) throw error;
-  return data;
+// Utility Functions
+function lockScroll() {
+  document.body.style.overflow = "hidden";
 }
-// Update to-read tags
-async function updateToReadBookTags(id, tags) {
-  const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id);
-  if (error) {
-    console.error("Error updating to-read tags:", error);
-    return null;
-  }
-  return data;
+function unlockScroll() {
+  document.body.style.overflow = "";
 }
-
-//SUPABASE UPDATE
-async function updateBookInSupabase(id, updates) {
-  const { data, error } = await supabase.from("books_read").update(updates).eq("id", id);
-
-  if (error) {
-    console.error("Update error:", error);
-  } else {
-    console.log("Book updated:", data);
-  }
+function closeOverlay() {
+  cardOverlay.classList.add("hidden");
+  unlockScroll();
+  // Optionally clear bookCard content: bookCard.innerHTML = "";
+}
+function openOverlayWithContent(htmlContent) {
+  bookCard.innerHTML = htmlContent;
+  cardOverlay.classList.remove("hidden");
+  lockScroll();
 }
 
-// --- FETCH MAIN BOOKS ---
-async function fetchBooks() {
-  try {
-    const { data, error } = await supabase.from("books_read").select("*");
-    if (error) throw error;
-
-    allBooks = data.map((book) => normalizeBook(book));
-    applyFiltersAndRender();
-  } catch (error) {
-    console.error("Error fetching books:", error);
-  }
-}
-function applyFiltersAndRender() {
-  // Basic filtering example — show all for now
-  filteredBooks = allBooks;
-  currentIndex = 0;
-  renderGridView();
-}
-//Fave helper
-function isBookFavorited(book) {
-  return !!book.favorite;
-}
-
-// --- FETCH TO-READ BOOKS ---
-async function fetchToReadBooks() {
-  try {
-    const { data, error } = await supabase.from("books_to_read").select("*");
-    if (error) throw error;
-
-    toReadBooks = data.map((book) => normalizeBook(book, true));
-    filteredToReadBooks = toReadBooks;
-    renderToReadGrid();
-  } catch (error) {
-    console.error("Error fetching to-read books:", error);
-  }
-}
-// Read normalization function
+// Normalize book data from Supabase, separate read vs to-read books
 function normalizeBook(book, isToRead = false) {
   const base = {
     id: book.id || null,
@@ -121,18 +89,75 @@ function normalizeBook(book, isToRead = false) {
   }
 }
 
-function isValidDateRead(dateStr) {
-  // Expecting "YYYY-MM" e.g. "2025-07"
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(dateStr);
-}
-
 function getFallbackDate() {
   const now = new Date();
-  // Return full date string with day = 01
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
 }
 
+//Fave helper
+function isBookFavorited(book) {
+  return !!book.favorite;
+}
+
+// --- Supabase helpers ---
+async function addBookToSupabase(book) {
+  const { data, error } = await supabase.from("books_read").insert([book]).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function updateBookInSupabase(id, updates) {
+  const { data, error } = await supabase.from("books_read").update(updates).eq("id", id);
+  if (error) {
+    console.error("Update error:", error);
+    return null;
+  }
+  return data;
+}
+
+async function updateToReadBookTags(id, tags) {
+  const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id);
+  if (error) {
+    console.error("Error updating to-read tags:", error);
+    return null;
+  }
+  return data;
+}
+
+// --- FETCH BOOKS ---
+async function fetchBooks() {
+  try {
+    const { data, error } = await supabase.from("books_read").select("*");
+    if (error) throw error;
+
+    allBooks = data.map((book) => normalizeBook(book));
+    applyFiltersAndRender();
+  } catch (error) {
+    console.error("Error fetching books:", error);
+  }
+}
+
+async function fetchToReadBooks() {
+  try {
+    const { data, error } = await supabase.from("books_to_read").select("*");
+    if (error) throw error;
+
+    toReadBooks = data.map((book) => normalizeBook(book, true));
+    filteredToReadBooks = toReadBooks;
+    renderToReadGrid();
+  } catch (error) {
+    console.error("Error fetching to-read books:", error);
+  }
+}
+
 // --- APPLY FILTERS ---
+function applyFiltersAndRender() {
+  // Basic filtering example — show all for now
+  filteredBooks = allBooks;
+  currentIndex = 0;
+  renderGridView();
+}
+
 async function applyFilters() {
   if (viewMode === "favorites") {
     filteredBooks = allBooks.filter(isBookFavorited);
@@ -205,6 +230,7 @@ async function renderGridView() {
       currentIndex = index;
       renderSingleCard(book);
       document.getElementById("cardOverlay").classList.remove("hidden");
+      lockScroll(); // Add this line
     });
 
     grid.appendChild(item);
@@ -236,6 +262,7 @@ async function renderToReadGrid() {
     item.addEventListener("click", () => {
       renderToReadCard(book);
       document.getElementById("cardOverlay").classList.remove("hidden");
+      lockScroll(); // Add this line
     });
 
     grid.appendChild(item);
@@ -260,7 +287,7 @@ async function renderSingleCard(book) {
   const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
   const isFavorited = book.favorite === "y";
   const favoriteClass = isFavorited ? "favorite-heart active" : "favorite-heart";
-  bookCard.className = "book-card-base book-popup";
+  bookCard.className = "book-card book-popup";
 
   bookCard.innerHTML = `
 <button id="closeCardBtn" class="close-btn" aria-label="Close">&times;</button>
@@ -277,7 +304,7 @@ async function renderSingleCard(book) {
 <div class="author">${book.author || "Unknown"}</div>
 <div class="review-box">
 <div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
-  ${book.review || "No review yet"}
+  ${book.review?.trim() ? book.review : "Add your thoughts..."}
 </div>
 </div>
 </div>
@@ -307,14 +334,6 @@ async function renderSingleCard(book) {
     </div>
  `;
   lucide.createIcons();
-
-  // Close button
-  const closeBtn = bookCard.querySelector("#closeCardBtn");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      document.getElementById("cardOverlay").classList.add("hidden");
-    });
-  }
 
   // Star rating click handlers
   bookCard.querySelectorAll(".rating-star").forEach((star) => {
@@ -521,19 +540,19 @@ async function renderToReadCard(book) {
 
   const bookCard = document.getElementById("bookCard");
   const coverSrc = await getCoverUrl(book);
-  bookCard.className = "book-card-base book-popup";
+  bookCard.className = "book-card book-popup";
 
   bookCard.innerHTML = `
 <button id="closeToReadCard" class="close-btn" aria-label="Close">&times;</button>
   <div class="book-card-content">
-    <div class="to-read-cover-container">
+    <div class="cover-container">
       <img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" />
     </div>
-    <div class="to-read-title">${book.title || "Untitled"}</div>
-    <div class="to-read-author">${book.author || "Unknown"}</div>
+    <div class="title">${book.title || "Untitled"}</div>
+    <div class="author">${book.author || "Unknown"}</div>
     <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
   </div>
-  <div class="to-read-footer">
+  <div class="card-footer">
       <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
       <span class="tag add-tag-btn" title="Add Tag">+</span>
     </div>
@@ -557,11 +576,6 @@ async function renderToReadCard(book) {
 
     // Preserve to-read ID so we can delete it after saving
     popup.dataset.toReadId = book.id;
-  });
-
-  // Close button handler
-  document.getElementById("closeToReadCard").addEventListener("click", () => {
-    document.getElementById("cardOverlay").classList.add("hidden");
   });
 
   // Tag click: filter books by tag, then close popup
@@ -622,7 +636,7 @@ async function renderQuickListCard() {
       .join("");
 
     const bookCard = document.getElementById("bookCard");
-    bookCard.className = "book-card-base book-popup";
+    bookCard.className = "book-card book-popup";
     bookCard.innerHTML = `
       <button class="close-btn" id="closeQuickList">&times;</button>
       <div class="quicklist-header">Quick List</div>
@@ -630,8 +644,10 @@ async function renderQuickListCard() {
     `;
 
     document.getElementById("cardOverlay").classList.remove("hidden");
+    lockScroll();
     document.getElementById("closeQuickList").onclick = () => {
       document.getElementById("cardOverlay").classList.add("hidden");
+      unlockScroll(); // Add here
     };
   } catch (err) {
     console.error("Error loading quick list", err);
@@ -748,6 +764,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Open Add Book popup
   document.getElementById("addBookBtn").addEventListener("click", () => {
     document.getElementById("addBookPopup").classList.remove("hidden");
+    lockScroll(); // Add this
   });
   // Favorite heart toggle
   const favHeart = document.getElementById("addFavoriteHeart");
@@ -865,6 +882,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Hide popup and clear form
       document.getElementById("addBookPopup").classList.add("hidden");
       clearAddBookForm();
+      unlockScroll(); // Add this
     } catch (e) {
       console.error("Error adding book:", e);
       alert("Failed to add book: " + (e?.message || e));
@@ -890,9 +908,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("addBookPopup").addEventListener("click", (event) => {
     if (event.target.id === "closePopupBtn") {
       event.preventDefault();
-      console.log("Close popup clicked");
       document.getElementById("addBookPopup").classList.add("hidden");
       clearAddBookForm();
+      unlockScroll(); // Add this
     }
   });
 
