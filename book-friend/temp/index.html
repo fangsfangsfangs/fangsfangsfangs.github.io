@@ -24,10 +24,12 @@
     <!-- Grid view -->
     <div id="gridView" class="grid-area"></div>
 
-    <!-- Book card overlay using popup style -->
-    <div id="cardOverlay" class="popup hidden">
-      <div class="popup-content" id="bookCard"></div>
-    </div>
+<!-- Book card overlay -->
+<div id="BookCardpopup" class="overlay-background hidden">
+  <div id="bookCard" class="popup-content book-card">
+    <!-- Dynamic content will be injected here by JavaScript -->
+  </div>
+</div>
 
     <!-- Add new book button -->
     <button id="addBookBtn" title="Add New Book"><i data-lucide="plus"></i></button>
@@ -37,9 +39,8 @@
     <script type="module" src="script.js"></script>
 
     <!-- Add new book popup -->
-    <div id="addBookPopup" class="popup hidden">
-      <div class="popup-content book-card book-popup">
-
+    <div id="addBookPopup" class="overlay-background hidden">
+      <div class="popup-content book-card">
         <h3>Add a New Book</h3>
         <input placeholder="Title" id="addTitle" />
         <input placeholder="Author" id="addAuthor" />
@@ -53,7 +54,7 @@
           <div class="popup-footer-container">
             <div id="addFavoriteHeart" class="favorite-heart" title="Toggle Favorite">&#10084;</div>
             <!-- Optional visible version for user editing -->
-            <label for="dateReadInput">Date Read</label>
+            <label for="dateReadInput">Read</label>
             <input type="month" id="dateReadInput" name="dateRead" />
             <div class="popup-action-buttons">
               <button id="addBookConfirm" class="add-btn">Add</button>
