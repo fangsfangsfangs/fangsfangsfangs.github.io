@@ -8,15 +8,15 @@ const supabaseAnonKey =
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 // DOM elements
-const cardOverlay = document.getElementById("cardOverlay");
+const BookCardpopup = document.getElementById("BookCardpopup");
 const bookCard = document.getElementById("bookCard");
 const gridContainer = document.getElementById("gridContainer");
 
-// Add delegated click listener for close buttons inside overlay
-cardOverlay.addEventListener("click", (e) => {
-  if (e.target.matches("[data-close]") || e.target === cardOverlay) {
-    cardOverlay.classList.add("hidden");
-    unlockScroll();
+// Add delegated click listener for the CONTENT overlay
+BookCardpopup.addEventListener("click", (e) => {
+  // If the click is on an element with data-close or the overlay background itself
+  if (e.target.matches("[data-close]") || e.target === BookCardpopup) {
+    closeContentOverlay();
   }
 });
 
@@ -32,22 +32,30 @@ let toReadBooks = [],
 
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
-// Utility Functions
+// --- Universal Overlay & Scrolling Functions ---
+
 function lockScroll() {
   document.body.style.overflow = "hidden";
 }
+
 function unlockScroll() {
   document.body.style.overflow = "";
 }
-function closeOverlay() {
-  cardOverlay.classList.add("hidden");
-  unlockScroll();
-  // Optionally clear bookCard content: bookCard.innerHTML = "";
-}
-function openOverlayWithContent(htmlContent) {
+
+// Specifically for opening the main content popup
+function openContentOverlay(htmlContent) {
+  const bookCard = document.getElementById("bookCard");
   bookCard.innerHTML = htmlContent;
-  cardOverlay.classList.remove("hidden");
+  BookCardpopup.classList.remove("hidden");
   lockScroll();
+}
+
+// Specifically for closing the main content popup
+function closeContentOverlay() {
+  BookCardpopup.classList.add("hidden");
+  unlockScroll();
+  // Clear the content to prevent stale data on next open
+  document.getElementById("bookCard").innerHTML = ""; 
 }
 
 // Normalize book data from Supabase, separate read vs to-read books
@@ -92,19 +100,16 @@ function getFallbackDate() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
 }
-
 //Fave helper
 function isBookFavorited(book) {
   return !!book.favorite;
 }
-
 // --- Supabase helpers ---
 async function addBookToSupabase(book) {
   const { data, error } = await supabase.from("books_read").insert([book]).select().single();
   if (error) throw error;
   return data;
 }
-
 async function updateBookInSupabase(id, updates) {
   const { data, error } = await supabase.from("books_read").update(updates).eq("id", id);
   if (error) {
@@ -113,7 +118,6 @@ async function updateBookInSupabase(id, updates) {
   }
   return data;
 }
-
 async function updateToReadBookTags(id, tags) {
   const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id);
   if (error) {
@@ -122,7 +126,6 @@ async function updateToReadBookTags(id, tags) {
   }
   return data;
 }
-
 // --- FETCH BOOKS ---
 async function fetchBooks() {
   try {
@@ -135,7 +138,6 @@ async function fetchBooks() {
     console.error("Error fetching books:", error);
   }
 }
-
 async function fetchToReadBooks() {
   try {
     const { data, error } = await supabase.from("books_to_read").select("*");
@@ -148,7 +150,6 @@ async function fetchToReadBooks() {
     console.error("Error fetching to-read books:", error);
   }
 }
-
 // --- APPLY FILTERS ---
 function applyFiltersAndRender() {
   // Basic filtering example — show all for now
@@ -156,7 +157,6 @@ function applyFiltersAndRender() {
   currentIndex = 0;
   renderGridView();
 }
-
 async function applyFilters() {
   if (viewMode === "favorites") {
     filteredBooks = allBooks.filter(isBookFavorited);
@@ -194,7 +194,6 @@ function applyToReadFilter() {
     document.getElementById("gridView").innerHTML = `<p style="color:red;">Failed to load to-read books.</p>`;
   }
 }
-
 // --- RENDER GRID (Main - with async cover support + working overlay) ---
 async function renderGridView() {
   const grid = document.getElementById("gridView");
@@ -225,12 +224,10 @@ async function renderGridView() {
     item.appendChild(img);
 
     // 💡 IMPORTANT: Ensure popup overlay appears
-    item.addEventListener("click", () => {
-      currentIndex = index;
-      renderSingleCard(book);
-      document.getElementById("cardOverlay").classList.remove("hidden");
-      lockScroll(); // Add this line
-    });
+item.addEventListener("click", () => {
+  currentIndex = index;
+  renderSingleCard(book); // This function will now handle opening the overlay
+});
 
     grid.appendChild(item);
   });
@@ -258,16 +255,13 @@ async function renderToReadGrid() {
 
     item.appendChild(img);
 
-    item.addEventListener("click", () => {
-      renderToReadCard(book);
-      document.getElementById("cardOverlay").classList.remove("hidden");
-      lockScroll(); // Add this line
-    });
+   item.addEventListener("click", () => {
+  renderToReadCard(book); // This function will now handle opening the overlay
+});
 
     grid.appendChild(item);
   });
 }
-
 // Main book card popup with integrated custom tag display and add/delete
 async function renderSingleCard(book) {
   if (!book) return;
@@ -281,14 +275,12 @@ async function renderSingleCard(book) {
     )
     .join("");
 
-  const bookCard = document.getElementById("bookCard");
   const coverSrc = await getCoverUrl(book);
   const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
   const isFavorited = !!book.favorite;
   const favoriteClass = isFavorited ? "favorite-heart active" : "favorite-heart";
-  bookCard.className = "book-card";
 
-  bookCard.innerHTML = `
+  const cardHTML = `
 <button class="close-btn" data-close aria-label="Close">&times;</button>
 <div class="book-card-content">
 <div class="cover-container">
@@ -332,8 +324,13 @@ async function renderSingleCard(book) {
       <div class="tags">${tagsHTML}</div>
     </div>
  `;
+  
+  openContentOverlay(cardHTML);
+  
   lucide.createIcons();
 
+  const bookCard = document.getElementById("bookCard"); 
+  
   // Star rating click handlers
   bookCard.querySelectorAll(".rating-star").forEach((star) => {
     star.addEventListener("click", async () => {
@@ -373,13 +370,13 @@ async function renderSingleCard(book) {
   });
 
   // Toggle favorite
-document.getElementById("favoriteHeart").addEventListener("click", async () => {
-  // Toggle boolean favorite
-  const newFav = book.favorite === true ? false : true;
-  await updateBookInSupabase(book.id, { favorite: newFav });
-  book.favorite = newFav;
-  renderSingleCard(book);
-});
+  document.getElementById("favoriteHeart").addEventListener("click", async () => {
+    // Toggle boolean favorite
+    const newFav = book.favorite === true ? false : true;
+    await updateBookInSupabase(book.id, { favorite: newFav });
+    book.favorite = newFav;
+    renderSingleCard(book);
+  });
 
   // Tag filtering and delete tag buttons
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
@@ -388,7 +385,7 @@ document.getElementById("favoriteHeart").addEventListener("click", async () => {
     tagEl.addEventListener("click", () => {
       activeTag = tagEl.dataset.tag.toLowerCase();
       applyFilters();
-      document.getElementById("cardOverlay").classList.add("hidden");
+      document.getElementById("BookCardpopup").classList.add("hidden");
     });
     const delBtn = tagEl.querySelector(".delete-tag-btn");
     if (delBtn) {
@@ -412,41 +409,33 @@ document.getElementById("favoriteHeart").addEventListener("click", async () => {
     showTagInput(book, false);
   });
 }
-
 //ADD TAG BUTTONS IN FOOTER - suggested, etc //
 function showTagInput(book, isToRead = false) {
   // Create overlay
   const overlay = document.createElement("div");
   overlay.className = "tag-input-overlay";
-document.body.appendChild(overlay);
+  document.body.appendChild(overlay);
   lockScroll();
-  
+
   // Popup container
   const popup = document.createElement("div");
   popup.className = "tag-input-popup";
-
   const title = document.createElement("h3");
   title.textContent = "Add a Tag";
-
   const input = document.createElement("input");
   input.type = "text";
   input.placeholder = "Enter tag";
   input.autocomplete = "off";
   input.maxLength = 30;
-
   const buttonContainer = document.createElement("div");
   buttonContainer.className = "tag-input-buttons";
-
   const addBtn = document.createElement("button");
   addBtn.textContent = "Add";
   addBtn.disabled = true;
-
   const cancelBtn = document.createElement("button");
   cancelBtn.textContent = "Cancel";
-
   buttonContainer.appendChild(addBtn);
   buttonContainer.appendChild(cancelBtn);
-
   // Suggested tags
   const suggestionsContainer = document.createElement("div");
   suggestionsContainer.className = "tag-suggestions";
@@ -462,23 +451,19 @@ document.body.appendChild(overlay);
     });
     suggestionsContainer.appendChild(tagEl);
   });
-
   popup.appendChild(title);
   popup.appendChild(input);
   popup.appendChild(suggestionsContainer);
   popup.appendChild(buttonContainer);
   overlay.appendChild(popup);
   document.body.appendChild(overlay);
-
   input.addEventListener("input", () => {
     addBtn.disabled = input.value.trim() === "";
   });
-
   cancelBtn.addEventListener("click", () => {
-  document.body.removeChild(overlay);
-  unlockScroll();  // Add this!
-});
-
+    document.body.removeChild(overlay);
+    unlockScroll(); // Add this!
+  });
   addBtn.addEventListener("click", async () => {
     const newTag = input.value.trim();
     if (!newTag) return;
@@ -504,18 +489,14 @@ document.body.appendChild(overlay);
     }
   });
 }
-
 // To-read card popup (unchanged except for tags if needed) //
 async function renderToReadCard(book) {
   if (!book) return;
-
   // Existing tags from the book
   let tags = book.tags;
-
   // Fetch filtered subjects from OpenLibrary API
   const subjectTags = await fetchFilteredSubjects(book.title, book.author);
   const mergedTags = Array.from(new Set([...book.tags, ...subjectTags]));
-
   // Merge existing tags and fetched subject tags, deduplicated
   tags = Array.from(new Set([...tags, ...subjectTags]));
 
@@ -532,7 +513,6 @@ async function renderToReadCard(book) {
       console.warn("Failed to update merged tags to Supabase.");
     }
   }
-
   // Build tags HTML
   const tagsHTML = tags
     .map(
@@ -540,12 +520,9 @@ async function renderToReadCard(book) {
         `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
     )
     .join("");
-
-  const bookCard = document.getElementById("bookCard");
+  
   const coverSrc = await getCoverUrl(book);
-  bookCard.className = "book-card";
-
-  bookCard.innerHTML = `
+  const cardHTML = `
 <button class="close-btn" data-close aria-label="Close">&times;</button>
   <div class="book-card-content">
     <div class="cover-container">
@@ -563,40 +540,36 @@ async function renderToReadCard(book) {
       <div class="tags">${tagsHTML}</div>
 </div>
 `;
-
+  
+  openContentOverlay(cardHTML);
+  
   // Add to read button handler
   document.getElementById("moveToReadAddBtn").addEventListener("click", () => {
     const popup = document.getElementById("addBookPopup");
     popup.classList.remove("hidden");
-
     document.getElementById("addTitle").value = book.title || "";
     document.getElementById("addAuthor").value = book.author || "";
     document.getElementById("addIsbn").value = book.isbn || "";
-
     // ✅ Add this line to transfer tags
     const tagField = document.getElementById("addTags");
     tagField.value = Array.isArray(book.tags) ? book.tags.join(", ") : "";
-
     // Preserve to-read ID so we can delete it after saving
     popup.dataset.toReadId = book.id;
   });
-
   // Tag click: filter books by tag, then close popup
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
     tagEl.addEventListener("click", () => {
       activeToReadTag = tagEl.dataset.tag.toLowerCase();
       applyToReadFilter();
-      document.getElementById("cardOverlay").classList.add("hidden");
+      document.getElementById("BookCardpopup").classList.add("hidden");
     });
   });
-
   // Add tag button
   bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       showTagInput(book, true);
     });
   });
-
   // Delete tag button
   bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
     delBtn.addEventListener("click", async (e) => {
@@ -616,7 +589,6 @@ async function renderToReadCard(book) {
       }
     });
   });
-
   // Fetch and show synopsis
   const synopsis = await fetchSynopsis(book.title, book.author);
   const synopsisEl = document.getElementById("toReadSynopsis");
@@ -627,7 +599,6 @@ async function renderToReadCard(book) {
 async function renderQuickListCard() {
   try {
     const { data, error } = await supabase.from("books_to_read").select("title, author").order("title");
-
     if (error) throw error;
 
     const listItems = data
@@ -638,25 +609,20 @@ async function renderQuickListCard() {
       })
       .join("");
 
-    const bookCard = document.getElementById("bookCard");
-    bookCard.className = "book-card";
-    bookCard.innerHTML = `
-      <button class="close-btn" id="closeQuickList">&times;</button>
+    // Create the HTML for the quick list card
+    const cardHTML = `
+      <button class="close-btn" data-close aria-label="Close">×</button>
       <div class="quicklist-header">Quick List</div>
       <div class="quicklist-content">${listItems}</div>
     `;
 
-    document.getElementById("cardOverlay").classList.remove("hidden");
-    lockScroll();
-    document.getElementById("closeQuickList").onclick = () => {
-      document.getElementById("cardOverlay").classList.add("hidden");
-      unlockScroll(); // Add here
-    };
+    // Open the content overlay with our generated HTML
+    openContentOverlay(cardHTML);
+
   } catch (err) {
     console.error("Error loading quick list", err);
-    const bookCard = document.getElementById("bookCard");
-    bookCard.innerHTML = `<p style="color:red;">Failed to load quick list.</p>`;
-    document.getElementById("cardOverlay").classList.remove("hidden");
+    const errorHTML = `<p style="color:red;">Failed to load quick list.</p><button class="close-btn" data-close>×</button>`;
+    openContentOverlay(errorHTML);
   }
 }
 
@@ -669,13 +635,9 @@ function getDespairIcon(value) {
     4: "smile",
     5: "skull"
   };
-
   const validValue = typeof value === "number" && value >= 0 && value <= 5 ? value : 0;
-
   const iconName = icons[validValue] || "help-circle";
-
   const upsideDownClass = validValue === 4 ? "upside-down" : "";
-
   return `<i data-lucide="${iconName}" class="${upsideDownClass}"></i>`;
 }
 
@@ -696,7 +658,6 @@ function makeEditableOnClick(el, book, field) {
       sel.addRange(range);
     }
   });
-
   el.addEventListener("blur", async () => {
     if (el.classList.contains("editing")) {
       el.classList.remove("editing");
@@ -716,7 +677,6 @@ function makeEditableOnClick(el, book, field) {
       }
     }
   });
-
   el.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -740,20 +700,18 @@ function attachToolbarHandlers() {
     // Trigger glitter
     rainGlitter(50); // You can increase/decrease the number
   });
-
   //Button event listeners
   document.getElementById("homeBtn").onclick = () => {
     viewMode = "all";
     activeTag = null;
     applyFilters(); // 🔥 show all books from local copy
   };
-
   document.getElementById("favoritesBtn").onclick = () => {
-  viewMode = "favorites";
-  activeTag = null;
-  applyFilters();
-};
-  
+    viewMode = "favorites";
+    activeTag = null;
+    applyFilters();
+  };
+
   document.getElementById("showReadBtn").onclick = () => {
     renderQuickListCard();
   };
@@ -763,13 +721,14 @@ function attachToolbarHandlers() {
     await fetchToReadBooks();
   };
 }
-
 document.addEventListener("DOMContentLoaded", async () => {
+  
   // Open Add Book popup
   document.getElementById("addBookBtn").addEventListener("click", () => {
     document.getElementById("addBookPopup").classList.remove("hidden");
-    lockScroll(); // Add this
+    lockScroll(); 
   });
+  
   // Favorite heart toggle
   const favHeart = document.getElementById("addFavoriteHeart");
   if (favHeart) {
@@ -780,7 +739,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Now that popup is visible, attach calendar toggle logic
   const calendarToggle = document.querySelector("#addBookPopup .calendar-toggle");
   const monthPicker = document.querySelector("#addBookPopup .month-picker");
-
   if (calendarToggle && monthPicker) {
     calendarToggle.addEventListener("click", () => {
       monthPicker.classList.toggle("hidden");
@@ -789,7 +747,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
-
+  
   document.getElementById("addBookConfirm").addEventListener("click", async () => {
     const title = document.getElementById("addTitle").value.trim();
     const author = document.getElementById("addAuthor").value.trim();
@@ -804,21 +762,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
     let dateReadText = document.getElementById("dateReadInput").textContent.trim();
-
+    
     // Validate format YYYY-MM
     if (/^\d{4}-(0[1-9]|1[0-2])$/.test(dateReadText)) {
+      
       // If only year-month, append day
       dateReadText = dateReadText + "-01";
     } else if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(dateReadText)) {
+      
       // If invalid format, fallback to full date string (already with day)
       dateReadText = getFallbackDate();
     }
-
     // Now dateReadText is guaranteed to be a valid YYYY-MM-DD string
+    
     const date_read = dateReadText;
-
     const dateReadDiv = document.getElementById("dateReadInput");
-
     dateReadDiv.addEventListener("blur", () => {
       let val = dateReadDiv.textContent.trim();
       if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(val)) {
@@ -826,23 +784,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         dateReadDiv.textContent = "YYYY-MM"; // reset on invalid
       }
     });
-
     dateReadDiv.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         dateReadDiv.blur();
       }
     });
-
     const favorite = document.getElementById("addFavoriteHeart").classList.contains("active");
-
     if (!title || !author) {
       alert("Title and author are required.");
       return;
     }
-
     const cover = await getCoverUrl({ title, author, isbn });
-
     const book = {
       title,
       author,
@@ -856,33 +809,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       date_read,
       cover
     };
-
     try {
+      
       // Insert into books_read
       const added = await addBookToSupabase(book);
       allBooks.unshift(normalizeBook(added));
       applyFiltersAndRender();
-
+      
       // Check if this book came from a to-read item
       const popup = document.getElementById("addBookPopup");
       const toReadId = popup.dataset.toReadId;
       if (toReadId) {
+        
         // Delete from books_to_read table
         const { error: deleteError } = await supabase.from("books_to_read").delete().eq("id", toReadId);
-
         if (deleteError) {
           console.error("Failed to delete from to-read:", deleteError);
         } else {
+          
           // Remove locally
           toReadBooks = toReadBooks.filter((b) => b.id !== toReadId);
           filteredToReadBooks = filteredToReadBooks.filter((b) => b.id !== toReadId);
           renderToReadGrid();
         }
-
+        
         // Clear stored toReadId
         popup.dataset.toReadId = "";
       }
-
+      
       // Hide popup and clear form
       document.getElementById("addBookPopup").classList.add("hidden");
       clearAddBookForm();
@@ -892,7 +846,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Failed to add book: " + (e?.message || e));
     }
   });
-
   function clearAddBookForm() {
     ["addTitle", "addAuthor", "addIsbn", "addQuote", "addReview", "addRating", "addDespair", "addTags"].forEach(
       (id) => {
@@ -900,14 +853,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (el) el.value = "";
       }
     );
-
     const dateEl = document.getElementById("dateReadInput");
     if (dateEl) dateEl.textContent = "YYYY-MM"; // reset editable date field
 
     const addFavoriteHeart = document.getElementById("addFavoriteHeart");
     if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
   }
-
   // Close popup via event delegation
   document.getElementById("addBookPopup").addEventListener("click", (event) => {
     if (event.target.id === "closePopupBtn") {
@@ -917,7 +868,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       unlockScroll(); // Add this
     }
   });
-
   // Attach other handlers, fetch books, etc.
   attachToolbarHandlers();
   await fetchBooks();
