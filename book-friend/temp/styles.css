@@ -630,7 +630,7 @@ body::-webkit-scrollbar,
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9998;
+  z-index: 999;
 }
 
 /* ===== TAG popup box bg =====*/
@@ -753,7 +753,7 @@ body::-webkit-scrollbar,
   color: #f4b584;
 }
 
-/* === Add book popup overlay === */
+/* ===book popup overlay === */
 .overlay-background {
   position: fixed;
   top: 0;
@@ -775,6 +775,9 @@ width: 100dvw;
   max-width: 75dvw;
   min-height: 35vh;
   max-height: calc(58dvh - 3.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden; 
 }
 
@@ -787,7 +790,13 @@ width: 100dvw;
   margin:auto;
 }
 
+#dateReadInput{
+  width: 30%;
+  font-size: 0.8rem;
+}
+
 /* === Add book input fields === */
+
 .popup input {
   padding: 0.5rem;
   border-radius: 8px;
@@ -877,9 +886,9 @@ width: 100dvw;
 }
 
 :root {
-  --despair-default-color: #376469; /* gray for unclicked */
-  --despair-hover-color: #690768; /* pink/purple for hover */
-  --despair-selected-color: #c1003e; /* red/black/purple for clicked */
+  --despair-default-color: #376469;
+  --despair-hover-color: #690768;
+  --despair-selected-color: #c1003e;
 
   --color-yellow-light: #f9cb74;
   --color-yellow-dark: #f9b274;
@@ -889,6 +898,8 @@ width: 100dvw;
   --color-red-light: #ff6161;
   --color-orange: #f78a37;
   --color-orange-hover: #f4b584;
-  /* add more as needed */
 
+  --color-gray-bg: #ececec;
+  --color-gray-border: #eaeaea;
+  --color-light-bg: #f9f7f7;
 }
