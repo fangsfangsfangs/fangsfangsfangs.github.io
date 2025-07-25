@@ -34,23 +34,32 @@ let toReadBooks = [],
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
 // --- Universal Overlay & Scrolling Functions ---
-// Lock scroll on the correct element when a popup opens
-function lockScroll() {
-  const gridView = document.getElementById("gridView");
-  if (gridView) {
-    gridView.classList.add("popup-open");
-  }
-
-  document.body.classList.add("popup-open");
+function preventDefaultScroll(e) {
+  e.preventDefault();
 }
 
-// Unlock scroll on the correct element when a popup closes
+// Lock scroll on popup open
+function lockScroll() {
+  document.body.classList.add("popup-open");
+  
+  // Add listeners to the OVERLAYS to prevent them from scrolling
+  const popupContainer = document.getElementById('BookCardpopup');
+  const dimOverlay = document.getElementById('dimOverlay');
+  
+  popupContainer.addEventListener('touchmove', preventDefaultScroll, { passive: false });
+  dimOverlay.addEventListener('touchmove', preventDefaultScroll, { passive: false });
+}
+
+// Unlock scroll on popup close
 function unlockScroll() {
-  const gridView = document.getElementById("gridView");
-  if (gridView) {
-    gridView.classList.remove("popup-open");
-  }
   document.body.classList.remove("popup-open");
+
+  // REMOVE the listeners from the overlays to restore normal behavior
+  const popupContainer = document.getElementById('BookCardpopup');
+  const dimOverlay = document.getElementById('dimOverlay');
+
+  popupContainer.removeEventListener('touchmove', preventDefaultScroll, { passive: false });
+  dimOverlay.removeEventListener('touchmove', preventDefaultScroll, { passive: false });
 }
 
 // Specifically for opening the main content popup
@@ -58,28 +67,19 @@ function openContentOverlay(htmlContent) {
   const bookCard = document.getElementById("bookCard");
   bookCard.innerHTML = htmlContent;
 
-  // Show both the popup container AND the dimming overlay
   BookCardpopup.classList.remove("hidden");
   dimOverlay.classList.remove("hidden");
 
   lockScroll();
-
-  // --- ACTIVATE THE SCROLL LOCK ---
-  // The { passive: false } is critical. It tells the browser we intend to prevent the default action.
-  document.body.addEventListener('touchmove', preventBackgroundScroll, { passive: false });
 }
 
 // Specifically for closing the main content popup
 function closeContentOverlay() {
-// Hide both the popup container AND the dimming overlay
-BookCardpopup.classList.add("hidden");
-dimOverlay.classList.add("hidden");
-unlockScroll();
-document.getElementById("bookCard").innerHTML = "";
+  BookCardpopup.classList.add("hidden");
+  dimOverlay.classList.add("hidden");
 
-  // --- DEACTIVATE THE SCROLL LOCK ---
-  // It's crucial to remove the listener to restore normal scrolling.
-  document.body.removeEventListener('touchmove', preventBackgroundScroll);
+  unlockScroll();
+  document.getElementById("bookCard").innerHTML = "";
 }
 
 /**
