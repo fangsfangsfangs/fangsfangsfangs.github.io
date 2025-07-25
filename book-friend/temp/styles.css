@@ -117,16 +117,14 @@ body.popup-open {
 
 /* --- FLEXBOX GRID  --- */
 #gridView {
-  display: flex;         /* Use Flexbox instead of Grid */
-  flex-wrap: wrap;       /* Allow items to wrap to the next line */
+  display: flex;
+  flex-wrap: wrap;
   box-sizing: border-box;
-
-  /* Spacing between items */
   gap: 1rem;
   padding: 1rem;
 
   /* These height and scroll rules are correct and remain */
-  height: calc((var(--vh, 1vh) * 100) - 3.5rem);
+  flex-grow: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -198,7 +196,7 @@ body.popup-open {
   
   /* --- SIZING --- */
   width: 80vw; 
-  max-height: 82vh; 
+  max-height: 83vh; 
 
   gap: 1rem;
   padding: 0.5rem 1.5rem 1.5rem 1.5rem;
