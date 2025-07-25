@@ -190,10 +190,11 @@ body.popup-open {
   text-transform: lowercase;
   overflow-y: auto; /* This allows content inside the card to scroll */
   overflow-x: hidden;
+  z-index: 999;
   
   /* --- SIZING --- */
   width: 80vw; 
-  max-height: 85vh; 
+  max-height: 82vh; 
 
   gap: 1rem;
   padding: 0.5rem 1.5rem 1.5rem 1.5rem;
@@ -711,7 +712,7 @@ body.popup-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 900;
   transition: background-color 0.3s ease;
 }
 
@@ -732,7 +733,7 @@ body.popup-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 998;
+  z-index: 9999;
   overscroll-behavior: contain;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -781,7 +782,7 @@ body.popup-open {
   padding: 20px 20px;
   border-radius: 30px;
   opacity: 0;
-  z-index: 9999;
+  z-index: 999;
   transition:
     opacity 1s ease,
     transform 1s ease;
