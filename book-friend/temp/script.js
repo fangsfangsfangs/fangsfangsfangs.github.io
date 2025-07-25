@@ -34,7 +34,6 @@ let toReadBooks = [],
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
 // --- Universal Overlay & Scrolling Functions ---
-
 // This function simply adds a class to the body.
 function lockScroll() {
   document.body.classList.add("popup-open");
@@ -130,6 +129,16 @@ async function updateToReadBookTags(id, tags) {
   }
   return data;
 }
+
+async function addToReadToSupabase(book) {
+  const { data, error } = await supabase.from("books_to_read").insert([book]).select().single();
+  if (error) {
+    console.error("Error adding to-read book:", error);
+    throw error;
+  }
+  return data;
+}
+
 // --- FETCH BOOKS ---
 async function fetchBooks() {
   try {
@@ -389,8 +398,9 @@ async function renderSingleCard(book) {
     tagEl.addEventListener("click", () => {
       activeTag = tagEl.dataset.tag.toLowerCase();
       applyFilters();
-      document.getElementById("BookCardpopup").classList.add("hidden");
+         closeContentOverlay(); 
     });
+    
     const delBtn = tagEl.querySelector(".delete-tag-btn");
     if (delBtn) {
       delBtn.addEventListener("click", async (e) => {
@@ -561,13 +571,15 @@ async function renderToReadCard(book) {
     popup.dataset.toReadId = book.id;
   });
   // Tag click: filter books by tag, then close popup
+  // Tag click: filter books by tag, then close popup
   bookCard.querySelectorAll(".tag").forEach((tagEl) => {
     tagEl.addEventListener("click", () => {
       activeToReadTag = tagEl.dataset.tag.toLowerCase();
       applyToReadFilter();
-      document.getElementById("BookCardpopup").classList.add("hidden");
+      closeContentOverlay();
     });
   });
+  
   // Add tag button
   bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -613,20 +625,93 @@ async function renderQuickListCard() {
       })
       .join("");
 
+    /**
+ * Toggles the visibility of the "Add to List" form on the Quick List card.
+ */
+function toggleAddToListForm() {
+  const formContainer = document.getElementById("addToListFormContainer");
+
+  // Check if the form is already visible by seeing if the container has content.
+  if (formContainer.innerHTML.trim() !== "") {
+    // If it's visible, clear the container to hide it and stop the function.
+    formContainer.innerHTML = "";
+    return;
+  }
+
+  // If the form is hidden, build and inject the HTML.
+  const formHTML = `
+    <div class="add-to-list-form">
+      <input type="text" id="addListTitle" placeholder="Title" required>
+      <input type="text" id="addListAuthor" placeholder="Author" required>
+      <button id="addToListConfirmBtn">Add</button>
+    </div>
+  `;
+  formContainer.innerHTML = formHTML;
+
+  // IMPORTANT: Attach the listener to the new "Add" button *after* creating it.
+  document.getElementById("addToListConfirmBtn").addEventListener("click", handleAddToListSubmit);
+}
+    
     // Create the HTML for the quick list card
     const cardHTML = `
       <button class="close-btn" data-close aria-label="Close">×</button>
-      <div class="quicklist-header">Quick List</div>
+      
+      <div class="quicklist-header">
+       <button id="showAddToListBtn" class="add-to-list-btn" title="Add to list">+</button>
+        <span>Quick List</span>
+      
+      </div>
+
+      <!-- This is where our new input form will go -->
+      <div id="addToListFormContainer"></div>
+
       <div class="quicklist-content">${listItems}</div>
     `;
 
     // Open the content overlay with our generated HTML
     openContentOverlay(cardHTML);
 
+    // --- ADD EVENT LISTENER FOR THE NEW '+' BUTTON ---
+document.getElementById("showAddToListBtn").addEventListener("click", toggleAddToListForm);
+
   } catch (err) {
     console.error("Error loading quick list", err);
     const errorHTML = `<p style="color:red;">Failed to load quick list.</p><button class="close-btn" data-close>×</button>`;
     openContentOverlay(errorHTML);
+  }
+}
+
+/**
+ * Handles the submission of the new title and author to the to-read list.
+ */
+async function handleAddToListSubmit() {
+  const titleInput = document.getElementById('addListTitle');
+  const authorInput = document.getElementById('addListAuthor');
+
+  const title = titleInput.value.trim();
+  const author = authorInput.value.trim();
+
+  if (!title || !author) {
+    alert("Please enter both a title and an author.");
+    return;
+  }
+
+  try {
+    // Disable the button to prevent double-clicks
+    document.getElementById('addToListConfirmBtn').disabled = true;
+
+    // Create the new book object and send it to Supabase
+    const newBook = { title, author };
+    await addToReadToSupabase(newBook);
+
+    // On success, simply re-render the entire quick list card.
+    // This is the easiest way to show the new, sorted list.
+    await renderQuickListCard();
+
+  } catch (error) {
+    alert("Failed to add book. Please try again.");
+    // Re-enable the button on failure
+    document.getElementById('addToListConfirmBtn').disabled = false;
   }
 }
 
