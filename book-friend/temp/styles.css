@@ -19,8 +19,11 @@ h3 {
 }
 
 /* Prevents any element with this class from scrolling */
-.popup-open {
-  overflow: hidden !important;
+body.popup-open {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .hidden {
