@@ -35,10 +35,24 @@ const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "b
 // --- Universal Overlay & Scrolling Functions ---
 
 //Lock scroll on poup open
+// --- Universal Overlay & Scrolling Functions ---
+
+// Lock scroll on the correct element when a popup opens
 function lockScroll() {
+  const gridView = document.getElementById("gridView");
+  if (gridView) {
+    gridView.classList.add("popup-open");
+  }
+  // We still lock the body as a fallback for some mobile browser behaviors
   document.body.classList.add("popup-open");
 }
+
+// Unlock scroll on the correct element when a popup closes
 function unlockScroll() {
+  const gridView = document.getElementById("gridView");
+  if (gridView) {
+    gridView.classList.remove("popup-open");
+  }
   document.body.classList.remove("popup-open");
 }
 
