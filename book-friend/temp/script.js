@@ -9,6 +9,7 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 // DOM elements
 const BookCardpopup = document.getElementById("BookCardpopup");
+const dimOverlay = document.getElementById("dimOverlay");
 const bookCard = document.getElementById("bookCard");
 const gridContainer = document.getElementById("gridContainer");
 
@@ -56,7 +57,11 @@ function unlockScroll() {
 function openContentOverlay(htmlContent) {
   const bookCard = document.getElementById("bookCard");
   bookCard.innerHTML = htmlContent;
+
+  // Show both the popup container AND the dimming overlay
   BookCardpopup.classList.remove("hidden");
+  dimOverlay.classList.remove("hidden");
+
   lockScroll();
 
   // --- ACTIVATE THE SCROLL LOCK ---
@@ -66,9 +71,11 @@ function openContentOverlay(htmlContent) {
 
 // Specifically for closing the main content popup
 function closeContentOverlay() {
-  BookCardpopup.classList.add("hidden");
-  unlockScroll();
-  document.getElementById("bookCard").innerHTML = "";
+// Hide both the popup container AND the dimming overlay
+BookCardpopup.classList.add("hidden");
+dimOverlay.classList.add("hidden");
+unlockScroll();
+document.getElementById("bookCard").innerHTML = "";
 
   // --- DEACTIVATE THE SCROLL LOCK ---
   // It's crucial to remove the listener to restore normal scrolling.
