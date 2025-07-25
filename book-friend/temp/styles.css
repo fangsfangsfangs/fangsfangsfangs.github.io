@@ -695,8 +695,8 @@ h3 {
   right: 1.5rem;
   width: 48px;
   height: 48px;
-  background-color: #3698ff;
-  color: #f4b584;
+  background-color: white;
+  color: #3698ff;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -716,8 +716,7 @@ h3 {
 
 /* ===book popup overlay === */
 .overlay-background {
-  height: calc((var(--vh, 1vh) * 100) - 3.5rem);
-  padding-top: 3.5rem;
+  height: 100%;
   position: fixed;
   top: 0;
   left: 0;
@@ -728,7 +727,7 @@ h3 {
   justify-content: center;
   z-index: 9999;
   overscroll-behavior: contain;
-  overflow-y: auto;
+  overflow-y: clip;
   -webkit-overflow-scrolling: touch;
 }
 
