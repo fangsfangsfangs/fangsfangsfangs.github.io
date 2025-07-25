@@ -82,18 +82,23 @@ document.getElementById("bookCard").innerHTML = "";
   document.body.removeEventListener('touchmove', preventBackgroundScroll);
 }
 
+/**
+ * Prevents the background from scrolling on touch devices.
+ * Allows the popup card itself to be scrolled if its content overflows.
+ * @param {TouchEvent} e The touch event
+ */
 function preventBackgroundScroll(e) {
-  // Find the main popup card element
-  const bookCard = document.getElementById("bookCard");
+  let target = e.target;
+  while (target) {
+    if (target.id === 'bookCard') {
 
-  // Check if the touch started inside the book card
-  if (bookCard && bookCard.contains(e.target)) {
-
-    if (bookCard.scrollHeight > bookCard.clientHeight) {
-      return;
+      if (target.scrollHeight > target.clientHeight) {
+        return;
+      }
     }
-  }
 
+    target = target.parentElement;
+  }
   e.preventDefault();
 }
 
