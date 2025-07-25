@@ -1,14 +1,22 @@
 body {
+  /* --- This makes the body a positioning context for its children --- */
+  position: relative;
+  
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  height: calc((var(--vh, 1vh) * 100) - 3.5rem);
+
+  /* Use our stable --vh variable to set a fixed height */
+  height: calc(var(--vh, 1vh) * 100);
+  
+  /* Prevent the body itself from ever showing a scrollbar */
+  overflow: hidden;
+
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
   Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   background: #f8f8f8;
   color: #575757;
   line-height: 1;
-  padding-top: 3.5rem;
 }
 
 h3 {
@@ -109,14 +117,20 @@ body.popup-open {
 
 /* --- FLEXBOX GRID  --- */
 #gridView {
+  /* Position this container absolutely within the body */
+  position: absolute;
+  top: 3.5rem;  /* Start below the fixed toolbar */
+  bottom: 0;
+  left: 0;
+  right: 0;
+
   display: flex;
   flex-wrap: wrap;
   box-sizing: border-box;
   gap: 1rem;
   padding: 1rem;
-
-  /* These height and scroll rules are correct and remain */
-  flex-grow: 1;
+  
+  /* This allows the content *inside* the grid to scroll */
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -720,14 +734,16 @@ body.popup-open {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100dvw;
-  height: 100dvh;
+  width: 100vw;
+  /* Use the stable height to prevent any gaps */
+  height: calc(var(--vh, 1vh) * 100);
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
   overscroll-behavior: contain;
+  /* This overflow is important for the overlay itself */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
