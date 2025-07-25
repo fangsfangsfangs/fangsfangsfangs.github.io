@@ -380,25 +380,17 @@ h3 {
   z-index: 9990; 
 }
 
-/* 2. The new transparent popup container */
+/* transparent popup container */
 .popup-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
-  height: calc(var(--vh, 1vh) * 100); /* Use stable height */
-
-  /* Its ONLY job is to center the card */
+  height: calc(var(--vh, 1vh) * 100);
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* It sits on top of the dimming overlay */
   z-index: 9995;
-
-  /* This is CRITICAL for the "click outside to close" feature.
-     It makes the container itself transparent to clicks. */
-  pointer-events: none;
 }
 
 .popup-content {
