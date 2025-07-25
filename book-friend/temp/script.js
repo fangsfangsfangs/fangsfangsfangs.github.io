@@ -34,17 +34,47 @@ let toReadBooks = [],
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
 // --- Universal Overlay & Scrolling Functions ---
-// This function simply adds a class to the body.
+
+/**
+ * This is the definitive scroll lock function. It prevents the background
+ * from scrolling while allowing the popup content itself to scroll.
+ * @param {TouchEvent} e The touch event
+ */
+function preventBackgroundScroll(e) {
+  // Find the element the user's finger is actually on.
+  let target = e.target;
+
+  // Climb up the DOM tree from the target element.
+  while (target) {
+    // Check if the current element is a scrollable container.
+    // This works for both .book-card and .quicklist-content.
+    if (target.scrollHeight > target.clientHeight && (target.classList.contains('book-card') || target.classList.contains('quicklist-content'))) {
+      // If we found a scrollable container, we do nothing and let the
+      // browser handle the scroll natively.
+      return;
+    }
+    // Move up to the next parent element.
+    target = target.parentElement;
+  }
+
+  // If the loop completes, it means the user is trying to scroll the background.
+  // We prevent the default browser action to stop this.
+  e.preventDefault();
+}
+
+// This function activates the scroll lock.
 function lockScroll() {
-  document.body.classList.add("popup-open");
+  // The { passive: false } is critical. It tells the browser we intend to prevent the default action.
+  document.body.addEventListener('touchmove', preventBackgroundScroll, { passive: false });
 }
 
-// This function simply removes the class from the body.
+// This function deactivates the scroll lock.
 function unlockScroll() {
-  document.body.classList.remove("popup-open");
+  // It's crucial to remove the listener to restore normal scrolling.
+  document.body.removeEventListener('touchmove', preventBackgroundScroll, { passive: false });
 }
 
-// openContentOverlay remains the same, but without the event listener logic.
+// openContentOverlay remains the same.
 function openContentOverlay(htmlContent) {
   const bookCard = document.getElementById("bookCard");
   bookCard.innerHTML = htmlContent;
@@ -53,7 +83,7 @@ function openContentOverlay(htmlContent) {
   lockScroll();
 }
 
-// closeContentOverlay remains the same, but without the event listener logic.
+// closeContentOverlay remains the same.
 function closeContentOverlay() {
   BookCardpopup.classList.add("hidden");
   dimOverlay.classList.add("hidden");
