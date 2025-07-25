@@ -34,72 +34,32 @@ let toReadBooks = [],
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
 // --- Universal Overlay & Scrolling Functions ---
-function preventDefaultScroll(e) {
-  e.preventDefault();
-}
 
-// Lock scroll on popup open
+// This function simply adds a class to the body.
 function lockScroll() {
   document.body.classList.add("popup-open");
-  
-  // Add listeners to the OVERLAYS to prevent them from scrolling
-  const popupContainer = document.getElementById('BookCardpopup');
-  const dimOverlay = document.getElementById('dimOverlay');
-  
-  popupContainer.addEventListener('touchmove', preventDefaultScroll, { passive: false });
-  dimOverlay.addEventListener('touchmove', preventDefaultScroll, { passive: false });
 }
 
-// Unlock scroll on popup close
+// This function simply removes the class from the body.
 function unlockScroll() {
   document.body.classList.remove("popup-open");
-
-  // REMOVE the listeners from the overlays to restore normal behavior
-  const popupContainer = document.getElementById('BookCardpopup');
-  const dimOverlay = document.getElementById('dimOverlay');
-
-  popupContainer.removeEventListener('touchmove', preventDefaultScroll, { passive: false });
-  dimOverlay.removeEventListener('touchmove', preventDefaultScroll, { passive: false });
 }
 
-// Specifically for opening the main content popup
+// openContentOverlay remains the same, but without the event listener logic.
 function openContentOverlay(htmlContent) {
   const bookCard = document.getElementById("bookCard");
   bookCard.innerHTML = htmlContent;
-
   BookCardpopup.classList.remove("hidden");
   dimOverlay.classList.remove("hidden");
-
   lockScroll();
 }
 
-// Specifically for closing the main content popup
+// closeContentOverlay remains the same, but without the event listener logic.
 function closeContentOverlay() {
   BookCardpopup.classList.add("hidden");
   dimOverlay.classList.add("hidden");
-
   unlockScroll();
   document.getElementById("bookCard").innerHTML = "";
-}
-
-/**
- * Prevents the background from scrolling on touch devices.
- * Allows the popup card itself to be scrolled if its content overflows.
- * @param {TouchEvent} e The touch event
- */
-function preventBackgroundScroll(e) {
-  let target = e.target;
-  while (target) {
-    if (target.id === 'bookCard') {
-
-      if (target.scrollHeight > target.clientHeight) {
-        return;
-      }
-    }
-
-    target = target.parentElement;
-  }
-  e.preventDefault();
 }
 
 // Normalize book data from Supabase, separate read vs to-read books
