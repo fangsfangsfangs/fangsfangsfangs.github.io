@@ -4,8 +4,8 @@ body {
   box-sizing: border-box;
   height: calc((var(--vh, 1vh) * 100) - 3.5rem);
   padding-top: 3.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-  Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
   background: #f8f8f8;
   color: #575757;
   line-height: 1;
@@ -96,7 +96,7 @@ body.popup-open {
   position: absolute;
   top: 0.1rem;
   right: 0.5rem;
-  background: none; 
+  background: none;
   border-radius: 10px;
   border: none;
   cursor: pointer;
@@ -130,13 +130,15 @@ body.popup-open {
   cursor: pointer;
   border-radius: 8px;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   /* --- The Core Flexbox Sizing Logic --- */
   /* For a 2-column layout with a 1rem gap, each item is 50% wide,
      minus half the gap to make space. */
   width: calc(50% - 0.5rem);
-  
+
   aspect-ratio: 2 / 3;
 }
 
@@ -188,11 +190,11 @@ body.popup-open {
   overflow-x: hidden;
   z-index: 9996;
   pointer-events: auto;
-  
-  /* --- SIZING --- */
-  width: 80vw; 
-  max-height: 78vh; 
 
+  /* --- SIZING --- */
+  width: 80vw;
+  max-height: 75vh;
+  max-width: 350px;
   gap: 1rem;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   border-radius: 10px;
@@ -244,12 +246,12 @@ body.popup-open {
   flex-grow: 1;
 
   /* Hide scrollbar for Chrome, Safari and Edge */
-  scrollbar-width: none;          /* Firefox */
-  -ms-overflow-style: none;       /* IE 10+ */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
 }
 
 .to-read-notes::-webkit-scrollbar {
-  display: none;                  /* Chrome, Safari, Edge */
+  display: none; /* Chrome, Safari, Edge */
 }
 
 /* Cover container */
@@ -356,7 +358,7 @@ body.popup-open {
   height: auto;
   overflow: visible;
   flex-grow: 0;
-  margin-top: 0;   /* Remove unwanted spacing */
+  margin-top: 0; /* Remove unwanted spacing */
   margin-bottom: 0;
 }
 
@@ -370,37 +372,31 @@ body.popup-open {
   box-sizing: border-box;
 }
 
-/* dimming overlay */
-.dim-overlay {
+.popup-wrapper {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: calc(var(--vh, 1vh) * 100); /* Use stable height */
-  background: rgba(0, 0, 0, 0.7); /* This is its ONLY job */
-  
-  /* It sits below the popup container */
-  z-index: 9990; 
+
+  /* This centers the .book-card inside */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* It sits on top of the dimming overlay */
+  z-index: 9995;
 }
 
-/* transparent popup container */
-.popup-container {
+/* 3. The separate dim overlay for the main book card remains the same */
+.dim-overlay, #addBookPopup {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: calc(var(--vh, 1vh) * 100);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9995;
-}
-
-.popup-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9990;
 }
 
 .popup-footer-container {
@@ -409,10 +405,10 @@ body.popup-open {
   justify-content: space-evenly;
   width: 100%;
   min-height: 4vh;
-  margin:auto;
+  margin: auto;
 }
 
-#dateReadInput{
+#dateReadInput {
   width: 30%;
   font-size: 0.8rem;
 }
@@ -449,7 +445,7 @@ body.popup-open {
   min-height: 4vh;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
- font-size: 1rem;
+  font-size: 1rem;
 }
 
 .favorite-heart.active,
@@ -523,7 +519,7 @@ body.popup-open {
   transform: rotate(180deg);
 }
 
-.tag-footer{
+.tag-footer {
   display: flex;
   align-items: center;
   justify-content: space-evenly;
@@ -575,7 +571,7 @@ body.popup-open {
 
 .add-tag-btn:hover {
   background: #f9b274;
-  color: white; 
+  color: white;
 }
 
 .tag:hover,
@@ -587,6 +583,8 @@ body.popup-open {
 /* Delete button inside tags */
 .delete-tag-btn {
   background: transparent;
+  align-items: center;
+  justify-content: center;
   border: none;
   color: white;
   font-weight: 700;
@@ -636,8 +634,10 @@ body.popup-open {
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 0.5rem;
+  z-index: 9999;
 }
 
+/* ===== opacity BG layer =====*/
 /* ===== opacity BG layer =====*/
 .tag-input-overlay {
   position: fixed;
@@ -649,7 +649,7 @@ body.popup-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 10000; 
 }
 
 /* ===== TAG popup box bg =====*/
@@ -711,42 +711,6 @@ body.popup-open {
   color: #7a7a7a;
 }
 
-/* QUICKLIST stlye */
-
-/* Optional header styling */
-.quicklist-header {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #e66767;
-  margin-top: 1rem;
-  margin-bottom: 2rem;
-  gap: 1rem;
-  text-align: center;
-}
-
-/* Scrollable list that fills remaining height */
-.quicklist-content {
-  width: 90%;
-  text-transform: none;
-  flex: 1;
-  overflow-y: auto;
-  margin-bottom: 1rem;
-  scrollbar-width: none; /* Firefox */
-}
-
-.quicklist-content::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
-}
-
-/* List items are left-aligned and spaced */
-.quicklist-item {
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #f6bf9e;
-  padding-bottom: 0.5rem;
-  text-align: left;
-}
-
 /* === Big add book button (+) === */
 #addBookBtn {
   position: fixed;
@@ -766,7 +730,6 @@ body.popup-open {
   z-index: 900;
   transition: background-color 0.3s ease;
 }
-
 
 #addBookBtn:hover {
   background-color: #f78a37;
@@ -835,6 +798,107 @@ body.popup-open {
     transform: translateY(110vh) scale(2);
     opacity: 0;
   }
+}
+
+/* =================================== */
+/* --- NEW QUICKLIST ADD FORM STYLES --- */
+/* =================================== */
+/* QUICKLIST stlye */
+
+/* Optional header styling */
+.quicklist-header {
+  width: 90%;
+  display: flex;
+  gap: 1rem; /* gap between button and header */
+  align-items: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #e66767;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Scrollable list that fills remaining height */
+.quicklist-content {
+  width: 90%;
+  text-transform: none;
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  scrollbar-width: none; /* Firefox */
+}
+
+.quicklist-content::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+/* List items are left-aligned and spaced */
+.quicklist-item {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #f6bf9e;
+  padding-bottom: 0.5rem;
+  text-align: left;
+}
+
+/* Style the new '+' button in the header */
+.add-to-list-btn {
+  background-color: #f78a37;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.add-to-list-btn:hover {
+  background-color: #3698ff;
+}
+
+/* Container for the input form */
+#addToListFormContainer {
+  width: 90%;
+  margin-top: 0.5rem;
+}
+
+/* The form itself */
+.add-to-list-form {
+  display: flex;
+  flex-wrap: wrap; /* --- THIS IS THE FIX --- Allows items to wrap */
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.add-to-list-form input {
+  flex-grow: 1; /* Allow inputs to take up available space */
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.add-to-list-form button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.add-to-list-form button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
 }
 
 :root {
