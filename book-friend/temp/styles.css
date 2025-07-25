@@ -107,45 +107,75 @@ body.popup-open {
 }
 
 /* Grid area full height with vertical scroll */
+/* ================================================== */
+/* --- NEW, ROBUST FLEXBOX GRID (REPLACE OLD CSS) --- */
+/* ================================================== */
+
+/* 1. The Grid Container (#gridView) */
 #gridView {
-  display: grid;
-  grid-template-columns: 50% 50%;
+  display: flex;         /* Use Flexbox instead of Grid */
+  flex-wrap: wrap;       /* Allow items to wrap to the next line */
+  box-sizing: border-box;
+
+  /* Spacing between items */
   gap: 1rem;
   padding: 1rem;
-  justify-content: center;
-  align-items: center;
-  height: auto;
+
+  /* These height and scroll rules are correct and remain */
+  height: calc((var(--vh, 1vh) * 100) - 3.5rem);
   overflow-y: auto;
-  box-sizing: border-box;
   overscroll-behavior: contain;
 }
 
-/* Firefox-specific CSS property that hides scrollbars visually*/
-body::-webkit-scrollbar,
-.grid-area::-webkit-scrollbar {
-  display: none;
-}
-
-/* Grid item styling combined with To-Read grid item */
+/* 2. The Grid Items (.grid-item) */
 .grid-item {
+  box-sizing: border-box;
   cursor: pointer;
   border-radius: 8px;
-  aspect-ratio: 2 / 3;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
 
-.grid-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 8px;
-  display: block;
+  /* --- The Core Flexbox Sizing Logic --- */
+  /* For a 2-column layout with a 1rem gap, each item is 50% wide,
+     minus half the gap to make space. */
+  width: calc(50% - 0.5rem);
+  
+  /* Your aspect-ratio rule is perfect and will calculate the height automatically */
+  aspect-ratio: 2 / 3;
 }
 
 .grid-item:hover {
   transform: scale(1.03);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 3. The Image inside the item */
+.grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block; /* Prevents extra space below the image */
+}
+
+/* --- Media Queries for Larger Screens (Optional but Recommended) --- */
+
+/* TABLET: 4 columns */
+@media (min-width: 768px) {
+  #gridView {
+    padding: 2rem; /* More padding for larger screens */
+  }
+  .grid-item {
+    /* For 4 columns, width is 25% minus 3/4 of the gap */
+    width: calc(25% - 0.75rem);
+  }
+}
+
+/* DESKTOP: 5 columns */
+@media (min-width: 1024px) {
+  .grid-item {
+    /* For 5 columns, width is 20% minus 4/5 of the gap */
+    width: calc(20% - 0.8rem);
+  }
 }
 
 /* === Book popup container === */
