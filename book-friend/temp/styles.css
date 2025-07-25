@@ -114,7 +114,9 @@ h3 {
   box-sizing: border-box;
   gap: 1rem;
   padding: 1rem;
-  height: 100%;
+
+  /* These height and scroll rules are correct and remain */
+  flex-grow: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -717,9 +719,8 @@ h3 {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  /* Use our stable JS variable for a rock-solid height */
-  height: calc(var(--vh, 1vh) * 100);
+  width: 100dvw;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
