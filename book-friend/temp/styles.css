@@ -39,7 +39,7 @@ body.popup-open {
   align-items: center;
   width: 100%;
   padding: 0.5rem;
-  background: #fcc255;
+  background: #f2c254;
   box-sizing: border-box;
   top: 0;
   left: 0;
@@ -65,7 +65,7 @@ body.popup-open {
 }
 
 .fixed-toolbar button:hover {
-  color: #1aadaa;
+  color: #1dbebb;
 }
 
 .toolbar-logo-btn {
@@ -176,7 +176,7 @@ body.popup-open {
   }
 }
 
-/* === Book popup container === */
+/* === Book card === */
 .book-card {
   display: flex;
   flex-direction: column;
@@ -194,7 +194,7 @@ body.popup-open {
   /* --- SIZING --- */
   width: 80vw;
   max-height: 75vh;
-  max-width: 350px;
+  max-width: 340px;
   gap: 1rem;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   border-radius: 10px;
@@ -381,14 +381,14 @@ body.popup-open {
 
   /* This centers the .book-card inside */
   display: flex;
-  align-items: center;
+  align-items: flex-start; 
   justify-content: center;
-
+  padding-top: 5vh;
   /* It sits on top of the dimming overlay */
   z-index: 9995;
 }
 
-/* 3. The separate dim overlay for the main book card remains the same */
+/* The separate dim overlay for the book cards */
 .dim-overlay, #addBookPopup {
   position: fixed;
   top: 0;
@@ -638,7 +638,6 @@ body.popup-open {
 }
 
 /* ===== opacity BG layer =====*/
-/* ===== opacity BG layer =====*/
 .tag-input-overlay {
   position: fixed;
   top: 0;
@@ -718,12 +717,12 @@ body.popup-open {
   right: 1.5rem;
   width: 48px;
   height: 48px;
-  background-color: white;
-  color: #f163a6;
+  background-color: #77bebd;
+  color: white;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 12px rgba(81, 87, 92, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -732,7 +731,7 @@ body.popup-open {
 }
 
 #addBookBtn:hover {
-  background-color: #f78a37;
+  background-color: #1dbebb;
   color: white;
 }
 
@@ -801,9 +800,8 @@ body.popup-open {
 }
 
 /* =================================== */
-/* --- NEW QUICKLIST ADD FORM STYLES --- */
+/* --- QUICKLIST + ADD FORM STYLES --- */
 /* =================================== */
-/* QUICKLIST stlye */
 
 /* Optional header styling */
 .quicklist-header {
