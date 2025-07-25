@@ -33,17 +33,13 @@ let toReadBooks = [],
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
 // --- Universal Overlay & Scrolling Functions ---
-
-//Lock scroll on poup open
-// --- Universal Overlay & Scrolling Functions ---
-
 // Lock scroll on the correct element when a popup opens
 function lockScroll() {
   const gridView = document.getElementById("gridView");
   if (gridView) {
     gridView.classList.add("popup-open");
   }
-  // We still lock the body as a fallback for some mobile browser behaviors
+
   document.body.classList.add("popup-open");
 }
 
@@ -62,14 +58,36 @@ function openContentOverlay(htmlContent) {
   bookCard.innerHTML = htmlContent;
   BookCardpopup.classList.remove("hidden");
   lockScroll();
+
+  // --- ACTIVATE THE SCROLL LOCK ---
+  // The { passive: false } is critical. It tells the browser we intend to prevent the default action.
+  document.body.addEventListener('touchmove', preventBackgroundScroll, { passive: false });
 }
 
 // Specifically for closing the main content popup
 function closeContentOverlay() {
   BookCardpopup.classList.add("hidden");
   unlockScroll();
-  // Clear the content to prevent stale data on next open
-  document.getElementById("bookCard").innerHTML = ""; 
+  document.getElementById("bookCard").innerHTML = "";
+
+  // --- DEACTIVATE THE SCROLL LOCK ---
+  // It's crucial to remove the listener to restore normal scrolling.
+  document.body.removeEventListener('touchmove', preventBackgroundScroll);
+}
+
+function preventBackgroundScroll(e) {
+  // Find the main popup card element
+  const bookCard = document.getElementById("bookCard");
+
+  // Check if the touch started inside the book card
+  if (bookCard && bookCard.contains(e.target)) {
+
+    if (bookCard.scrollHeight > bookCard.clientHeight) {
+      return;
+    }
+  }
+
+  e.preventDefault();
 }
 
 // Normalize book data from Supabase, separate read vs to-read books
