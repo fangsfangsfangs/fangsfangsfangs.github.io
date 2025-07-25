@@ -695,8 +695,8 @@ h3 {
   right: 1.5rem;
   width: 48px;
   height: 48px;
-  background-color: #f78a37;
-  color: white;
+  background-color: #3698ff;
+  color: #f4b584;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -710,17 +710,18 @@ h3 {
 
 
 #addBookBtn:hover {
-  background-color: #3698ff;
-  color: #f4b584;
+  background-color: #f78a37;
+  color: white;
 }
 
 /* ===book popup overlay === */
 .overlay-background {
+  height: calc((var(--vh, 1vh) * 100) - 3.5rem);
+  padding-top: 3.5rem;
   position: fixed;
   top: 0;
   left: 0;
   width: 100dvw;
-  height: 100dvh;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
