@@ -38,6 +38,16 @@
     </script>
     <script type="module" src="script.js"></script>
 
+    <!-- Height set variable -->
+   <script>
+      function setVh() {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
+      setVh();
+      window.addEventListener('resize', setVh);
+    </script>
+
     <!-- Add new book popup -->
     <div id="addBookPopup" class="overlay-background hidden">
       <div class="popup-content book-card">
