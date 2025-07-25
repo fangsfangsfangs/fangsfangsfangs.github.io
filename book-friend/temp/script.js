@@ -34,12 +34,12 @@ const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "b
 
 // --- Universal Overlay & Scrolling Functions ---
 
+//Lock scroll on poup open
 function lockScroll() {
-  document.body.style.overflow = "hidden";
+  document.body.classList.add("popup-open");
 }
-
 function unlockScroll() {
-  document.body.style.overflow = "";
+  document.body.classList.remove("popup-open");
 }
 
 // Specifically for opening the main content popup
