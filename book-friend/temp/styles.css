@@ -183,7 +183,8 @@ h3 {
   text-transform: lowercase;
   overflow-y: auto; /* This allows content inside the card to scroll */
   overflow-x: hidden;
-  z-index: 999;
+  z-index: 9996;
+  pointer-events: auto;
   
   /* --- SIZING --- */
   width: 80vw; 
@@ -364,6 +365,68 @@ h3 {
   border-radius: 8px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* dimming overlay */
+.dim-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(var(--vh, 1vh) * 100); /* Use stable height */
+  background: rgba(0, 0, 0, 0.7); /* This is its ONLY job */
+  
+  /* It sits below the popup container */
+  z-index: 9990; 
+}
+
+/* 2. The new transparent popup container */
+.popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(var(--vh, 1vh) * 100); /* Use stable height */
+
+  /* Its ONLY job is to center the card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* It sits on top of the dimming overlay */
+  z-index: 9995;
+
+  /* This is CRITICAL for the "click outside to close" feature.
+     It makes the container itself transparent to clicks. */
+  pointer-events: none;
+}
+
+.popup-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.popup-footer-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  min-height: 4vh;
+  margin:auto;
+}
+
+#dateReadInput{
+  width: 30%;
+  font-size: 0.8rem;
+}
+
+/* Popup card add button */
+.add-btn:disabled {
+  background: #f9cb7466;
+  cursor: default;
+  color: #fff;
 }
 
 /* Move to-read button/ Add to read */
@@ -696,7 +759,7 @@ h3 {
   width: 48px;
   height: 48px;
   background-color: white;
-  color: #3698ff;
+  color: #f163a6;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -712,51 +775,6 @@ h3 {
 #addBookBtn:hover {
   background-color: #f78a37;
   color: white;
-}
-
-/* ===book popup overlay === */
-.overlay-background {
-  height: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  overscroll-behavior: contain;
-  overflow-y: clip;
-  -webkit-overflow-scrolling: touch;
-}
-
-.popup-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.popup-footer-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  width: 100%;
-  min-height: 4vh;
-  margin:auto;
-}
-
-#dateReadInput{
-  width: 30%;
-  font-size: 0.8rem;
-}
-
-/* Popup card add button */
-.add-btn:disabled {
-  background: #f9cb7466;
-  cursor: default;
-  color: #fff;
 }
 
 /* Mousekeeping text */
