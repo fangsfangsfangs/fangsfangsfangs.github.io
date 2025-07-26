@@ -304,6 +304,7 @@ async function renderSingleCard(book) {
       <i data-lucide="quote" class="quote-icon open-quote"></i>
     </div>
     <div class="rating-bar">
+                <span class="review-header-text">My Review :)</span>
  <div class="rating" title="Rating">
           ${[1, 2, 3, 4, 5]
             .map(
@@ -314,7 +315,6 @@ async function renderSingleCard(book) {
             )
             .join("")}
         </div>
-            <span class="review-header-text">My Review :)</span>
         </div>
 <div class="review-box">
 <div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
@@ -323,7 +323,6 @@ async function renderSingleCard(book) {
     </div>
   </div>
           <div class="rating-bar">
-          <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
       <div class="despair-rating" title="Despair Level">
           ${[1, 2, 3, 4, 5]
             .map(
@@ -335,13 +334,14 @@ async function renderSingleCard(book) {
             )
             .join("")}
         </div>
-    </div>
       
+    </div>
     <div class="tag-footer">
+     <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
    <div class="tags">${tagsHTML}</div>
-     <span class="tag add-tag-btn" title="Add Tag">+</span>
+     <span class="add-tag-btn" title="Add Tag">+</span>
      </div>
-  
+
  `;
 
   openContentOverlay(cardHTML);
@@ -449,7 +449,7 @@ function showTagInput(book, isToRead = false) {
   input.autocomplete = "off";
   input.maxLength = 30;
   const buttonContainer = document.createElement("div");
-  buttonContainer.className = "tag-input-buttons";
+  buttonContainer.className = "add-cancel-button";
   const addBtn = document.createElement("button");
   addBtn.textContent = "Add";
   addBtn.disabled = true;
@@ -463,7 +463,7 @@ function showTagInput(book, isToRead = false) {
 
   suggestedTags.forEach((tag) => {
     const tagEl = document.createElement("span");
-    tagEl.className = "tag suggested-tag-btn";
+    tagEl.className = "tag-cloud-btn";
     tagEl.textContent = tag;
     tagEl.addEventListener("click", () => {
       input.value = tag;
@@ -558,7 +558,7 @@ async function renderToReadCard(book) {
      </div>
   <div class="card-footer">
       <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
-      <span class="tag add-tag-btn" title="Add Tag">+</span>
+      <span class="add-tag-btn" title="Add Tag">+</span>
     </div>
 `;
 
