@@ -18,6 +18,7 @@
       <button id="homeBtn" title="welcome home"><i data-lucide="home"></i></button>
       <button id="showToReadBtn" title="to-read"><i data-lucide="notebook-pen"></i></button>
       <button id="favoritesBtn" title="faves"><i data-lucide="book-heart"></i></button>
+      <button id="graveyardBtn" title="unfinished business"><i data-lucide="ghost"></i></button>
       <button id="showReadBtn" title="quick list"><i data-lucide="bookmark-plus"></i></button>
     </div>
 
@@ -52,7 +53,7 @@
 
     <!-- Add new book popup -->
    <div id="addBookPopup" class="popup-wrapper hidden">
-  <div class="popup-content add-book-card">
+  <div class="popup-content book-card">
         <h3>Add a New Book</h3>
         <input placeholder="Title" id="addTitle" />
         <input placeholder="Author" id="addAuthor" />
@@ -66,7 +67,6 @@
           <div class="popup-footer-container">
             <div id="addFavoriteHeart" class="favorite-heart" title="Toggle Favorite">&#10084;</div>
             <!-- Optional visible version for user editing -->
-            <label for="dateReadInput">Read</label>
             <input type="month" id="dateReadInput" name="dateRead" />
             <div class="popup-action-buttons">
               <button id="addBookConfirm" class="add-btn">Add</button>
