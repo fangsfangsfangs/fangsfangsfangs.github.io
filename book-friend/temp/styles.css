@@ -283,6 +283,7 @@ body.popup-open {
 
 .quote-box {
   display: flex;
+  align-items: flex-start; /* Aligns icons to the top, looks better with long quotes */
   justify-content: center;
   font-style: italic;
   background-color: var(--whisper-gray);
@@ -290,20 +291,21 @@ body.popup-open {
   border-radius: 10px;
   max-width: 95%;
   box-sizing: border-box;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
   gap: 0.5rem;
   margin: 0.5rem;
 }
 
 .quote-text {
-  flex: 1;
+  flex: 1; 
   padding: 0 0.5rem;
   text-align: center;
   font-style: italic;
   font-size: 0.95rem;
   color: var(--darkest-gray);
+
+  white-space: pre-wrap;   /* Allows wrapping and preserves line breaks */
+  word-break: break-word;  /* Prevents long words from overflowing */
+  min-width: 0;            /* A crucial flexbox fix for preventing overflow */
 }
 
 .quote-icon {
@@ -344,6 +346,8 @@ body.popup-open {
   padding: 0; 
   margin-top: 0.5rem; 
   flex: 1;
+  min-height: 120px; 
+  max-height: 250px; 
 }
 
 .review-box:focus-within {
@@ -351,18 +355,24 @@ body.popup-open {
 }
 
 #reviewEditable {
-  display: flex;
-  padding: 12px;
-  font-size: 0.9rem;
   width: 100%;
-  border-radius: 8px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  padding: 12px; 
+  
+  /* Text and wrapping properties */
+  font-size: 0.9rem;
   line-height: 1.4;
+  text-align: left; 
+  white-space: pre-wrap;
+  overflow-wrap: break-word; 
+
+  /* Scrolling and appearance */
+  overflow-y: auto; 
   background-color: transparent;
+  border-radius: 8px;
   box-sizing: border-box;
-  overflow-y: auto;  
-  /* --- Optional: Hide the scrollbar for a cleaner look --- */
+  outline: none;
+  
+  /* Hide the scrollbar */
   scrollbar-width: none; /* For Firefox */
 }
 
