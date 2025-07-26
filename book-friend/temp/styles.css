@@ -118,13 +118,13 @@ body.popup-open {
   gap: 1rem;
   padding: 1rem;
 
-  /* These height and scroll rules are correct and remain */
+/* These height and scroll rules are correct and remain */
   flex-grow: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-/* 2. The Grid Items (.grid-item) */
+/* The Grid Items (.grid-item) */
 .grid-item {
   box-sizing: border-box;
   cursor: pointer;
@@ -134,9 +134,6 @@ body.popup-open {
     transform 0.2s ease,
     box-shadow 0.2s ease;
 
-  /* --- The Core Flexbox Sizing Logic --- */
-  /* For a 2-column layout with a 1rem gap, each item is 50% wide,
-     minus half the gap to make space. */
   width: calc(50% - 0.5rem);
 
   aspect-ratio: 2 / 3;
@@ -147,12 +144,32 @@ body.popup-open {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* 3. The Image inside the item */
+/* The Image inside the item */
 .grid-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block; /* Prevents extra space below the image */
+}
+
+/* cover images on to-read cards */
+.cover-container {
+  flex: 0 0 50%;
+  margin-bottom: 0.5rem; /* space between cover and title */
+  position: relative; /* keep nav buttons positioned relative to cover */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-container img {
+  width: 100%;
+  aspect-ratio: 2 / 2.8;
+  object-fit: cover;
+  background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 /* --- Media Queries for Larger Screens (Optional but Recommended) --- */
