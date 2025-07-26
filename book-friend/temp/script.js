@@ -238,10 +238,10 @@ async function renderGridView() {
     item.appendChild(img);
 
     // 💡 IMPORTANT: Ensure popup overlay appears
-item.addEventListener("click", () => {
-  currentIndex = index;
-  renderSingleCard(book); // This function will now handle opening the overlay
-});
+    item.addEventListener("click", () => {
+      currentIndex = index;
+      renderSingleCard(book); // This function will now handle opening the overlay
+    });
 
     grid.appendChild(item);
   });
@@ -269,9 +269,9 @@ async function renderToReadGrid() {
 
     item.appendChild(img);
 
-   item.addEventListener("click", () => {
-  renderToReadCard(book); // This function will now handle opening the overlay
-});
+    item.addEventListener("click", () => {
+      renderToReadCard(book); // This function will now handle opening the overlay
+    });
 
     grid.appendChild(item);
   });
@@ -290,62 +290,66 @@ async function renderSingleCard(book) {
     .join("");
 
   const coverSrc = await getCoverUrl(book);
-  const ratingStars = "★".repeat(book.rating).padEnd(5, "☆");
   const isFavorited = !!book.favorite;
   const favoriteClass = isFavorited ? "favorite-heart active" : "favorite-heart";
 
   const cardHTML = `
 <button class="close-btn" data-close aria-label="Close">&times;</button>
 <div class="book-card-content">
-<div class="cover-container">
-      <img src="${coverSrc}" alt="Cover of ${book.title}" onerror="this.onerror=null;this.src='${placeholderImage}'"/>
-    </div>
-<div class="quote-box">
+<div class="title">${book.title || "Untitled"}</div>
+<div class="author">${book.author || "Unknown"}</div>
+  <div class="quote-box">
       <i data-lucide="quote" class="quote-icon close-quote"></i>
       <div id="quoteEditable" class="quote-text editable" contenteditable="false" title="Click to edit quote">${book.quote || "No quote available"}</div>
       <i data-lucide="quote" class="quote-icon open-quote"></i>
     </div>
-<div class="title">${book.title || "Untitled"}</div>
-<div class="author">${book.author || "Unknown"}</div>
+    <div class="rating-bar">
+ <div class="rating" title="Rating">
+          ${[1, 2, 3, 4, 5]
+            .map(
+              (i) =>
+                `<span class="rating-icon rating-star ${i <= book.rating ? "filled" : ""}" data-value="${i}">${
+                  i <= book.rating ? "★" : "☆"
+                }</span>`
+            )
+            .join("")}
+        </div>
+            <span class="review-header-text">My Review :)</span>
+        </div>
 <div class="review-box">
 <div id="reviewEditable" class="review-text editable" contenteditable="false" title="Click to edit review">
   ${book.review?.trim() ? book.review : "Add your thoughts..."}
 </div>
-</div>
-</div>
-<div class="card-footer">
-    <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
-<div class="rating" title="Rating">
-      ${[1, 2, 3, 4, 5]
-        .map(
-          (i) =>
-            `<span class="rating-star ${i <= book.rating ? "filled" : ""}" data-value="${i}">${
-              i <= book.rating ? "★" : "☆"
-            }</span>`
-        )
-        .join("")}
     </div>
-<div class="despair-level" title="Despair Level">
-  ${
-    typeof book.despair === "number" && book.despair > 0
-      ? `<span class="despair-icon" data-value="${book.despair}" title="Despair ${book.despair}" data-selected="true">${getDespairIcon(book.despair)}</span>`
-      : `<span class="despair-icon no-despair" title="No Despair" data-value="0">${getDespairIcon(0)}</span>`
-  }
-</div>
-      <span class="tag add-tag-btn" title="Add Tag">+</span>
   </div>
-   <div class="tag-footer">
-      <div class="tags">${tagsHTML}</div>
+          <div class="rating-bar">
+          <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
+      <div class="despair-rating" title="Despair Level">
+          ${[1, 2, 3, 4, 5]
+            .map(
+              (i) => `
+                <span class="rating-icon despair-icon" data-value="${i}" data-selected="${i <= book.despair ? "true" : "false"}">
+                  <!-- THIS IS THE FIX: Call getDespairIcon(i) -->
+                  ${getDespairIcon(i)}
+                </span>`
+            )
+            .join("")}
+        </div>
     </div>
+      
+    <div class="tag-footer">
+   <div class="tags">${tagsHTML}</div>
+     <span class="tag add-tag-btn" title="Add Tag">+</span>
+     </div>
+  
  `;
-  
+
   openContentOverlay(cardHTML);
-  
   lucide.createIcons();
 
-  const bookCard = document.getElementById("bookCard"); 
-  
-  // Star rating click handlers
+  const bookCard = document.getElementById("bookCard");
+
+  // Star rating click handler
   bookCard.querySelectorAll(".rating-star").forEach((star) => {
     star.addEventListener("click", async () => {
       const newRating = parseInt(star.dataset.value);
@@ -354,19 +358,21 @@ async function renderSingleCard(book) {
       renderSingleCard(book);
     });
   });
-  // Despair icon click handlers
-  const despairIcon = bookCard.querySelector(".despair-icon");
-  if (despairIcon) {
-    despairIcon.addEventListener("click", async () => {
-      let current = parseInt(despairIcon.dataset.value) || 0;
-      // Cycle from 0 (no despair) up to 5, then back to 0
-      let newDespair = (current + 1) % 6; // cycles 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 0
 
-      await updateBookInSupabase(book.id, { despair: newDespair });
-      book.despair = newDespair;
+  // Despair rating click handler
+  bookCard.querySelectorAll(".despair-icon").forEach((icon) => {
+    icon.addEventListener("click", async () => {
+      const newDespair = parseInt(icon.dataset.value);
+      const currentDespair = book.despair || 0;
+
+      // If clicking the same icon, reset to 0. Otherwise, set the new value.
+      const finalDespair = currentDespair === newDespair ? 0 : newDespair;
+
+      await updateBookInSupabase(book.id, { despair: finalDespair });
+      book.despair = finalDespair;
       renderSingleCard(book);
     });
-  }
+  });
 
   // 🧼 Clean review text before making it editable to remove extra blank lines
   const reviewEl = document.getElementById("reviewEditable");
@@ -399,9 +405,9 @@ async function renderSingleCard(book) {
     tagEl.addEventListener("click", () => {
       activeTag = tagEl.dataset.tag.toLowerCase();
       applyFilters();
-         closeContentOverlay(); 
+      closeContentOverlay();
     });
-    
+
     const delBtn = tagEl.querySelector(".delete-tag-btn");
     if (delBtn) {
       delBtn.addEventListener("click", async (e) => {
@@ -535,7 +541,7 @@ async function renderToReadCard(book) {
         `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
     )
     .join("");
-  
+
   const coverSrc = await getCoverUrl(book);
   const cardHTML = `
 <button class="close-btn" data-close aria-label="Close">&times;</button>
@@ -547,17 +553,17 @@ async function renderToReadCard(book) {
     <div class="author">${book.author || "Unknown"}</div>
     <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
   </div>
+   <div class="tag-footer">
+      <div class="tags">${tagsHTML}</div>
+     </div>
   <div class="card-footer">
       <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
       <span class="tag add-tag-btn" title="Add Tag">+</span>
     </div>
-   <div class="tag-footer">
-      <div class="tags">${tagsHTML}</div>
-</div>
 `;
-  
+
   openContentOverlay(cardHTML);
-  
+
   // Add to read button handler
   document.getElementById("moveToReadAddBtn").addEventListener("click", () => {
     const popup = document.getElementById("addBookPopup");
@@ -580,7 +586,7 @@ async function renderToReadCard(book) {
       closeContentOverlay();
     });
   });
-  
+
   // Add tag button
   bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -627,54 +633,49 @@ async function renderQuickListCard() {
       .join("");
 
     /**
- * Toggles the visibility of the "Add to List" form on the Quick List card.
- */
-function toggleAddToListForm() {
-  const formContainer = document.getElementById("addToListFormContainer");
+     * Toggles the visibility of the "Add to List" form on the Quick List card.
+     */
+    function toggleAddToListForm() {
+      const formContainer = document.getElementById("addToListFormContainer");
 
-  // Check if the form is already visible by seeing if the container has content.
-  if (formContainer.innerHTML.trim() !== "") {
-    // If it's visible, clear the container to hide it and stop the function.
-    formContainer.innerHTML = "";
-    return;
-  }
+      if (formContainer.innerHTML.trim() !== "") {
+        formContainer.innerHTML = "";
+        return;
+      }
 
-  // If the form is hidden, build and inject the HTML.
-  const formHTML = `
+      // If the form is hidden, build and inject the HTML.
+      const formHTML = `
     <div class="add-to-list-form">
       <input type="text" id="addListTitle" placeholder="Title" required>
       <input type="text" id="addListAuthor" placeholder="Author" required>
       <button id="addToListConfirmBtn">Add</button>
     </div>
   `;
-  formContainer.innerHTML = formHTML;
+      formContainer.innerHTML = formHTML;
 
-  // IMPORTANT: Attach the listener to the new "Add" button *after* creating it.
-  document.getElementById("addToListConfirmBtn").addEventListener("click", handleAddToListSubmit);
-}
-    
+      document.getElementById("addToListConfirmBtn").addEventListener("click", handleAddToListSubmit);
+    }
+
     // Create the HTML for the quick list card
     const cardHTML = `
       <button class="close-btn" data-close aria-label="Close">×</button>
-      
+       <div class="book-card-content">
       <div class="quicklist-header">
        <button id="showAddToListBtn" class="add-to-list-btn" title="Add to list">+</button>
         <span>Quick List</span>
-      
+    </div>
+
+        <div id="addToListFormContainer"></div>
+
+        <div class="quicklist-content">${listItems}</div>
       </div>
-
-      <!-- This is where our new input form will go -->
-      <div id="addToListFormContainer"></div>
-
-      <div class="quicklist-content">${listItems}</div>
     `;
 
     // Open the content overlay with our generated HTML
     openContentOverlay(cardHTML);
 
     // --- ADD EVENT LISTENER FOR THE NEW '+' BUTTON ---
-document.getElementById("showAddToListBtn").addEventListener("click", toggleAddToListForm);
-
+    document.getElementById("showAddToListBtn").addEventListener("click", toggleAddToListForm);
   } catch (err) {
     console.error("Error loading quick list", err);
     const errorHTML = `<p style="color:red;">Failed to load quick list.</p><button class="close-btn" data-close>×</button>`;
@@ -686,8 +687,8 @@ document.getElementById("showAddToListBtn").addEventListener("click", toggleAddT
  * Handles the submission of the new title and author to the to-read list.
  */
 async function handleAddToListSubmit() {
-  const titleInput = document.getElementById('addListTitle');
-  const authorInput = document.getElementById('addListAuthor');
+  const titleInput = document.getElementById("addListTitle");
+  const authorInput = document.getElementById("addListAuthor");
 
   const title = titleInput.value.trim();
   const author = authorInput.value.trim();
@@ -699,7 +700,7 @@ async function handleAddToListSubmit() {
 
   try {
     // Disable the button to prevent double-clicks
-    document.getElementById('addToListConfirmBtn').disabled = true;
+    document.getElementById("addToListConfirmBtn").disabled = true;
 
     // Create the new book object and send it to Supabase
     const newBook = { title, author };
@@ -708,11 +709,10 @@ async function handleAddToListSubmit() {
     // On success, simply re-render the entire quick list card.
     // This is the easiest way to show the new, sorted list.
     await renderQuickListCard();
-
   } catch (error) {
     alert("Failed to add book. Please try again.");
     // Re-enable the button on failure
-    document.getElementById('addToListConfirmBtn').disabled = false;
+    document.getElementById("addToListConfirmBtn").disabled = false;
   }
 }
 
@@ -812,13 +812,12 @@ function attachToolbarHandlers() {
   };
 }
 document.addEventListener("DOMContentLoaded", async () => {
-  
   // Open Add Book popup
   document.getElementById("addBookBtn").addEventListener("click", () => {
     document.getElementById("addBookPopup").classList.remove("hidden");
-    lockScroll(); 
+    lockScroll();
   });
-  
+
   // Favorite heart toggle
   const favHeart = document.getElementById("addFavoriteHeart");
   if (favHeart) {
@@ -837,7 +836,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
-  
+
   document.getElementById("addBookConfirm").addEventListener("click", async () => {
     const title = document.getElementById("addTitle").value.trim();
     const author = document.getElementById("addAuthor").value.trim();
@@ -852,19 +851,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
     let dateReadText = document.getElementById("dateReadInput").textContent.trim();
-    
+
     // Validate format YYYY-MM
     if (/^\d{4}-(0[1-9]|1[0-2])$/.test(dateReadText)) {
-      
       // If only year-month, append day
       dateReadText = dateReadText + "-01";
     } else if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(dateReadText)) {
-      
       // If invalid format, fallback to full date string (already with day)
       dateReadText = getFallbackDate();
     }
     // Now dateReadText is guaranteed to be a valid YYYY-MM-DD string
-    
+
     const date_read = dateReadText;
     const dateReadDiv = document.getElementById("dateReadInput");
     dateReadDiv.addEventListener("blur", () => {
@@ -900,33 +897,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       cover
     };
     try {
-      
       // Insert into books_read
       const added = await addBookToSupabase(book);
       allBooks.unshift(normalizeBook(added));
       applyFiltersAndRender();
-      
+
       // Check if this book came from a to-read item
       const popup = document.getElementById("addBookPopup");
       const toReadId = popup.dataset.toReadId;
       if (toReadId) {
-        
         // Delete from books_to_read table
         const { error: deleteError } = await supabase.from("books_to_read").delete().eq("id", toReadId);
         if (deleteError) {
           console.error("Failed to delete from to-read:", deleteError);
         } else {
-          
           // Remove locally
           toReadBooks = toReadBooks.filter((b) => b.id !== toReadId);
           filteredToReadBooks = filteredToReadBooks.filter((b) => b.id !== toReadId);
           renderToReadGrid();
         }
-        
+
         // Clear stored toReadId
         popup.dataset.toReadId = "";
       }
-      
+
       // Hide popup and clear form
       document.getElementById("addBookPopup").classList.add("hidden");
       clearAddBookForm();
