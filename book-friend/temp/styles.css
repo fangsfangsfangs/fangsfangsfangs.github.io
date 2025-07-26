@@ -191,10 +191,8 @@ body.popup-open {
   pointer-events: auto;
 
   /* --- SIZING --- */
-  width: 80vw;
-  min-height: 70vh;
-  max-height: 80vh;
-  max-width: 330px;
+  height: 78vh;
+  width: 300px;
   gap: 1rem;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   border-radius: 10px;
