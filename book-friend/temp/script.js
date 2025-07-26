@@ -30,6 +30,9 @@ let allBooks = [],
 let toReadBooks = [],
   filteredToReadBooks = [],
   activeToReadTag = null;
+let unfinishedBooks = [],
+  filteredUnfinishedBooks = [],
+  activeUnfinishedTag = null;
 
 const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "biography", "mystery"];
 
@@ -124,6 +127,19 @@ async function updateBookInSupabase(id, updates) {
   return data;
 }
 
+async function updateUnfinishedBookTags(id, tags) {
+  const { data, error } = await supabase
+    .from("unfinished_business") // <-- Use the new table name
+    .update({ tags })
+    .eq("id", id)
+    .select();
+  if (error) {
+    console.error("Error updating unfinished book tags:", error);
+    return null;
+  }
+  return data;
+}
+
 async function updateToReadBookTags(id, tags) {
     // Also add .select() here
     const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id).select();
@@ -177,6 +193,24 @@ async function fetchToReadBooks() {
   }
 }
 
+async function fetchUnfinishedBooks() {
+  try {
+    const { data, error } = await supabase
+      .from("unfinished_business") // <-- Use the new table name
+      .select("*")
+      .order("created_at", { ascending: false }); // Sort by newest first
+
+    if (error) throw error;
+
+    // Use the global unfinishedBooks array
+    unfinishedBooks = data.map((book) => normalizeBook(book, true)); 
+    filteredUnfinishedBooks = unfinishedBooks;
+    renderUnfinishedGrid(); // Call the new grid renderer
+  } catch (error) {
+    console.error("Error fetching unfinished books:", error);
+  }
+}
+
 // --- APPLY FILTERS ---
 function applyFiltersAndRender() {
   // Basic filtering example — show all for now
@@ -185,16 +219,34 @@ function applyFiltersAndRender() {
   renderGridView();
 }
 async function applyFilters() {
-  if (viewMode === "favorites") {
-    filteredBooks = allBooks.filter(isBookFavorited);
-  } else if (viewMode === "to-read") {
+
+  if (viewMode === "to-read") {
     if (toReadBooks.length === 0) {
       await fetchToReadBooks();
     } else {
+      // applyToReadFilter calls renderToReadGrid()
       applyToReadFilter();
     }
-    return;
+    return; 
+  }
+
+  if (viewMode === "unfinished") {
+    if (unfinishedBooks.length === 0) {
+      await fetchUnfinishedBooks();
+    } else {
+      // renderUnfinishedGrid is the renderer for this view
+      renderUnfinishedGrid();
+    }
+    return; 
+  }
+
+  // --- Handle views that use the MAIN grid renderer (renderGridView) ---
+  if (viewMode === "favorites") {
+    const favoritedBooks = allBooks.filter(isBookFavorited);
+    favoritedBooks.sort((a, b) => b.dateRead.localeCompare(a.dateRead));
+    filteredBooks = favoritedBooks;
   } else {
+
     filteredBooks = allBooks;
   }
 
@@ -203,6 +255,7 @@ async function applyFilters() {
   }
 
   currentIndex = 0;
+
   renderGridView();
 }
 
@@ -519,30 +572,35 @@ function showTagInput(book, isToRead = false) {
   // The Cancel button now correctly closes ONLY the tag popup.
   cancelBtn.addEventListener("click", closeTagPopup);
 
-  addBtn.addEventListener("click", async () => {
-    const newTag = input.value.trim();
-    if (!newTag) return;
+ addBtn.addEventListener("click", async () => {
+  const newTag = input.value.trim();
+  if (!newTag) return;
 
-    let currentTags = book.tags || [];
-    if (!currentTags.some((t) => t.toLowerCase() === newTag.toLowerCase())) {
-      currentTags.push(newTag);
-      if (isToRead) {
-        await updateToReadBookTags(book.id, currentTags);
-      } else {
-        await updateBookInSupabase(book.id, { tags: currentTags });
-      }
-      book.tags = currentTags;
-    }
+  let currentTags = book.tags || [];
+  if (!currentTags.some((t) => t.toLowerCase() === newTag.toLowerCase())) {
+    currentTags.push(newTag);
     
-    // Clean up the popup and its listener, then re-render the card.
+    // --- THIS IS THE MODIFIED LOGIC ---
+    if (isToRead === 'unfinished') {
+      await updateUnfinishedBookTags(book.id, currentTags);
+    } else if (isToRead) { // This handles the original to-read books
+      await updateToReadBookTags(book.id, currentTags);
+    } else { // This handles regular read books
+      await updateBookInSupabase(book.id, { tags: currentTags });
+    }
+    book.tags = currentTags;
+  }
+    
     closeTagPopup(); 
 
-    if (isToRead) {
-      renderToReadCard(book);
-    } else {
-      renderSingleCard(book);
-    }
-  });
+   if (isToRead === 'unfinished') {
+    renderUnfinishedCard(book);
+  } else if (isToRead) {
+    renderToReadCard(book);
+  } else {
+    renderSingleCard(book);
+  }
+});
 }
 
 // To-read card popup (unchanged except for tags if needed) //
@@ -653,6 +711,8 @@ bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
   const synopsisEl = document.getElementById("toReadSynopsis");
   synopsisEl.textContent = synopsis || "No synopsis available.";
 }
+
+
 
 //Quick-list Render
 async function renderQuickListCard() {
@@ -778,13 +838,19 @@ function getDespairIcon(value) {
 
 // === Editable field helper ===
 function makeEditableOnClick(el, book, field) {
+  // The 'click' event is what starts the editing session.
   el.addEventListener("click", () => {
     if (!el.classList.contains("editing")) {
       el.contentEditable = "true";
       el.classList.add("editing");
       el.focus();
 
-      // Move caret to end
+      // Check if the element being made editable is the review box.
+      if (el.id === "reviewEditable") {
+        // If so, lock the background scroll.
+        lockScroll();
+      }
+
       const range = document.createRange();
       range.selectNodeContents(el);
       range.collapse(false);
@@ -793,15 +859,18 @@ function makeEditableOnClick(el, book, field) {
       sel.addRange(range);
     }
   });
+
   el.addEventListener("blur", async () => {
     if (el.classList.contains("editing")) {
       el.classList.remove("editing");
       el.contentEditable = "false";
 
-      // Clean text content: remove all leading/trailing newlines
-      let newValue = el.innerText.replace(/^\s+|\s+$/g, "");
+      if (el.id === "reviewEditable") {
+        // If so, unlock the background scroll.
+        unlockScroll();
+      }
 
-      // Normalize multiple blank lines to a single space
+      let newValue = el.innerText.replace(/^\s+|\s+$/g, "");
       newValue = newValue.replace(/\n{2,}/g, "\n");
 
       if (newValue !== (book[field] || "").trim()) {
@@ -812,6 +881,7 @@ function makeEditableOnClick(el, book, field) {
       }
     }
   });
+
   el.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -823,39 +893,42 @@ function makeEditableOnClick(el, book, field) {
 // --- TOOLBAR ---
 function attachToolbarHandlers() {
   document.getElementById("logoBtn").addEventListener("click", () => {
-    // Clear failed cover cache
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith("cover_") && localStorage.getItem(key) === "null") {
-        localStorage.removeItem(key);
-      }
-    });
-    // Show confirmation
+    // ... (your existing logo button logic is fine)
     showToast("🏠 mousekeeping performed 🧼");
-
-    // Trigger glitter
-    rainGlitter(50); // You can increase/decrease the number
+    rainGlitter(50);
   });
-  //Button event listeners
+
+  // --- All buttons now follow the same simple pattern ---
+
   document.getElementById("homeBtn").onclick = () => {
     viewMode = "all";
-    activeTag = null;
-    applyFilters(); // 🔥 show all books from local copy
-  };
-  document.getElementById("favoritesBtn").onclick = () => {
-    viewMode = "favorites";
-    activeTag = null;
     applyFilters();
   };
 
+  document.getElementById("favoritesBtn").onclick = () => {
+    viewMode = "favorites";
+    applyFilters();
+  };
+
+  document.getElementById("showToReadBtn").onclick = () => {
+    viewMode = "to-read";
+    activeToReadTag = null;
+    applyFilters(); // Use the central controller function
+  };
+
+  document.getElementById("graveyardBtn").onclick = () => {
+    viewMode = "unfinished";
+    activeUnfinishedTag = null;
+    applyFilters(); // Use the central controller function
+  };
+
+  // This button opens a popup, so its logic is different and correct
   document.getElementById("showReadBtn").onclick = () => {
     renderQuickListCard();
   };
-  document.getElementById("showToReadBtn").onclick = async () => {
-    viewMode = "to-read";
-    activeToReadTag = null;
-    await fetchToReadBooks();
-  };
 }
+
+
 document.addEventListener("DOMContentLoaded", async () => {
   // Open Add Book popup
   document.getElementById("addBookBtn").addEventListener("click", () => {
