@@ -7,12 +7,12 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
     "Helvetica Neue", sans-serif;
   background: #f8f8f8;
-  color: #575757;
+  color: var(--medium-gray);
   line-height: 1;
 }
 
 h3 {
-  color: #376469;
+  color: var(--dark-orange);
   margin-top: 0;
   font-weight: 600;
   font-size: 1.25rem;
@@ -39,7 +39,7 @@ body.popup-open {
   align-items: center;
   width: 100%;
   padding: 0.5rem;
-  background: #f2c254;
+  background: var(--bookmouse-yellow);
   box-sizing: border-box;
   top: 0;
   left: 0;
@@ -54,7 +54,7 @@ body.popup-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2f314b;
+  color: var(--darkest-gray);
   transition: color 0.3s ease;
 }
 
@@ -65,7 +65,7 @@ body.popup-open {
 }
 
 .fixed-toolbar button:hover {
-  color: #1dbebb;
+  color: var(--bright-teal);
 }
 
 .toolbar-logo-btn {
@@ -100,14 +100,14 @@ body.popup-open {
   border-radius: 10px;
   border: none;
   cursor: pointer;
-  color: #999;
+  color: var(--light-gray);
   transition: color 0.3s ease;
   z-index: 1000;
 }
 
 .close-btn:hover,
 .popup .close-btn:hover {
-  color: #ff6161;
+  color: var(--acid-orange);
 }
 
 /* --- FLEXBOX GRID  --- */
@@ -176,16 +176,15 @@ body.popup-open {
   }
 }
 
-/* === Book card === */
+/* === ALPHA Book card === */
 .book-card {
   display: flex;
   flex-direction: column;
   text-align: center;
   align-items: center;
   position: relative;
-  background: #ffffff;
+  background: var(--white);
   font-family: Arial, Helvetica, sans-serif;
-  text-transform: lowercase;
   overflow-y: auto; /* This allows content inside the card to scroll */
   overflow-x: hidden;
   z-index: 9996;
@@ -193,7 +192,8 @@ body.popup-open {
 
   /* --- SIZING --- */
   width: 80vw;
-  max-height: 75vh;
+  min-height: 60vh;
+  max-height: 70vh;
   max-width: 340px;
   gap: 1rem;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
@@ -204,10 +204,16 @@ body.popup-open {
 .book-card-content {
   width: 100%;
   max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   overflow-x: hidden;
+  overflow-y:auto; 
   box-sizing: border-box;
   word-wrap: break-word;
   word-break: break-word;
+  min-height: 0;
+  flex-grow:1;
 }
 
 .book-card-content * {
@@ -232,7 +238,7 @@ body.popup-open {
 /* Synposis box */
 .to-read-notes {
   font-size: 0.9rem;
-  color: #333;
+  color: var(--darkest-gray);
   text-align: left;
   min-height: 200px;
   margin-top: 0.5rem;
@@ -254,38 +260,18 @@ body.popup-open {
   display: none; /* Chrome, Safari, Edge */
 }
 
-/* Cover container */
-.cover-container {
-  flex: 0 0 50%;
-  margin-bottom: 0.5rem; /* space between cover and title */
-  position: relative; /* keep nav buttons positioned relative to cover */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cover-container img {
-  width: 100%;
-  aspect-ratio: 2 / 2.8;
-  object-fit: cover;
-  background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
 .title {
-  padding-top: 0.5rem;
+  margin-top: 1.5rem;
   font-weight: 700;
-  font-size: 1.25rem;
-  color: #353535;
+  font-size: 1.4rem;
+  color: var(--darkest-gray);
 }
 
 .author {
   font-style: italic;
-  color: #828282;
-  padding-top: 0.3rem;
-  padding-bottom: 1rem;
+  color: var(--light-gray);
+  padding-top: 0.4rem;
+  margin-bottom: 0.5rem;
 }
 
 .editable {
@@ -297,27 +283,20 @@ body.popup-open {
   outline: none;
 }
 
-.editable.editing {
-  cursor: text;
-  user-select: text;
-  pointer-events: auto;
-  background-color: #fffdf5;
-  outline: 2px dashed #f9cb74;
-}
-
 .quote-box {
   display: flex;
   justify-content: center;
   font-style: italic;
-  color: #555;
-  background-color: #ececec;
+  background-color: var(--whisper-gray);
   padding: 0.75rem 1rem;
   border-radius: 10px;
-  max-width: 100%;
+  max-width: 95%;
   box-sizing: border-box;
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-word;
+  gap: 0.5rem;
+  margin: 0.5rem;
 }
 
 .quote-text {
@@ -326,13 +305,13 @@ body.popup-open {
   text-align: center;
   font-style: italic;
   font-size: 0.95rem;
-  color: #555;
+  color: var(--darkest-gray);
 }
 
 .quote-icon {
   width: 18px;
   height: 18px;
-  color: #838383;
+  color: var(--dark-teal);
   flex-shrink: 0;
 }
 
@@ -340,36 +319,62 @@ body.popup-open {
   transform: scaleX(-1);
 }
 
-#reviewEditable {
-  display: block;
-  font-size: 0.9rem;
-  color: #333;
-  min-height: 300px;
-  padding: 10px;
-  width: 100%;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  background-color: #f9f7f7;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  line-height: 1.4; /* was 1.2 — gives better spacing */
+.editable.editing {
+  cursor: text;
+  user-select: text;
+  pointer-events: auto;
+  background-color: #f2f2f2;
 
-  /* Try disabling these two if they’re causing ghost spacing */
-  height: auto;
-  overflow: visible;
-  flex-grow: 0;
-  margin-top: 0; /* Remove unwanted spacing */
-  margin-bottom: 0;
+}
+
+.review-header-text {
+  color: var(--medium-gray);
+  font-weight: 600;
+  font-size: 1rem; /* A slightly smaller size to fit nicely */
+  font-family: "Montserrat";
+  align-self: center; 
 }
 
 .review-box {
-  display: block;
+  display: flex;
   text-align: left;
-  color: #555;
-  background-color: #ececec;
+  color: var(--medium-gray);
+  background-color: var(--review-box);
   border-radius: 8px;
   width: 100%;
+  box-sizing: border-box; /* Ensures width: 100% is absolute */
+  padding: 0; 
+  margin-top: 0.5rem; 
+  flex: 1;
+}
+
+.review-box:focus-within {
+  border: 1px solid var(--bright-teal);
+}
+
+#reviewEditable {
+  display: flex;
+  padding: 12px;
+  font-size: 0.9rem;
+  width: 100%;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+  background-color: transparent;
   box-sizing: border-box;
+  overflow-y: auto;  
+  /* --- Optional: Hide the scrollbar for a cleaner look --- */
+  scrollbar-width: none; /* For Firefox */
+}
+
+#reviewEditable:focus {
+  background-color: #f0f8ff; /* A light blue color */
+}
+
+/* For Chrome, Safari, and Edge */
+#reviewEditable::-webkit-scrollbar {
+  display: none;
 }
 
 .popup-wrapper {
@@ -422,7 +427,7 @@ body.popup-open {
 
 /* Move to-read button/ Add to read */
 .move-to-read-btn {
-  background-color: #4caf50;
+  background-color: var(--bright-teal);
   color: white;
   border: none;
   padding: 6px 12px;
@@ -433,24 +438,12 @@ body.popup-open {
 }
 
 .move-to-read-btn:hover {
-  background-color: #45a049;
-}
-
-.card-footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-evenly;
-  width: 100%;
-  min-height: 4vh;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
+  background-color: var(--light-teal);
 }
 
 .favorite-heart.active,
 #addFavoriteHeart.active {
-  color: #f46a6a;
+  color: var(--acid-orange);
 }
 
 .favorite-heart,
@@ -462,69 +455,118 @@ body.popup-open {
   box-sizing: border-box;
   vertical-align: middle;
   cursor: pointer;
-  color: #c0c0c0;
+  color: var(--lightest-gray);
   transition: color 0.3s ease;
 }
 
-.rating-star {
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  user-select: none;
-  color: #f9cb74;
-  font-size: 1.2rem;
+.rating-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 95%;
+  margin: 0.5rem; 
+}
+
+/* UNIVERSAL CLASS for all rating icons */
+.rating-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
-  vertical-align: middle;
+  font-size: 1.6rem; /* Standardized size */
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.rating-icon:hover {
+  transform: scale(1.2);
 }
 
-.rating-star:hover {
-  transform: scale(1.2);
-  color: #ffbb3b;
+.rating, .despair-rating {
+  display: flex;
+  gap: 0.2rem; /* Space between icons */
 }
+
+.rating-star {
+  color: var(--lightest-gray); /* Empty star color */
+}
+.rating-star.filled {
+  color: var(--light-yellow);
+}
+.rating-star:hover {
+   color: var(--dark-yellow);
+}
+
+/* --- Despair Icon Styling --- */
 
 .despair-icon {
-  font-size: 1.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  vertical-align: middle;
-  cursor: pointer;
+  color: #e0e0e0; /* The color for all unselected icons */
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.despair-level {
-  display: flex;
-  color: #376469;
+/* 
+  This is the core of the new logic.
+  Each rule targets an icon with a specific data-value ONLY when it is selected.
+*/
+.despair-icon[data-value="1"][data-selected="true"] {
+  color: var(--despair-icon-1-color);
+}
+.despair-icon[data-value="2"][data-selected="true"] {
+  color: var(--color-yellow-light);
+}
+.despair-icon[data-value="3"][data-selected="true"] {
+  color: var(--despair-icon-3-color);
+}
+.despair-icon[data-value="4"][data-selected="true"] {
+  color: var(--despair-icon-4-color);
+}
+.despair-icon[data-value="5"][data-selected="true"] {
+  color: var(--despair-icon-5-color);
 }
 
+/* The hover effect uses a single, consistent color */
 .despair-icon:hover {
-  transform: scale(1.2);
-  opacity: 1;
-  color: #690768;
+  color: var(--despair-hover-color);
 }
 
-.despair-icon[data-selected="true"] {
-  color: var(--despair-selected-color);
-  opacity: 1;
-}
-
-.despair-icon:not([data-selected="true"]):not(:hover) {
-  color: var(--despair-default-color);
-}
-
+/* This class is returned by your JS for the upside-down smile */
 .upside-down {
   display: inline-block;
   transform: rotate(180deg);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100%;
 }
 
 .tag-footer {
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
+  width: 100%;
+  padding: 1rem;
+  /*border-bottom: 1px solid var(--lightest-gray);*/
+  margin-top: auto;
+}
+
+.tag-footer-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 1rem;
+  /*border-bottom: 1px solid var(--lightest-gray);*/
+  margin-top: auto;
 }
 
 /* Tags container to group footer tags */
@@ -532,6 +574,7 @@ body.popup-open {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  text-transform: lowercase;
 }
 
 /* ===== Base Tag/Button Styles ===== */
@@ -546,7 +589,7 @@ body.popup-open {
   border-radius: 15px;
   padding: 0.4rem 0.6rem;
   gap: 0.2rem;
-  background: #376469;
+  background-color: var(--mid-teal);
   color: white;
   font-size: 0.8rem;
   transition: background-color 0.3s ease;
@@ -559,25 +602,18 @@ body.popup-open {
   cursor: pointer;
   user-select: none;
   border: none;
-  border-radius: 15px;
-  padding: 0.4rem 0.6em;
-  gap: 0.2rem;
-  background: #f9b274;
-  color: white;
+  border-radius: 100px;
+  background: var(--dark-yellow);
+  color: var(--white);
   font-size: 1rem;
   font-weight: 600;
   transition: background-color 0.3s ease;
 }
 
-.add-tag-btn:hover {
-  background: #f9b274;
-  color: white;
-}
-
 .tag:hover,
 .add-btn:not(:disabled):hover {
-  background-color: #f9b274;
-  color: #376469;
+  background-color: var(--bright-orange);
+  color: var(--white);
 }
 
 /* Delete button inside tags */
@@ -597,12 +633,12 @@ body.popup-open {
 }
 
 .tag-cancel:hover {
-  background-color: #ccc;
+  background-color: var(--lightest-gray);
 }
 
 .tag-input-buttons button {
-  background-color: var(--tag-hover-bg, #eaeaea);
-  color: var(--tag-hover-bg, #7a7a7a);
+  background-color: var(--whisper-gray);
+  color: var(--medium-gray);
   font-family: inherit;
   font-weight: 550;
   text-transform: lowercase;
@@ -616,16 +652,16 @@ body.popup-open {
 }
 
 .tag-input-buttons button:hover {
-  background-color: var(--tag-hover-bg, #555);
-  color: var(--tag-hover-text, #fff);
+  background-color: var(--dark-gray);
+  color: var(--white);
 }
 
 .delete-tag-btn:hover {
-  color: #ff6161;
+  color: var(--acid-orange);
 }
 
 .cancel-btn:hover {
-  background: #ccc;
+  color: var(--lightest-gray);
 }
 
 /* Buttons container */
@@ -644,7 +680,7 @@ body.popup-open {
   left: 0;
   width: 100dvw;
   height: 100dvh;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -668,22 +704,22 @@ body.popup-open {
 .tag-input-popup h3 {
   margin: 0;
   font-weight: 700;
-  color: #353535;
+  color: var(--darkest-gray);
   font-size: 1.25rem;
 }
 /* ===== Enter tag box =====*/
 .tag-input-popup input[type="text"] {
   padding: 0.6rem 0.9rem;
   font-size: 1rem;
-  border: 2px solid #dadada;
+  border: 2px solid var(--lightest-gray);
   border-radius: 12px;
   outline-offset: 2px;
-  outline-color: #ffffff;
+  outline-color: var(--white);
   transition: border-color 0.3s ease;
 }
 
 .tag-input-popup input[type="text"]:focus {
-  border-color: #b6b6b6;
+  border-color: var(--lightest-gray);
   background-color: #f9f5ec;
 }
 
@@ -699,15 +735,15 @@ body.popup-open {
   border-radius: 15px;
   padding: 0.5rem 0.7rem;
   margin: 0.2rem;
-  background: #f9cb74;
-  color: white;
+  background: var(--light-yellow);
+  color: var(--white);
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
 
 .suggested-tag-btn:hover {
-  background-color: #f9b274;
-  color: #7a7a7a;
+  background-color: var(--dark-yellow);
+  color: var(--medium-gray);
 }
 
 /* === Big add book button (+) === */
@@ -717,7 +753,7 @@ body.popup-open {
   right: 1.5rem;
   width: 48px;
   height: 48px;
-  background-color: #77bebd;
+  background-color: var(--bright-teal);
   color: white;
   border: none;
   border-radius: 50%;
@@ -731,8 +767,109 @@ body.popup-open {
 }
 
 #addBookBtn:hover {
-  background-color: #1dbebb;
+  background-color: var(--bookmouse-yellow);
   color: white;
+}
+
+/* =================================== */
+/* --- QUICKLIST + ADD FORM STYLES --- */
+/* =================================== */
+
+/* Optional header styling */
+.quicklist-header {
+  width: 90%;
+  display: flex;
+  gap: 1rem; /* gap between button and header */
+  align-items: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--dark-orange);
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Scrollable list that fills remaining height */
+.quicklist-content {
+  width: 90%;
+  text-transform: none;
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  scrollbar-width: none; /* Firefox */
+}
+
+.quicklist-content::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+/* List items are left-aligned and spaced */
+.quicklist-item {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--light-cream);
+  padding-bottom: 0.5rem;
+  text-align: left;
+}
+
+/* Style the new '+' button in the header */
+.add-to-list-btn {
+  background-color: var(--dark-yellow);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.add-to-list-btn:hover {
+  background-color: var(--bright-teal);
+}
+
+/* Container for the input form */
+#addToListFormContainer {
+  width: 90%;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* The form itself */
+.add-to-list-form {
+  display: flex;
+  flex-wrap: wrap; /* --- THIS IS THE FIX --- Allows items to wrap */
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.add-to-list-form input {
+  flex-grow: 1; /* Allow inputs to take up available space */
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.add-to-list-form button {
+  background-color: var(--bright-teal);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.add-to-list-form button:disabled {
+  background-color: var(--light-gray);
+  cursor: not-allowed;
 }
 
 /* Mousekeeping text */
@@ -745,8 +882,8 @@ body.popup-open {
   left: 50%;
   transform: translateX(-50%) translateY(100%);
   background: #ffffff;
-  color: #60abff;
-  border: 2px dotted #60abff;
+  color: var(--bright-teal);
+  border: 2px dotted var(--bright-teal);
   padding: 20px 20px;
   border-radius: 30px;
   opacity: 0;
@@ -799,121 +936,43 @@ body.popup-open {
   }
 }
 
-/* =================================== */
-/* --- QUICKLIST + ADD FORM STYLES --- */
-/* =================================== */
-
-/* Optional header styling */
-.quicklist-header {
-  width: 90%;
-  display: flex;
-  gap: 1rem; /* gap between button and header */
-  align-items: center;
-  font-size: 2rem;
-  font-weight: bold;
-  color: #e66767;
-  margin-top: 1rem;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-/* Scrollable list that fills remaining height */
-.quicklist-content {
-  width: 90%;
-  text-transform: none;
-  flex: 1;
-  overflow-y: auto;
-  margin-bottom: 1rem;
-  scrollbar-width: none; /* Firefox */
-}
-
-.quicklist-content::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
-}
-
-/* List items are left-aligned and spaced */
-.quicklist-item {
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #f6bf9e;
-  padding-bottom: 0.5rem;
-  text-align: left;
-}
-
-/* Style the new '+' button in the header */
-.add-to-list-btn {
-  background-color: #f78a37;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s ease;
-}
-
-.add-to-list-btn:hover {
-  background-color: #3698ff;
-}
-
-/* Container for the input form */
-#addToListFormContainer {
-  width: 90%;
-  margin-top: 0.5rem;
-}
-
-/* The form itself */
-.add-to-list-form {
-  display: flex;
-  flex-wrap: wrap; /* --- THIS IS THE FIX --- Allows items to wrap */
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.add-to-list-form input {
-  flex-grow: 1; /* Allow inputs to take up available space */
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-.add-to-list-form button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.add-to-list-form button:disabled {
-  background-color: #aaa;
-  cursor: not-allowed;
-}
-
 :root {
-  --despair-default-color: #376469;
-  --despair-hover-color: #690768;
+  /* GRAYS */
+ --darkest-gray: #353535;
+ --dark-gray: #424242;
+ --medium-gray: #606060;
+ --light-gray: #999999;
+ --lightest-gray: #cdcdcd;
+ --whisper-gray: #ECECEC;
+  --white: #ffffff;
+  
+ --box-shadow-light: rgba(0, 0, 0, 0.2);
+ --dim-overlay: rgba(0, 0, 0, 0.7);
+
+  /* PALETTE */
+ --dark-yellow: #F6B528;
+ --bookmouse-yellow: #F2C254;
+ --light-yellow: #f7cf83; 
+ --dark-teal: #2F5A62;
+ --mid-teal: #379bb4;
+ --bright-teal: #1DBEBB;
+  
+  /* accents */
+ --acid-orange: #FF6161;
+ --dark-orange: #E66767;  
+ --bright-orange: #F78A37;
+ --creamsicle: #F9B274;
+ --light-cream: #fbc59a;
+ --light-teal: #78ddee;
+ --quote-box: #98e7e5ba;
+ --review-box: #f7f7f7ff;
+  
+  /* Despair ratings */
+  --despair-hover-color: #3cdee7;
   --despair-selected-color: #c1003e;
-
-  --color-yellow-light: #f9cb74;
-  --color-yellow-dark: #f9b274;
-  --color-blue-dark: #376469;
-  --color-gray-light: #c0c0c0;
-  --color-white-light: #fffdf5;
-  --color-red-light: #ff6161;
-  --color-orange: #f78a37;
-  --color-orange-hover: #f4b584;
-
-  --color-gray-bg: #ececec;
-  --color-gray-border: #eaeaea;
-  --color-light-bg: #f9f7f7;
+  --despair-icon-1-color: #7ec3ee;
+  --color-yellow-light: #f6b528;
+  --despair-icon-3-color: #fb893e;
+  --despair-icon-4-color: #df2d66;
+  --despair-icon-5-color: #961194;
 }
