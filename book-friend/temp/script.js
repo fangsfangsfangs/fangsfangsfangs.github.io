@@ -115,20 +115,23 @@ async function addBookToSupabase(book) {
   return data;
 }
 async function updateBookInSupabase(id, updates) {
-  const { data, error } = await supabase.from("books_read").update(updates).eq("id", id);
+  // Add .select() to get the updated data back
+  const { data, error } = await supabase.from("books_read").update(updates).eq("id", id).select();
   if (error) {
     console.error("Update error:", error);
     return null;
   }
   return data;
 }
+
 async function updateToReadBookTags(id, tags) {
-  const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id);
-  if (error) {
-    console.error("Error updating to-read tags:", error);
-    return null;
-  }
-  return data;
+    // Also add .select() here
+    const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id).select();
+    if (error) {
+        console.error("Error updating to-read tags:", error);
+        return null;
+    }
+    return data;
 }
 
 async function addToReadToSupabase(book) {
@@ -143,7 +146,12 @@ async function addToReadToSupabase(book) {
 // --- FETCH BOOKS ---
 async function fetchBooks() {
   try {
-    const { data, error } = await supabase.from("books_read").select("*");
+    // Change "created_at" to "date_read" to match your Supabase sorting.
+    const { data, error } = await supabase
+      .from("books_read")
+      .select("*")
+      .order("date_read", { ascending: false }); 
+
     if (error) throw error;
 
     allBooks = data.map((book) => normalizeBook(book));
@@ -152,9 +160,13 @@ async function fetchBooks() {
     console.error("Error fetching books:", error);
   }
 }
+
 async function fetchToReadBooks() {
   try {
-    const { data, error } = await supabase.from("books_to_read").select("*");
+    const { data, error } = await supabase
+      .from("books_to_read")
+      .select("*")
+      .order("title", { ascending: true }); 
     if (error) throw error;
 
     toReadBooks = data.map((book) => normalizeBook(book, true));
@@ -164,6 +176,7 @@ async function fetchToReadBooks() {
     console.error("Error fetching to-read books:", error);
   }
 }
+
 // --- APPLY FILTERS ---
 function applyFiltersAndRender() {
   // Basic filtering example — show all for now
@@ -409,20 +422,21 @@ async function renderSingleCard(book) {
     });
 
     const delBtn = tagEl.querySelector(".delete-tag-btn");
-    if (delBtn) {
-      delBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        const tagToRemove = tagEl.dataset.tag;
-        const newTags = book.tags.filter((t) => t.toLowerCase() !== tagToRemove);
-        const result = await updateBookInSupabase(book.id, { tags: newTags });
-        if (result !== null) {
-          book.tags = newTags;
-          renderSingleCard(book); // or renderToReadCard(book)
-        } else {
-          console.warn("Failed to delete tag from Supabase.");
-        }
-      });
+if (delBtn) {
+  delBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const tagToRemove = tagEl.dataset.tag;
+    const newTags = book.tags.filter((t) => t.toLowerCase() !== tagToRemove);
+    const result = await updateBookInSupabase(book.id, { tags: newTags });
+    // Now, a successful result is a truthy object, not null
+    if (result) { 
+      book.tags = newTags;
+      renderSingleCard(book);
+    } else {
+      console.warn("Failed to delete tag from Supabase.");
     }
+  });
+}
   });
 
   // Add tag button opens tag input popup (defined below)
@@ -432,15 +446,15 @@ async function renderSingleCard(book) {
 }
 //ADD TAG BUTTONS IN FOOTER - suggested, etc //
 function showTagInput(book, isToRead = false) {
-  // Create overlay
-  const overlay = document.createElement("div");
-  overlay.className = "tag-input-overlay";
-  document.body.appendChild(overlay);
-  lockScroll();
+  // Get the shared overlay. It should already be visible from the book card.
+  const dimOverlay = document.getElementById("dimOverlay");
+  lockScroll(); // Ensure scroll remains locked
 
-  // Popup container
+  // Create ONLY the popup
   const popup = document.createElement("div");
   popup.className = "tag-input-popup";
+
+  // --- All the popup element creation code remains exactly the same ---
   const title = document.createElement("h3");
   title.textContent = "Add a Tag";
   const input = document.createElement("input");
@@ -457,34 +471,54 @@ function showTagInput(book, isToRead = false) {
   cancelBtn.textContent = "Cancel";
   buttonContainer.appendChild(addBtn);
   buttonContainer.appendChild(cancelBtn);
-  // Suggested tags
   const suggestionsContainer = document.createElement("div");
   suggestionsContainer.className = "tag-suggestions";
 
   suggestedTags.forEach((tag) => {
     const tagEl = document.createElement("span");
     tagEl.className = "tag-cloud-btn";
+    tagEl.id = `tag-cloud-btn-${tag.toLowerCase().replace(/\s+/g, '-')}`;
     tagEl.textContent = tag;
     tagEl.addEventListener("click", () => {
       input.value = tag;
-      input.dispatchEvent(new Event("input")); // enable add button
+      input.dispatchEvent(new Event("input"));
       input.focus();
     });
     suggestionsContainer.appendChild(tagEl);
   });
+
   popup.appendChild(title);
   popup.appendChild(input);
   popup.appendChild(suggestionsContainer);
   popup.appendChild(buttonContainer);
-  overlay.appendChild(popup);
-  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  // --- THIS IS THE CORRECTED LOGIC ---
+
+  // This function is now simpler. It ONLY removes the tag popup and its specific listener.
+  const closeTagPopup = () => {
+    document.body.removeChild(popup);
+    dimOverlay.removeEventListener("click", handleOverlayClick);
+  };
+
+  // This handler calls the simplified close function.
+  const handleOverlayClick = (e) => {
+    if (e.target === dimOverlay) {
+      closeTagPopup();
+    }
+  };
+
+  // Add the specific listener for the tag popup
+  dimOverlay.addEventListener("click", handleOverlayClick);
+
+  // --- Update button listeners to use the new, safer close function ---
   input.addEventListener("input", () => {
     addBtn.disabled = input.value.trim() === "";
   });
-  cancelBtn.addEventListener("click", () => {
-    document.body.removeChild(overlay);
-    unlockScroll(); // Add this!
-  });
+
+  // The Cancel button now correctly closes ONLY the tag popup.
+  cancelBtn.addEventListener("click", closeTagPopup);
+
   addBtn.addEventListener("click", async () => {
     const newTag = input.value.trim();
     if (!newTag) return;
@@ -497,12 +531,12 @@ function showTagInput(book, isToRead = false) {
       } else {
         await updateBookInSupabase(book.id, { tags: currentTags });
       }
-      book.tags = currentTags; // ✅ Reassign AFTER push
+      book.tags = currentTags;
     }
-    document.body.removeChild(overlay);
-    unlockScroll();
+    
+    // Clean up the popup and its listener, then re-render the card.
+    closeTagPopup(); 
 
-    // ✅ RENDER the correct card type
     if (isToRead) {
       renderToReadCard(book);
     } else {
@@ -510,6 +544,7 @@ function showTagInput(book, isToRead = false) {
     }
   });
 }
+
 // To-read card popup (unchanged except for tags if needed) //
 async function renderToReadCard(book) {
   if (!book) return;
@@ -593,25 +628,26 @@ async function renderToReadCard(book) {
       showTagInput(book, true);
     });
   });
+  
   // Delete tag button
-  bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
-    delBtn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const tagSpan = delBtn.parentElement;
-      const tagToRemove = tagSpan.dataset.tag;
-      tags = tags.filter((t) => t.toLowerCase() !== tagToRemove);
-
-      // Update tags in Supabase
-      const updateResult = await updateToReadBookTags(book.id, tags);
-      if (updateResult !== null) {
-        book.tags = tags; // Update local book object
-        renderToReadCard(book);
-      } else {
-        console.error("Failed to update tags in Supabase.");
-        // Optionally, show error feedback to user here
-      }
-    });
+bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
+  delBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const tagSpan = delBtn.parentElement;
+    const tagToRemove = tagSpan.dataset.tag;
+    // Create a new array from the canonical book.tags for safety
+    const newTags = book.tags.filter((t) => t.toLowerCase() !== tagToRemove);
+    const updateResult = await updateToReadBookTags(book.id, newTags);
+    // Use the same, correct check
+    if (updateResult) {
+      book.tags = newTags; // Update the local book object
+      renderToReadCard(book);
+    } else {
+      console.error("Failed to update tags in Supabase.");
+    }
   });
+});
+  
   // Fetch and show synopsis
   const synopsis = await fetchSynopsis(book.title, book.author);
   const synopsisEl = document.getElementById("toReadSynopsis");
@@ -686,6 +722,7 @@ async function renderQuickListCard() {
 /**
  * Handles the submission of the new title and author to the to-read list.
  */
+// THE ENHANCED VERSION
 async function handleAddToListSubmit() {
   const titleInput = document.getElementById("addListTitle");
   const authorInput = document.getElementById("addListAuthor");
@@ -699,19 +736,27 @@ async function handleAddToListSubmit() {
   }
 
   try {
-    // Disable the button to prevent double-clicks
     document.getElementById("addToListConfirmBtn").disabled = true;
 
-    // Create the new book object and send it to Supabase
     const newBook = { title, author };
-    await addToReadToSupabase(newBook);
 
-    // On success, simply re-render the entire quick list card.
-    // This is the easiest way to show the new, sorted list.
-    await renderQuickListCard();
+    const addedBook = await addToReadToSupabase(newBook);
+
+    if (addedBook) {
+   
+      const normalizedBook = normalizeBook(addedBook, true);
+      toReadBooks.unshift(normalizedBook); 
+
+      await renderQuickListCard();
+
+      if (viewMode === 'to-read') {
+        applyToReadFilter();
+      }
+    } else {
+      throw new Error("Book was not added successfully.");
+    }
   } catch (error) {
     alert("Failed to add book. Please try again.");
-    // Re-enable the button on failure
     document.getElementById("addToListConfirmBtn").disabled = false;
   }
 }
