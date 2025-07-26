@@ -183,7 +183,7 @@ body.popup-open {
   text-align: center;
   align-items: center;
   position: relative;
-  background: var(--white);
+  background: white;
   font-family: Arial, Helvetica, sans-serif;
   overflow-y: auto; /* This allows content inside the card to scroll */
   overflow-x: hidden;
@@ -191,8 +191,8 @@ body.popup-open {
   pointer-events: auto;
 
   /* --- SIZING --- */
-  height: 78vh;
-  width: 300px;
+  height: 650px;
+  width: 260px;
   gap: 1rem;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   border-radius: 10px;
@@ -231,6 +231,28 @@ body.popup-open {
 
 .book-card-content {
   -webkit-overflow-scrolling: touch; /* for smooth iOS scroll */
+}
+
+.add-book-card {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  position: relative;
+  background: var(--white);
+  font-family: Arial, Helvetica, sans-serif;
+  overflow-y: auto; /* This allows content inside the card to scroll */
+  overflow-x: hidden;
+  z-index: 9996;
+  pointer-events: auto;
+
+  /* --- SIZING --- */
+  height: 420px;
+  width: 280px;
+  gap: 1rem;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px #424242;
 }
 
 /* Synposis box */
@@ -283,7 +305,6 @@ body.popup-open {
 
 .quote-box {
   display: flex;
-  align-items: flex-start; /* Aligns icons to the top, looks better with long quotes */
   justify-content: center;
   font-style: italic;
   background-color: var(--whisper-gray);
@@ -392,7 +413,7 @@ body.popup-open {
   width: 100vw;
   height: calc(var(--vh, 1vh) * 100); /* Use stable height */
 
-  /* This centers the .book-card inside */
+  /* This centers the book card inside */
   display: flex;
   align-items: flex-start; 
   justify-content: center;
@@ -498,10 +519,10 @@ body.popup-open {
   color: var(--lightest-gray); /* Empty star color */
 }
 .rating-star.filled {
-  color: var(--light-yellow);
+  color: var(--yellow-light);
 }
 .rating-star:hover {
-   color: var(--dark-yellow);
+   color: var(--light-yellow);
 }
 
 /* --- Despair Icon Styling --- */
@@ -519,7 +540,7 @@ body.popup-open {
   color: var(--despair-icon-1-color);
 }
 .despair-icon[data-value="2"][data-selected="true"] {
-  color: var(--color-yellow-light);
+  color: var(--yellow-light);
 }
 .despair-icon[data-value="3"][data-selected="true"] {
   color: var(--despair-icon-3-color);
@@ -562,32 +583,48 @@ body.popup-open {
   align-items: center;
   justify-content: space-evenly;
   width: 100%;
-  padding: 1rem;
+  margin: 0.5rem;
   /*border-bottom: 1px solid var(--lightest-gray);*/
   margin-top: auto;
 }
 
-.tag-footer-left {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  padding: 1rem;
-  /*border-bottom: 1px solid var(--lightest-gray);*/
-  margin-top: auto;
-}
-
-/* Tags container to group footer tags */
+/* Tags container to group footer tags into buttons */
 .tags {
   display: flex;
+  align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.2rem;
   text-transform: lowercase;
+  font-family: inherit;
+}
+
+/* Tags in the footer */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+  font-weight: 200;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  border-radius: 15px;
+  padding: 0.5rem 0.7rem;
+  margin: 0.2rem;
+  background: var(--bookmouse-yellow);
+  color: var(--white);
+  font-size: 0.8rem;
+  transition: background-color 0.3s ease;
+}
+
+.tag:hover {
+  background-color: var(--dark-yellow);
+  color: var(--medium-gray);
 }
 
 /* ===== Base Tag/Button Styles ===== */
-.tag,
-.add-btn {
+
+.add-tag-btn, .add-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -599,28 +636,12 @@ body.popup-open {
   gap: 0.2rem;
   background-color: var(--mid-teal);
   color: white;
-  font-size: 0.8rem;
-  transition: background-color 0.3s ease;
-}
-
-.add-tag-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  border: none;
-  border-radius: 100px;
-  background: var(--dark-yellow);
-  color: var(--white);
   font-size: 1rem;
-  font-weight: 600;
   transition: background-color 0.3s ease;
 }
 
-.tag:hover,
-.add-btn:not(:disabled):hover {
-  background-color: var(--bright-orange);
+.add-tag-btn:hover, .add-btn:not(:disabled):hover {
+  background-color: var(--acid-orange);
   color: var(--white);
 }
 
@@ -640,46 +661,11 @@ body.popup-open {
   transition: color 0.2s ease;
 }
 
-.tag-cancel:hover {
-  background-color: var(--lightest-gray);
-}
-
-.tag-input-buttons button {
-  background-color: var(--whisper-gray);
-  color: var(--medium-gray);
-  font-family: inherit;
-  font-weight: 550;
-  text-transform: lowercase;
-  border: none;
-  border-radius: 15px;
-  padding: 0.7rem 0.8rem;
-  margin: 10px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.tag-input-buttons button:hover {
-  background-color: var(--dark-gray);
-  color: var(--white);
-}
-
 .delete-tag-btn:hover {
   color: var(--acid-orange);
 }
 
-.cancel-btn:hover {
-  color: var(--lightest-gray);
-}
-
-/* Buttons container */
-.popup-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-  z-index: 9999;
-}
+/* ===== ADD A TAG CLOUD STYLING =====*/
 
 /* ===== opacity BG layer =====*/
 .tag-input-overlay {
@@ -695,7 +681,6 @@ body.popup-open {
   z-index: 10000; 
 }
 
-/* ===== TAG popup box bg =====*/
 .tag-input-popup {
   background: white;
   border-radius: 16px;
@@ -708,6 +693,7 @@ body.popup-open {
   gap: 1rem;
   text-align: center;
 }
+
 /* ===== Add a Tag header =====*/
 .tag-input-popup h3 {
   margin: 0;
@@ -715,6 +701,7 @@ body.popup-open {
   color: var(--darkest-gray);
   font-size: 1.25rem;
 }
+
 /* ===== Enter tag box =====*/
 .tag-input-popup input[type="text"] {
   padding: 0.6rem 0.9rem;
@@ -731,11 +718,10 @@ body.popup-open {
   background-color: #f9f5ec;
 }
 
-/* ===== Add a Tag/Suggested Popup Styles ===== */
-.suggested-tag-btn {
+.tag-cloud-btn {
   display: inline-flex;
   align-items: center;
-  font-weight: 700;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   user-select: none;
@@ -743,15 +729,35 @@ body.popup-open {
   border-radius: 15px;
   padding: 0.5rem 0.7rem;
   margin: 0.2rem;
-  background: var(--light-yellow);
+  background: var(--bookmouse-yellow);
   color: var(--white);
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
 
-.suggested-tag-btn:hover {
+.tag-cloud-btn:hover {
   background-color: var(--dark-yellow);
   color: var(--medium-gray);
+}
+
+.add-cancel-button button {
+  background-color: var(--whisper-gray);
+  color: var(--medium-gray);
+  font-family: inherit;
+  font-weight: 600;
+  text-transform: lowercase;
+  border: none;
+  border-radius: 12px;
+  padding: 0.5rem 0.6rem;
+  margin: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-cancel-button button:hover {
+  background-color: var(--dark-gray);
+  color: var(--white);
 }
 
 /* === Big add book button (+) === */
@@ -979,7 +985,7 @@ body.popup-open {
   --despair-hover-color: #3cdee7;
   --despair-selected-color: #c1003e;
   --despair-icon-1-color: #7ec3ee;
-  --color-yellow-light: #f6b528;
+  --yellow-light: #f6b528;
   --despair-icon-3-color: #fb893e;
   --despair-icon-4-color: #df2d66;
   --despair-icon-5-color: #961194;
