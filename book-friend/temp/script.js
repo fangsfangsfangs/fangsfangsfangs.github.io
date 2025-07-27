@@ -1,5 +1,62 @@
 import { showToast, rainGlitter } from "./glitter.js";
-import { getCoverUrl, placeholderImage, fetchSynopsis, fetchFilteredSubjects } from "./coverAPI.js";
+import { 
+  getCoverUrl, 
+  placeholderImage, 
+  fetchSynopsis, 
+  fetchFilteredSubjects,
+  fetchIsbn 
+} from "./coverAPI.js";
+
+document.addEventListener('click', async (event) => {
+  // Check if the clicked element is a "Find ISBN" button
+  if (event.target.classList.contains('find-isbn-btn')) {
+    event.preventDefault(); // Prevent any default form action
+
+    // Find the closest parent form or card that contains the button
+    const container = event.target.closest('.popup-content, .add-to-list-form');
+    
+    if (container) {
+      const titleInput = container.querySelector('.title-input');
+      const authorInput = container.querySelector('.author-input');
+      const isbnInput = container.querySelector('.isbn-input');
+      
+      // Safety check to ensure all fields were found
+      if (!titleInput || !authorInput || !isbnInput) {
+        console.error("Could not find necessary input fields in container:", container);
+        alert("A mapping error occurred. Could not find input fields.");
+        return;
+      }
+
+      const title = titleInput.value.trim();
+      const author = authorInput.value.trim();
+
+      if (!title || !author) {
+        alert("Please enter a Title and Author to find the ISBN.");
+        return;
+      }
+
+      // Provide user feedback
+      event.target.textContent = 'Searching...';
+      event.target.disabled = true;
+
+      try {
+        const foundIsbn = await fetchIsbn(title, author);
+        if (foundIsbn) {
+          isbnInput.value = foundIsbn;
+        } else {
+          alert("Could not find an ISBN for this book.");
+        }
+      } catch (error) {
+        console.error("Failed to fetch ISBN:", error);
+        alert("An error occurred while finding the ISBN.");
+      } finally {
+        // Restore button state
+        event.target.textContent = 'Find ISBN';
+        event.target.disabled = false;
+      }
+    }
+  }
+});
 
 const supabaseUrl = "https://pnpjlsjxlbrihxlkirwj.supabase.co";
 const supabaseAnonKey =
@@ -79,7 +136,8 @@ function normalizeBook(book, isToRead = false) {
   if (isToRead) {
     return {
       ...base,
-      notes: (book.notes || "").trim()
+      notes: (book.notes || "").trim(),
+      start: !!book.start
     };
   } else {
     let normalizedDateRead = getFallbackDate();
@@ -127,19 +185,6 @@ async function updateBookInSupabase(id, updates) {
   return data;
 }
 
-async function updateUnfinishedBookTags(id, tags) {
-  const { data, error } = await supabase
-    .from("unfinished_business") // <-- Use the new table name
-    .update({ tags })
-    .eq("id", id)
-    .select();
-  if (error) {
-    console.error("Error updating unfinished book tags:", error);
-    return null;
-  }
-  return data;
-}
-
 async function updateToReadBookTags(id, tags) {
     // Also add .select() here
     const { data, error } = await supabase.from("books_to_read").update({ tags }).eq("id", id).select();
@@ -159,55 +204,46 @@ async function addToReadToSupabase(book) {
   return data;
 }
 
+// New generic helper for the books_to_read table
+async function updateToReadBook(id, updates) {
+  const { data, error } = await supabase
+    .from("books_to_read")
+    .update(updates)
+    .eq("id", id)
+    .select();
+  if (error) {
+    console.error("Error updating to-read book:", error);
+    return null;
+  }
+  return data;
+}
 // --- FETCH BOOKS ---
 async function fetchBooks() {
   try {
-    // Change "created_at" to "date_read" to match your Supabase sorting.
-    const { data, error } = await supabase
-      .from("books_read")
-      .select("*")
-      .order("date_read", { ascending: false }); 
-
-    if (error) throw error;
-
-    allBooks = data.map((book) => normalizeBook(book));
-    applyFiltersAndRender();
+    const { data, error } = await supabase.from("books_read").select("*").order("date_read", { ascending: false });
+    if (error) {
+      console.error("Error fetching books:", error);
+      return [];
+    }
+    return data.map((book) => normalizeBook(book));
   } catch (error) {
     console.error("Error fetching books:", error);
+    return [];
   }
 }
 
 async function fetchToReadBooks() {
   try {
-    const { data, error } = await supabase
-      .from("books_to_read")
-      .select("*")
-      .order("title", { ascending: true }); 
-    if (error) throw error;
-
-    toReadBooks = data.map((book) => normalizeBook(book, true));
-    filteredToReadBooks = toReadBooks;
-    renderToReadGrid();
+    const { data, error } = await supabase.from("books_to_read").select("*").order("title", { ascending: true });
+    if (error) {
+      console.error("Error fetching to-read books:", error);
+      return []; // Return an empty array on error
+    }
+    // Just normalize and return the data. That's it.
+    return data.map((book) => normalizeBook(book, true));
   } catch (error) {
     console.error("Error fetching to-read books:", error);
-  }
-}
-
-async function fetchUnfinishedBooks() {
-  try {
-    const { data, error } = await supabase
-      .from("unfinished_business") // <-- Use the new table name
-      .select("*")
-      .order("created_at", { ascending: false }); // Sort by newest first
-
-    if (error) throw error;
-
-    // Use the global unfinishedBooks array
-    unfinishedBooks = data.map((book) => normalizeBook(book, true)); 
-    filteredUnfinishedBooks = unfinishedBooks;
-    renderUnfinishedGrid(); // Call the new grid renderer
-  } catch (error) {
-    console.error("Error fetching unfinished books:", error);
+    return [];
   }
 }
 
@@ -218,44 +254,43 @@ function applyFiltersAndRender() {
   currentIndex = 0;
   renderGridView();
 }
+
+// The new central controller for all views
+// The final, corrected applyFilters function
 async function applyFilters() {
-
-  if (viewMode === "to-read") {
+  // --- Handle To-Read and Graveyard Views ---
+  if (viewMode === "to-read" || viewMode === "unfinished") {
+    // First, ensure we have the master list of all to-read books.
+    // This only fetches from the network if the local array is empty.
     if (toReadBooks.length === 0) {
-      await fetchToReadBooks();
-    } else {
-      // applyToReadFilter calls renderToReadGrid()
-      applyToReadFilter();
+      toReadBooks = await fetchToReadBooks();
     }
-    return; 
+
+    // Now, filter the MASTER list into the correct temporary list for rendering.
+    if (viewMode === "to-read") {
+      filteredToReadBooks = toReadBooks.filter(book => !book.start);
+      renderToReadGrid(); // Render the to-read grid
+    } else { // viewMode must be "unfinished"
+      filteredUnfinishedBooks = toReadBooks.filter(book => book.start);
+      renderGraveyardGrid(); // Render the graveyard grid
+    }
+    return; // IMPORTANT: Stop the function here for these views
   }
 
-  if (viewMode === "unfinished") {
-    if (unfinishedBooks.length === 0) {
-      await fetchUnfinishedBooks();
-    } else {
-      // renderUnfinishedGrid is the renderer for this view
-      renderUnfinishedGrid();
-    }
-    return; 
-  }
+  // --- Handle Main and Favorites Views ---
+  // This logic is only for the main "read" books grid.
+  let booksToRender = allBooks;
 
-  // --- Handle views that use the MAIN grid renderer (renderGridView) ---
   if (viewMode === "favorites") {
-    const favoritedBooks = allBooks.filter(isBookFavorited);
-    favoritedBooks.sort((a, b) => b.dateRead.localeCompare(a.dateRead));
-    filteredBooks = favoritedBooks;
-  } else {
-
-    filteredBooks = allBooks;
+    booksToRender = allBooks.filter(isBookFavorited);
+    booksToRender.sort((a, b) => b.dateRead.localeCompare(a.dateRead));
   }
 
   if (activeTag) {
-    filteredBooks = filteredBooks.filter((book) => book.tags.includes(activeTag.toLowerCase()));
+    booksToRender = booksToRender.filter((book) => book.tags.includes(activeTag.toLowerCase()));
   }
 
-  currentIndex = 0;
-
+  filteredBooks = booksToRender;
   renderGridView();
 }
 
@@ -274,6 +309,7 @@ function applyToReadFilter() {
     document.getElementById("gridView").innerHTML = `<p style="color:red;">Failed to load to-read books.</p>`;
   }
 }
+
 // --- RENDER GRID (Main - with async cover support + working overlay) ---
 async function renderGridView() {
   const grid = document.getElementById("gridView");
@@ -320,6 +356,7 @@ async function renderToReadGrid() {
     grid.innerHTML = `<p style="text-align:center;">No to-read books found.</p>`;
     return;
   }
+  
   // Fetch all cover URLs asynchronously
   const coverUrls = await Promise.all(filteredToReadBooks.map((book) => getCoverUrl(book)));
   filteredToReadBooks.forEach((book, index) => {
@@ -342,6 +379,30 @@ async function renderToReadGrid() {
     grid.appendChild(item);
   });
 }
+
+async function renderGraveyardGrid() {
+  const grid = document.getElementById("gridView");
+  grid.innerHTML = "";
+
+  if (filteredUnfinishedBooks.length === 0) {
+    grid.innerHTML = `<p style="text-align:center;">No unfinished books in the graveyard.</p>`;
+    return;
+  }
+
+  const coverUrls = await Promise.all(filteredUnfinishedBooks.map(book => getCoverUrl(book)));
+
+  filteredUnfinishedBooks.forEach((book, index) => {
+    const item = document.createElement("div");
+    item.className = "grid-item";
+    const img = document.createElement("img");
+    img.src = coverUrls[index] || placeholderImage;
+    img.alt = `Cover of ${book.title}`;
+    item.appendChild(img);
+    item.addEventListener("click", () => renderGraveyardCard(book));
+    grid.appendChild(item);
+  });
+}
+
 // Main book card popup with integrated custom tag display and add/delete
 async function renderSingleCard(book) {
   if (!book) return;
@@ -546,8 +607,6 @@ function showTagInput(book, isToRead = false) {
   popup.appendChild(buttonContainer);
   document.body.appendChild(popup);
 
-  // --- THIS IS THE CORRECTED LOGIC ---
-
   // This function is now simpler. It ONLY removes the tag popup and its specific listener.
   const closeTagPopup = () => {
     document.body.removeChild(popup);
@@ -572,7 +631,9 @@ function showTagInput(book, isToRead = false) {
   // The Cancel button now correctly closes ONLY the tag popup.
   cancelBtn.addEventListener("click", closeTagPopup);
 
- addBtn.addEventListener("click", async () => {
+// Inside the showTagInput function...
+
+addBtn.addEventListener("click", async () => {
   const newTag = input.value.trim();
   if (!newTag) return;
 
@@ -580,21 +641,20 @@ function showTagInput(book, isToRead = false) {
   if (!currentTags.some((t) => t.toLowerCase() === newTag.toLowerCase())) {
     currentTags.push(newTag);
     
-    // --- THIS IS THE MODIFIED LOGIC ---
-    if (isToRead === 'unfinished') {
-      await updateUnfinishedBookTags(book.id, currentTags);
-    } else if (isToRead) { // This handles the original to-read books
-      await updateToReadBookTags(book.id, currentTags);
-    } else { // This handles regular read books
+    // --- THIS IS THE SIMPLIFIED LOGIC ---
+    if (isToRead) { // This is true for BOTH 'to-read' and 'unfinished'
+      await updateToReadBook(book.id, { tags: currentTags });
+    } else { // This handles regular "read" books
       await updateBookInSupabase(book.id, { tags: currentTags });
     }
     book.tags = currentTags;
   }
     
-    closeTagPopup(); 
+  closeTagPopup(); 
 
-   if (isToRead === 'unfinished') {
-    renderUnfinishedCard(book);
+  // This re-rendering logic is correct and doesn't need to change
+  if (isToRead === 'unfinished') {
+    renderGraveyardCard(book);
   } else if (isToRead) {
     renderToReadCard(book);
   } else {
@@ -603,116 +663,154 @@ function showTagInput(book, isToRead = false) {
 });
 }
 
-// To-read card popup (unchanged except for tags if needed) //
+// To-read card popup  //
 async function renderToReadCard(book) {
   if (!book) return;
-  // Existing tags from the book
+
+  // This API tag-merging logic is complex and can be simplified later, but it's not the cause of the crash.
   let tags = book.tags;
-  // Fetch filtered subjects from OpenLibrary API
   const subjectTags = await fetchFilteredSubjects(book.title, book.author);
   const mergedTags = Array.from(new Set([...book.tags, ...subjectTags]));
-  // Merge existing tags and fetched subject tags, deduplicated
-  tags = Array.from(new Set([...tags, ...subjectTags]));
+  tags = mergedTags;
 
-  // ✅ Check merged tag array and update only if changed
   if (mergedTags.length !== book.tags.length) {
-    const result = await updateToReadBookTags(book.id, mergedTags); // ✅ correct table
-    if (result !== null) {
+    const result = await updateToReadBook(book.id, { tags: mergedTags }); // Use the generic helper
+    if (result) {
       book.tags = mergedTags;
       tags = mergedTags;
-
-      // ✅ Refresh grid view if tag list changed (important for active tag filters)
-      await fetchToReadBooks();
-    } else {
-      console.warn("Failed to update merged tags to Supabase.");
     }
   }
-  // Build tags HTML
-  const tagsHTML = tags
-    .map(
-      (tag) =>
-        `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
-    )
-    .join("");
+
+  const tagsHTML = tags.map(
+      (tag) => `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
+    ).join("");
 
   const coverSrc = await getCoverUrl(book);
   const cardHTML = `
-<button class="close-btn" data-close aria-label="Close">&times;</button>
-  <div class="book-card-content">
-    <div class="cover-container">
-      <img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" />
+    <button class="close-btn" data-close aria-label="Close">×</button>
+    <div class="book-card-content">
+      <div class="cover-container"><img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" /></div>
+      <div class="title">${book.title || "Untitled"}</div>
+      <div class="author">${book.author || "Unknown"}</div>
+      <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
     </div>
-    <div class="title">${book.title || "Untitled"}</div>
-    <div class="author">${book.author || "Unknown"}</div>
-    <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
-  </div>
-   <div class="tag-footer">
-      <div class="tags">${tagsHTML}</div>
-     </div>
-  <div class="card-footer">
-      <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
+    <div class="tag-footer"><div class="tags">${tagsHTML}</div></div>
+    <div class="card-footer-alt">
+      <button id="startBookBtn" class="move-to-read-btn">Start Reading</button>
       <span class="add-tag-btn" title="Add Tag">+</span>
-    </div>
-`;
+    </div>`;
 
   openContentOverlay(cardHTML);
+  lucide.createIcons();
+  
+  const cardElement = document.getElementById("bookCard");
 
-  // Add to read button handler
+  // --- EVENT LISTENERS ---
+
+  // Add tag button listener
+  cardElement.querySelector(".add-tag-btn").addEventListener("click", () => {
+    showTagInput(book, true);
+  });
+  
+  // "Start Reading" button listener
+  document.getElementById("startBookBtn").addEventListener("click", async () => {
+    const result = await updateToReadBook(book.id, { start: true });
+    if (result) {
+      book.start = true;
+      applyFilters();
+      closeContentOverlay();
+    } else {
+      alert("Could not start book. Please try again.");
+    }
+  });
+  
+  // Delete tag button listener
+  cardElement.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
+    delBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const newTags = book.tags.filter((t) => t.toLowerCase() !== delBtn.parentElement.dataset.tag);
+      
+      // Use the generic helper for consistency
+      const updateResult = await updateToReadBook(book.id, { tags: newTags });
+
+      if (updateResult) {
+        book.tags = newTags;
+        renderToReadCard(book);
+      } else {
+        console.error("Failed to update tags in Supabase.");
+      }
+    });
+  });
+  
+  const synopsis = await fetchSynopsis(book.title, book.author);
+  document.getElementById("toReadSynopsis").textContent = synopsis || "No synopsis available.";
+}
+
+// Card Renderer for a unfinished Book 
+async function renderGraveyardCard(book) {
+  if (!book) return;
+  const tagsHTML = (book.tags || []).map(
+      (tag) => `<span class="tag" data-tag="${tag.toLowerCase()}">${tag}<button class="delete-tag-btn" title="Remove tag">×</button></span>`
+    ).join("");
+  const coverSrc = await getCoverUrl(book);
+
+  const cardHTML = `
+    <button class="close-btn" data-close aria-label="Close">×</button>
+    <div class="book-card-content">
+      <div class="cover-container"><img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" /></div>
+      <div class="title">${book.title || "Untitled"}</div>
+      <div class="author">${book.author || "Unknown"}</div>
+      <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
+    </div>
+    <div class="tag-footer"><div class="tags">${tagsHTML}</div></div>
+    <div class="card-footer">
+      <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
+      <span class="add-tag-btn" title="Add Tag">+</span>
+    </div>`;
+
+  openContentOverlay(cardHTML);
+  lucide.createIcons(); // Don't forget to render icons
+
   document.getElementById("moveToReadAddBtn").addEventListener("click", () => {
     const popup = document.getElementById("addBookPopup");
     popup.classList.remove("hidden");
     document.getElementById("addTitle").value = book.title || "";
     document.getElementById("addAuthor").value = book.author || "";
     document.getElementById("addIsbn").value = book.isbn || "";
-    // ✅ Add this line to transfer tags
-    const tagField = document.getElementById("addTags");
-    tagField.value = Array.isArray(book.tags) ? book.tags.join(", ") : "";
-    // Preserve to-read ID so we can delete it after saving
+    document.getElementById("addTags").value = Array.isArray(book.tags) ? book.tags.join(", ") : "";
     popup.dataset.toReadId = book.id;
   });
-  // Tag click: filter books by tag, then close popup
-  // Tag click: filter books by tag, then close popup
-  bookCard.querySelectorAll(".tag").forEach((tagEl) => {
-    tagEl.addEventListener("click", () => {
-      activeToReadTag = tagEl.dataset.tag.toLowerCase();
-      applyToReadFilter();
-      closeContentOverlay();
-    });
-  });
 
-  // Add tag button
-  bookCard.querySelectorAll(".add-tag-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      showTagInput(book, true);
-    });
-  });
-  
-  // Delete tag button
-bookCard.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
+   const synopsis = await fetchSynopsis(book.title, book.author);
+  document.getElementById("toReadSynopsis").textContent = synopsis || "No synopsis available.";
+
+  const cardElement = document.getElementById("bookCard"); // Get the card element
+
+// Add tag button listener
+cardElement.querySelector(".add-tag-btn").addEventListener("click", () => {
+  showTagInput(book, 'unfinished');
+});
+
+// Delete tag button listener
+cardElement.querySelectorAll(".delete-tag-btn").forEach((delBtn) => {
   delBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
-    const tagSpan = delBtn.parentElement;
-    const tagToRemove = tagSpan.dataset.tag;
-    // Create a new array from the canonical book.tags for safety
+    const tagToRemove = delBtn.parentElement.dataset.tag;
     const newTags = book.tags.filter((t) => t.toLowerCase() !== tagToRemove);
-    const updateResult = await updateToReadBookTags(book.id, newTags);
-    // Use the same, correct check
-    if (updateResult) {
-      book.tags = newTags; // Update the local book object
-      renderToReadCard(book);
+    
+    // Use the generic helper
+    const result = await updateToReadBook(book.id, { tags: newTags });
+
+    if (result) {
+      book.tags = newTags;
+      renderGraveyardCard(book); // Re-render the correct card type
     } else {
-      console.error("Failed to update tags in Supabase.");
+      console.error("Failed to delete tag from graveyard book.");
     }
   });
 });
-  
-  // Fetch and show synopsis
-  const synopsis = await fetchSynopsis(book.title, book.author);
-  const synopsisEl = document.getElementById("toReadSynopsis");
-  synopsisEl.textContent = synopsis || "No synopsis available.";
+
 }
-
-
 
 //Quick-list Render
 async function renderQuickListCard() {
@@ -728,10 +826,7 @@ async function renderQuickListCard() {
       })
       .join("");
 
-    /**
-     * Toggles the visibility of the "Add to List" form on the Quick List card.
-     */
-    function toggleAddToListForm() {
+     function toggleAddToListForm() {
       const formContainer = document.getElementById("addToListFormContainer");
 
       if (formContainer.innerHTML.trim() !== "") {
@@ -740,37 +835,33 @@ async function renderQuickListCard() {
       }
 
       // If the form is hidden, build and inject the HTML.
-      const formHTML = `
-    <div class="add-to-list-form">
-      <input type="text" id="addListTitle" placeholder="Title" required>
-      <input type="text" id="addListAuthor" placeholder="Author" required>
-      <button id="addToListConfirmBtn">Add</button>
-    </div>
+     const formHTML = `
+<div class="add-to-list-form">
+  <input type="text" id="addListTitle" placeholder="Title" class="title-input" required>
+  <input type="text" id="addListAuthor" placeholder="Author" class="author-input" required>
+  <input placeholder="ISBN" class="isbn-input" />
+  <button class="find-isbn-btn special-btn">Find ISBN</button>
+  <button id="addToListConfirmBtn">Add</button>
+</div>
   `;
       formContainer.innerHTML = formHTML;
 
       document.getElementById("addToListConfirmBtn").addEventListener("click", handleAddToListSubmit);
     }
-
+    
     // Create the HTML for the quick list card
-    const cardHTML = `
+const cardHTML = `
       <button class="close-btn" data-close aria-label="Close">×</button>
-       <div class="book-card-content">
-      <div class="quicklist-header">
-       <button id="showAddToListBtn" class="add-to-list-btn" title="Add to list">+</button>
-        <span>Quick List</span>
-    </div>
-
+      <div class="book-card-content">
+        <div class="quicklist-header">
+          <button id="showAddToListBtn" class="add-to-list-btn" title="Add to list">+</button>
+          <span>Quick List</span>
+        </div>
         <div id="addToListFormContainer"></div>
-
         <div class="quicklist-content">${listItems}</div>
-      </div>
-    `;
+      </div>`;
 
-    // Open the content overlay with our generated HTML
     openContentOverlay(cardHTML);
-
-    // --- ADD EVENT LISTENER FOR THE NEW '+' BUTTON ---
     document.getElementById("showAddToListBtn").addEventListener("click", toggleAddToListForm);
   } catch (err) {
     console.error("Error loading quick list", err);
@@ -778,11 +869,7 @@ async function renderQuickListCard() {
     openContentOverlay(errorHTML);
   }
 }
-
-/**
- * Handles the submission of the new title and author to the to-read list.
- */
-// THE ENHANCED VERSION
+    
 async function handleAddToListSubmit() {
   const titleInput = document.getElementById("addListTitle");
   const authorInput = document.getElementById("addListAuthor");
@@ -928,7 +1015,7 @@ function attachToolbarHandlers() {
   };
 }
 
-
+// The final, corrected DOMContentLoaded listener
 document.addEventListener("DOMContentLoaded", async () => {
   // Open Add Book popup
   document.getElementById("addBookBtn").addEventListener("click", () => {
@@ -936,13 +1023,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     lockScroll();
   });
 
-  // Favorite heart toggle
+  // Favorite heart toggle (this was missing from your last provided code, restoring it)
   const favHeart = document.getElementById("addFavoriteHeart");
   if (favHeart) {
     favHeart.addEventListener("click", () => {
       favHeart.classList.toggle("active");
     });
   }
+
   // Now that popup is visible, attach calendar toggle logic
   const calendarToggle = document.querySelector("#addBookPopup .calendar-toggle");
   const monthPicker = document.querySelector("#addBookPopup .month-picker");
@@ -963,91 +1051,45 @@ document.addEventListener("DOMContentLoaded", async () => {
     const review = document.getElementById("addReview").value.trim();
     const rating = parseInt(document.getElementById("addRating").value) || 0;
     const despair = parseInt(document.getElementById("addDespair").value) || 0;
-    const tags = document
-      .getElementById("addTags")
-      .value.split(",")
-      .map((t) => t.trim().toLowerCase())
-      .filter(Boolean);
-    let dateReadText = document.getElementById("dateReadInput").textContent.trim();
-
-    // Validate format YYYY-MM
-    if (/^\d{4}-(0[1-9]|1[0-2])$/.test(dateReadText)) {
-      // If only year-month, append day
-      dateReadText = dateReadText + "-01";
-    } else if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(dateReadText)) {
-      // If invalid format, fallback to full date string (already with day)
-      dateReadText = getFallbackDate();
+    const tags = document.getElementById("addTags").value.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+    let dateReadText = document.getElementById("dateReadInput").value;
+    if (!/^\d{4}-\d{2}$/.test(dateReadText)) {
+        dateReadText = getFallbackDate().slice(0, 7);
     }
-    // Now dateReadText is guaranteed to be a valid YYYY-MM-DD string
-
+    dateReadText += "-01";
     const date_read = dateReadText;
-    const dateReadDiv = document.getElementById("dateReadInput");
-    dateReadDiv.addEventListener("blur", () => {
-      let val = dateReadDiv.textContent.trim();
-      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(val)) {
-        alert("Date Read must be in YYYY-MM format.");
-        dateReadDiv.textContent = "YYYY-MM"; // reset on invalid
-      }
-    });
-    dateReadDiv.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        dateReadDiv.blur();
-      }
-    });
     const favorite = document.getElementById("addFavoriteHeart").classList.contains("active");
     if (!title || !author) {
       alert("Title and author are required.");
       return;
     }
     const cover = await getCoverUrl({ title, author, isbn });
-    const book = {
-      title,
-      author,
-      isbn,
-      quote,
-      review,
-      rating,
-      despair,
-      favorite,
-      tags,
-      date_read,
-      cover
-    };
+    const book = { title, author, isbn, quote, review, rating, despair, favorite, tags, date_read, cover };
     try {
-      // Insert into books_read
       const added = await addBookToSupabase(book);
       allBooks.unshift(normalizeBook(added));
-      applyFiltersAndRender();
-
-      // Check if this book came from a to-read item
+      applyFilters(); // Changed from applyFiltersAndRender
       const popup = document.getElementById("addBookPopup");
-      const toReadId = popup.dataset.toReadId;
+      const toReadId = parseInt(popup.dataset.toReadId);
       if (toReadId) {
-        // Delete from books_to_read table
         const { error: deleteError } = await supabase.from("books_to_read").delete().eq("id", toReadId);
         if (deleteError) {
           console.error("Failed to delete from to-read:", deleteError);
         } else {
-          // Remove locally
           toReadBooks = toReadBooks.filter((b) => b.id !== toReadId);
-          filteredToReadBooks = filteredToReadBooks.filter((b) => b.id !== toReadId);
-          renderToReadGrid();
+          applyFilters();
         }
-
-        // Clear stored toReadId
         popup.dataset.toReadId = "";
       }
-
-      // Hide popup and clear form
+      closeContentOverlay();
       document.getElementById("addBookPopup").classList.add("hidden");
       clearAddBookForm();
-      unlockScroll(); // Add this
     } catch (e) {
       console.error("Error adding book:", e);
       alert("Failed to add book: " + (e?.message || e));
     }
   });
+
   function clearAddBookForm() {
     ["addTitle", "addAuthor", "addIsbn", "addQuote", "addReview", "addRating", "addDespair", "addTags"].forEach(
       (id) => {
@@ -1056,21 +1098,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     );
     const dateEl = document.getElementById("dateReadInput");
-    if (dateEl) dateEl.textContent = "YYYY-MM"; // reset editable date field
-
+    if (dateEl) dateEl.value = "";
     const addFavoriteHeart = document.getElementById("addFavoriteHeart");
     if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
   }
-  // Close popup via event delegation
+
   document.getElementById("addBookPopup").addEventListener("click", (event) => {
     if (event.target.id === "closePopupBtn") {
       event.preventDefault();
       document.getElementById("addBookPopup").classList.add("hidden");
       clearAddBookForm();
-      unlockScroll(); // Add this
+      unlockScroll();
     }
   });
-  // Attach other handlers, fetch books, etc.
+
   attachToolbarHandlers();
-  await fetchBooks();
+  allBooks = await fetchBooks();
+  applyFilters();
 });
