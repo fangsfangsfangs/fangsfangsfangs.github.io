@@ -4,7 +4,8 @@ import {
   placeholderImage, 
   fetchSynopsis, 
   fetchFilteredSubjects,
-  fetchIsbn 
+  fetchIsbn, 
+  clearApiCache
 } from "./coverAPI.js";
 
 document.addEventListener('click', async (event) => {
@@ -95,14 +96,31 @@ const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "b
 
 // --- Universal Overlay & Scrolling Functions ---
 
-// This function simply adds a class to the body.
+// Find the main app container once at the top
+const appContainer = document.getElementById("app-container");
+
 function lockScroll() {
+  // 1. Add the class to the body to hide the scrollbar
   document.body.classList.add("popup-open");
+
+  // 2. Make the main content container non-interactive
+  if (appContainer) {
+    appContainer.classList.add("inert");
+    // For accessibility, tell screen readers the background is hidden
+    appContainer.setAttribute('aria-hidden', 'true');
+  }
 }
 
-// This function simply removes the class from the body.
 function unlockScroll() {
+  // 1. Remove the class from the body to restore scrolling
   document.body.classList.remove("popup-open");
+
+  // 2. Make the main content container interactive again
+  if (appContainer) {
+    appContainer.classList.remove("inert");
+    // For accessibility, remove the hidden attribute
+    appContainer.removeAttribute('aria-hidden');
+  }
 }
 
 // openContentOverlay remains the same, but without the event listener logic.
@@ -455,13 +473,11 @@ async function renderSingleCard(book) {
             .map(
               (i) => `
                 <span class="rating-icon despair-icon" data-value="${i}" data-selected="${i <= book.despair ? "true" : "false"}">
-                  <!-- THIS IS THE FIX: Call getDespairIcon(i) -->
                   ${getDespairIcon(i)}
                 </span>`
             )
             .join("")}
         </div>
-      
     </div>
     <div class="tag-footer">
      <div id="favoriteHeart" class="${favoriteClass}" title="Toggle Favorite">&#10084;</div>
@@ -935,18 +951,14 @@ function getDespairIcon(value) {
 
 // === Editable field helper ===
 function makeEditableOnClick(el, book, field) {
-  // The 'click' event is what starts the editing session.
   el.addEventListener("click", () => {
     if (!el.classList.contains("editing")) {
       el.contentEditable = "true";
       el.classList.add("editing");
       el.focus();
 
-      // Check if the element being made editable is the review box.
-      if (el.id === "reviewEditable") {
-        // If so, lock the background scroll.
-        lockScroll();
-      }
+      // The scroll is already locked by the parent card,
+      // so we don't need to do anything extra here.
 
       const range = document.createRange();
       range.selectNodeContents(el);
@@ -962,10 +974,8 @@ function makeEditableOnClick(el, book, field) {
       el.classList.remove("editing");
       el.contentEditable = "false";
 
-      if (el.id === "reviewEditable") {
-        // If so, unlock the background scroll.
-        unlockScroll();
-      }
+      // No need to unlock the scroll here; the parent card
+      // is still open and the scroll should remain locked.
 
       let newValue = el.innerText.replace(/^\s+|\s+$/g, "");
       newValue = newValue.replace(/\n{2,}/g, "\n");
@@ -989,11 +999,14 @@ function makeEditableOnClick(el, book, field) {
 
 // --- TOOLBAR ---
 function attachToolbarHandlers() {
-  document.getElementById("logoBtn").addEventListener("click", () => {
-    // ... (your existing logo button logic is fine)
-    showToast("🏠 mousekeeping performed 🧼");
-    rainGlitter(50);
-  });
+ document.getElementById("logoBtn").addEventListener("click", () => {
+
+  const clearedCount = clearApiCache();
+
+  showToast(`🧹 Cleared ${clearedCount} cached items. Fresh start!`);
+  
+  rainGlitter(50);
+});
 
   // --- All buttons now follow the same simple pattern ---
 
