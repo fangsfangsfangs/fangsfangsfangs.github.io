@@ -20,7 +20,7 @@ h3 {
 
 /* Prevents any element with this class from scrolling */
 body.popup-open {
-  position: fixed;
+  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -154,22 +154,24 @@ body.popup-open {
 
 /* cover images on to-read cards */
 .cover-container {
-  flex: 0 0 50%;
-  margin-bottom: 0.5rem; /* space between cover and title */
-  position: relative; /* keep nav buttons positioned relative to cover */
+  width: 260px;
+  max-width: 260px; 
+  aspect-ratio: 2 / 3; 
+  margin-bottom: 1rem; 
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  position: relative; 
 }
 
 .cover-container img {
   width: 100%;
-  aspect-ratio: 2 / 2.8;
+  height: 100%; 
   object-fit: cover;
   background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
-  position: relative;
-  overflow: hidden;
   border-radius: 8px;
+  display: block; 
 }
 
 /* --- Media Queries for Larger Screens (Optional but Recommended) --- */
@@ -209,7 +211,7 @@ body.popup-open {
 
   /* --- SIZING --- */
   height: 550px;
-  width: 260px;
+  width: 265px;
   gap: 1rem;
   padding: 2rem 1.5rem 1.5rem 1.5rem;
   border-radius: 10px;
@@ -575,24 +577,24 @@ body.popup-open {
   Each rule targets an icon with a specific data-value ONLY when it is selected.
 */
 .despair-icon[data-value="1"][data-selected="true"] {
-  color: var(--despair-icon-1-color);
+  color: var(--despair-icon-1);
 }
 .despair-icon[data-value="2"][data-selected="true"] {
-  color: var(--yellow-light);
+  color: var(--despair-icon-2);
 }
 .despair-icon[data-value="3"][data-selected="true"] {
-  color: var(--despair-icon-3-color);
+  color: var(--despair-icon-3);
 }
 .despair-icon[data-value="4"][data-selected="true"] {
-  color: var(--despair-icon-4-color);
+  color: var(--despair-icon-4);
 }
 .despair-icon[data-value="5"][data-selected="true"] {
-  color: var(--despair-icon-5-color);
+  color: var(--despair-icon-5);
 }
 
 /* The hover effect uses a single, consistent color */
 .despair-icon:hover {
-  color: var(--despair-hover-color);
+  color: var(--acid-orange);
 }
 
 /* This class is returned by your JS for the upside-down smile */
@@ -1002,6 +1004,17 @@ body.popup-open {
   }
 }
 
+.inert {
+  /* 
+    This is the magic property. It makes the element and everything
+    inside it completely non-interactive to mouse or touch.
+  */
+  pointer-events: none;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10+ */
+  user-select: none; /* Standard */
+}
+
 :root {
   /* GRAYS */
  --darkest-gray: #353535;
@@ -1017,6 +1030,7 @@ body.popup-open {
 
   /* PALETTE */
  --dark-yellow: #F6B528;
+  --yellow-light: #f6b528;
  --bookmouse-yellow: #F2C254;
  --light-yellow: #f7cf83; 
  --dark-teal: #2F5A62;
@@ -1034,11 +1048,10 @@ body.popup-open {
  --review-box: #f7f7f7ff;
   
   /* Despair ratings */
-  --despair-hover-color: #3cdee7;
-  --despair-selected-color: #c1003e;
-  --despair-icon-1-color: #7ec3ee;
-  --yellow-light: #f6b528;
-  --despair-icon-3-color: #fb893e;
-  --despair-icon-4-color: #df2d66;
-  --despair-icon-5-color: #961194;
+    
+  --despair-icon-1: #6BD8EF;
+  --despair-icon-2: #66a4e3;
+  --despair-icon-3: #5165d5;
+  --despair-icon-4: #6b0578;
+  --despair-icon-5: #c10303;
 }
