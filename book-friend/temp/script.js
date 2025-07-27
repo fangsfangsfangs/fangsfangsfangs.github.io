@@ -789,7 +789,7 @@ async function renderGraveyardCard(book) {
       <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
     </div>
     <div class="tag-footer"><div class="tags">${tagsHTML}</div></div>
-    <div class="card-footer">
+    <div class="card-footer-alt">
       <button id="moveToReadAddBtn" class="move-to-read-btn">Add as Read</button>
       <span class="add-tag-btn" title="Add Tag">+</span>
     </div>`;
