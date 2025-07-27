@@ -228,3 +228,62 @@ export async function fetchFilteredSubjects(title, author) {
   localStorage.setItem(cacheKey, JSON.stringify([]));
   return [];
 }
+
+// --- ISBN FETCHING HELPER ---
+
+/**
+ * Fetches an ISBN-13 or ISBN-10 from OpenLibrary based on title and author.
+ * It prioritizes finding an ISBN-13 and falls back to an ISBN-10 if none is found.
+ * @param {string} title - The title of the book.
+ * @param {string} author - The author of the book.
+ * @returns {Promise<string|null>} A promise that resolves to an ISBN string or null.
+ */
+export async function fetchIsbn(title, author) {
+  if (!title || !author) {
+    return null;
+  }
+
+  const params = new URLSearchParams({ title: title, author: author });
+  const url = `https://openlibrary.org/search.json?${params.toString()}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    if (!data.docs || data.docs.length === 0) {
+      console.log("No books found on Open Library for this title/author.");
+      return null;
+    }
+
+    const firstResult = data.docs[0];
+    if (!firstResult.isbn) {
+      console.log("First result found, but it has no ISBNs listed.");
+      return null;
+    }
+
+    const isbn13 = firstResult.isbn.find(id => id.length === 13 && /^\d+$/.test(id));
+    
+    if (isbn13) {
+      console.log(`Found ISBN-13: ${isbn13}`);
+      return isbn13; // Success! Return the ISBN-13 immediately.
+    }
+
+    console.log("No ISBN-13 found. Searching for ISBN-10 as a fallback.");
+    const isbn10 = firstResult.isbn.find(id => id.length === 10); // A simple length check is usually sufficient here.
+    
+    if (isbn10) {
+      console.log(`Found ISBN-10: ${isbn10}`);
+      return isbn10; // Success! Return the ISBN-10.
+    }
+
+    console.log("No valid ISBN-13 or ISBN-10 found in the first result.");
+    return null;
+
+  } catch (error) {
+    console.error("Error fetching ISBN from Open Library:", error);
+    return null;
+  }
+}
