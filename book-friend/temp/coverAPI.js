@@ -230,21 +230,33 @@ export async function fetchFilteredSubjects(title, author) {
 }
 
 // --- ISBN FETCHING HELPER ---
+// In coverAPI.js, replace the old function with this definitive one.
 
 /**
- * Fetches an ISBN-13 or ISBN-10 from OpenLibrary based on title and author.
- * It prioritizes finding an ISBN-13 and falls back to an ISBN-10 if none is found.
+ * Fetches an ISBN from OpenLibrary by specifically requesting the ISBN field
+ * and then searching the results for a valid ISBN-13 or ISBN-10.
  * @param {string} title - The title of the book.
  * @param {string} author - The author of the book.
  * @returns {Promise<string|null>} A promise that resolves to an ISBN string or null.
  */
 export async function fetchIsbn(title, author) {
   if (!title || !author) {
+    console.warn("fetchIsbn called with missing title or author.");
     return null;
   }
 
-  const params = new URLSearchParams({ title: title, author: author });
+  // Construct the search parameters
+  const params = new URLSearchParams({
+    title: title,
+    author: author,
+    // THIS IS THE CRITICAL FIX: Explicitly request the ISBN field.
+    fields: '*,isbn' 
+  });
+
   const url = `https://openlibrary.org/search.json?${params.toString()}`;
+
+  // For debugging, you can log the URL to see what is being sent
+  console.log("Fetching ISBN from URL:", url);
 
   try {
     const response = await fetch(url);
@@ -252,34 +264,48 @@ export async function fetchIsbn(title, author) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
+    
+    // For debugging, log the entire response data
+    // console.log("Received data from Open Library:", data);
 
     if (!data.docs || data.docs.length === 0) {
       console.log("No books found on Open Library for this title/author.");
       return null;
     }
 
-    const firstResult = data.docs[0];
-    if (!firstResult.isbn) {
-      console.log("First result found, but it has no ISBNs listed.");
-      return null;
+    // Loop through the documents returned by the API
+    let foundIsbn10 = null;
+
+    for (const doc of data.docs) {
+      // Because we requested the 'isbn' field, we can now reliably check for it.
+      if (doc.isbn && Array.isArray(doc.isbn) && doc.isbn.length > 0) {
+        
+        // Prioritize finding a valid ISBN-13 (the modern standard).
+        const isbn13 = doc.isbn.find(id => typeof id === 'string' && id.length === 13 && /^\d+$/.test(id));
+        if (isbn13) {
+          console.log(`Success! Found ISBN-13: ${isbn13}`);
+          return isbn13; // Return immediately with the best result.
+        }
+
+        // If no ISBN-13, look for a valid ISBN-10 as a fallback.
+        // We store it but don't return immediately, in case a later result has an ISBN-13.
+        if (!foundIsbn10) {
+          const isbn10 = doc.isbn.find(id => typeof id === 'string' && id.length === 10 && /^\d{9}[\dX]$/i.test(id));
+          if (isbn10) {
+            foundIsbn10 = isbn10;
+          }
+        }
+      }
     }
 
-    const isbn13 = firstResult.isbn.find(id => id.length === 13 && /^\d+$/.test(id));
-    
-    if (isbn13) {
-      console.log(`Found ISBN-13: ${isbn13}`);
-      return isbn13; // Success! Return the ISBN-13 immediately.
+    // If we finished the loop and only found an ISBN-10, return it.
+    if (foundIsbn10) {
+      console.log(`No ISBN-13 found. Returning fallback ISBN-10: ${foundIsbn10}`);
+      return foundIsbn10;
     }
 
-    console.log("No ISBN-13 found. Searching for ISBN-10 as a fallback.");
-    const isbn10 = firstResult.isbn.find(id => id.length === 10); // A simple length check is usually sufficient here.
-    
-    if (isbn10) {
-      console.log(`Found ISBN-10: ${isbn10}`);
-      return isbn10; // Success! Return the ISBN-10.
-    }
-
-    console.log("No valid ISBN-13 or ISBN-10 found in the first result.");
+    // If we get here, no valid ISBN was found in any of the results.
+    console.log("Searched all results, but no valid ISBN was found.");
     return null;
 
   } catch (error) {
