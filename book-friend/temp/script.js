@@ -1,7 +1,7 @@
 import { showToast, rainGlitter } from "./glitter.js";
 import { 
   getCoverUrl, 
-  placeholderImage, 
+  getRandomPlaceholder, 
   fetchSynopsis, 
   fetchFilteredSubjects,
   fetchIsbn, 
@@ -331,67 +331,67 @@ function applyToReadFilter() {
 // --- RENDER GRID (Main - with async cover support + working overlay) ---
 async function renderGridView() {
   const grid = document.getElementById("gridView");
-  grid.innerHTML = "";
+  grid.innerHTML = ""; // Clear the grid
 
-  // Preload all cover URLs safely
-  const coverUrls = await Promise.all(
-    filteredBooks.map(async (book) => {
-      try {
-        return await getCoverUrl(book);
-      } catch (e) {
-        console.warn("Error getting cover for book:", book.title, e);
-        return placeholderImage;
-      }
-    })
-  );
   filteredBooks.forEach((book, index) => {
     const item = document.createElement("div");
     item.className = "grid-item";
 
     const img = document.createElement("img");
-    img.src = coverUrls[index] || placeholderImage;
+    
+    // Set a random placeholder instantly
+    img.src = getRandomPlaceholder();
     img.alt = `Cover of ${book.title}`;
-    img.onerror = () => {
-      img.src = placeholderImage;
-    };
+    // Use the function for error fallback as well
+    img.onerror = () => { img.src = getRandomPlaceholder(); };
 
     item.appendChild(img);
 
-    // 💡 IMPORTANT: Ensure popup overlay appears
+    // Asynchronously fetch the real cover and pop it in when ready
+    getCoverUrl(book).then(coverUrl => {
+      if (coverUrl) {
+        img.src = coverUrl;
+      }
+    });
+
     item.addEventListener("click", () => {
       currentIndex = index;
-      renderSingleCard(book); // This function will now handle opening the overlay
+      renderSingleCard(book);
     });
 
     grid.appendChild(item);
   });
 }
+
 async function renderToReadGrid() {
   const grid = document.getElementById("gridView");
   grid.innerHTML = "";
 
-  if (toReadBooks.length === 0) {
+  if (filteredToReadBooks.length === 0) { // Changed from toReadBooks
     grid.innerHTML = `<p style="text-align:center;">No to-read books found.</p>`;
     return;
   }
   
-  // Fetch all cover URLs asynchronously
-  const coverUrls = await Promise.all(filteredToReadBooks.map((book) => getCoverUrl(book)));
-  filteredToReadBooks.forEach((book, index) => {
+  filteredToReadBooks.forEach((book, index) => { // Changed from toReadBooks
     const item = document.createElement("div");
     item.className = "grid-item";
 
     const img = document.createElement("img");
-    img.src = coverUrls[index] || placeholderImage;
+    
+    img.src = getRandomPlaceholder();
     img.alt = `Cover of ${book.title}`;
-    img.onerror = () => {
-      img.src = placeholderImage;
-    };
+    img.onerror = () => { img.src = getRandomPlaceholder(); };
 
     item.appendChild(img);
 
+    getCoverUrl(book).then(coverUrl => {
+      if (coverUrl) {
+        img.src = coverUrl;
+      }
+    });
+
     item.addEventListener("click", () => {
-      renderToReadCard(book); // This function will now handle opening the overlay
+      renderToReadCard(book);
     });
 
     grid.appendChild(item);
@@ -407,16 +407,26 @@ async function renderGraveyardGrid() {
     return;
   }
 
-  const coverUrls = await Promise.all(filteredUnfinishedBooks.map(book => getCoverUrl(book)));
-
   filteredUnfinishedBooks.forEach((book, index) => {
     const item = document.createElement("div");
     item.className = "grid-item";
+    
     const img = document.createElement("img");
-    img.src = coverUrls[index] || placeholderImage;
+
+    img.src = getRandomPlaceholder();
     img.alt = `Cover of ${book.title}`;
+    img.onerror = () => { img.src = getRandomPlaceholder(); };
+    
     item.appendChild(img);
+
+    getCoverUrl(book).then(coverUrl => {
+      if (coverUrl) {
+        img.src = coverUrl;
+      }
+    });
+
     item.addEventListener("click", () => renderGraveyardCard(book));
+    
     grid.appendChild(item);
   });
 }
@@ -449,7 +459,7 @@ async function renderSingleCard(book) {
       <i data-lucide="quote" class="quote-icon open-quote"></i>
     </div>
     <div class="rating-bar">
-                <span class="review-header-text">My Review :)</span>
+                <span class="review-header-text"><i data-lucide="panda"></i><i data-lucide="message-circle-more"></i></span>
  <div class="rating" title="Rating">
           ${[1, 2, 3, 4, 5]
             .map(
@@ -705,7 +715,7 @@ async function renderToReadCard(book) {
   const cardHTML = `
     <button class="close-btn" data-close aria-label="Close">×</button>
     <div class="book-card-content">
-      <div class="cover-container"><img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" /></div>
+      <div class="cover-container"><img src="${coverSrc || getRandomPlaceholder()}" alt="Cover of ${book.title}" /></div>
       <div class="title">${book.title || "Untitled"}</div>
       <div class="author">${book.author || "Unknown"}</div>
       <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
@@ -773,7 +783,7 @@ async function renderGraveyardCard(book) {
   const cardHTML = `
     <button class="close-btn" data-close aria-label="Close">×</button>
     <div class="book-card-content">
-      <div class="cover-container"><img src="${coverSrc || placeholderImage}" alt="Cover of ${book.title}" /></div>
+      <div class="cover-container"><img src="${coverSrc || getRandomPlaceholder()}" alt="Cover of ${book.title}" /></div>
       <div class="title">${book.title || "Untitled"}</div>
       <div class="author">${book.author || "Unknown"}</div>
       <div id="toReadSynopsis" class="to-read-notes">Loading synopsis...</div>
