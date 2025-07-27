@@ -229,6 +229,36 @@ export async function fetchFilteredSubjects(title, author) {
   return [];
 }
 
+/**
+ * Clears all known cache items (covers, synopses, etc.) from localStorage.
+ * It intelligently removes only keys that start with the app's known prefixes.
+ * @returns {number} The total number of items cleared from the cache.
+ */
+export function clearApiCache() {
+  const prefixes = ['cover_', 'synopsis_', 'workkey_', 'subjects_'];
+  let clearedCount = 0;
+  
+  // We have to loop backwards when removing items from a collection
+  // or create a list of keys to remove first.
+  const keysToRemove = [];
+
+  for (const key in localStorage) {
+    // Check if the key in localStorage starts with any of our known prefixes
+    if (prefixes.some(prefix => key.startsWith(prefix))) {
+      keysToRemove.push(key);
+    }
+  }
+
+  // Now, iterate over the list of keys to remove
+  for (const key of keysToRemove) {
+    localStorage.removeItem(key);
+    clearedCount++;
+  }
+  
+  console.log(`Cache cleared. Removed ${clearedCount} items.`);
+  return clearedCount;
+}
+
 // --- ISBN FETCHING HELPER ---
 // In coverAPI.js, replace the old function with this definitive one.
 
