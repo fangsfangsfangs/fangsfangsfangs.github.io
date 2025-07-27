@@ -36,7 +36,7 @@ document.addEventListener('click', async (event) => {
       }
 
       // Provide user feedback
-      event.target.textContent = 'Searching...';
+      event.target.textContent = '👀...';
       event.target.disabled = true;
 
       try {
@@ -873,9 +873,11 @@ const cardHTML = `
 async function handleAddToListSubmit() {
   const titleInput = document.getElementById("addListTitle");
   const authorInput = document.getElementById("addListAuthor");
+  const isbnInput = document.querySelector('.add-to-list-form .isbn-input');
 
   const title = titleInput.value.trim();
   const author = authorInput.value.trim();
+  const isbn = isbnInput ? isbnInput.value.trim() : "";
 
   if (!title || !author) {
     alert("Please enter both a title and an author.");
@@ -885,26 +887,34 @@ async function handleAddToListSubmit() {
   try {
     document.getElementById("addToListConfirmBtn").disabled = true;
 
-    const newBook = { title, author };
-
+    const newBook = { title, author, isbn };
     const addedBook = await addToReadToSupabase(newBook);
 
     if (addedBook) {
-   
       const normalizedBook = normalizeBook(addedBook, true);
-      toReadBooks.unshift(normalizedBook); 
+      // Add the new book to the start of our master local list
+      toReadBooks.unshift(normalizedBook);
 
-      await renderQuickListCard();
-
+      // --- THE FIX ---
+      // 1. User is done, so close the popup.
+      closeContentOverlay(); 
+      
+      // 2. If we are on the to-read view, refresh the main grid.
+      // This will now use the perfectly up-to-date 'toReadBooks' array.
       if (viewMode === 'to-read') {
-        applyToReadFilter();
+        applyFilters();
       }
+      // --- END OF FIX ---
+
     } else {
       throw new Error("Book was not added successfully.");
     }
   } catch (error) {
+    console.error("Failed to add book to quick list:", error);
     alert("Failed to add book. Please try again.");
-    document.getElementById("addToListConfirmBtn").disabled = false;
+    
+    const confirmBtn = document.getElementById("addToListConfirmBtn");
+    if (confirmBtn) confirmBtn.disabled = false;
   }
 }
 
