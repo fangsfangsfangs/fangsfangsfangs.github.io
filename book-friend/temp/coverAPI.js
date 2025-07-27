@@ -1,6 +1,16 @@
 // coverAPI.js
 
-const placeholderImage = "https://fangsfangsfangs.neocities.org/book-covers/placeholder.jpg";
+// Array of placeholder images. Replace these with your actual image URLs.
+const placeholderImages = [
+"https://fangsfangsfangs.github.io/book-friend/placeholder-1.jpg",
+"https://fangsfangsfangs.github.io/book-friend/placeholder-2.jpg",
+"https://fangsfangsfangs.github.io/book-friend/placeholder-3.jpg"
+];
+
+export function getRandomPlaceholder() {
+  const randomIndex = Math.floor(Math.random() * placeholderImages.length);
+  return placeholderImages[randomIndex];
+}
 
 /**
  * Check if an image URL exists by sending a HEAD request.
@@ -103,7 +113,8 @@ export async function fetchOpenLibraryCover(title, author, isbn) {
 export async function getCoverUrl(book) {
   if (!book) {
     console.warn("getCoverUrl: Missing book object");
-    return placeholderImage;
+    // Inside getCoverUrl()
+return getRandomPlaceholder();
   }
 
   // Try OpenLibrary cover first
@@ -122,10 +133,9 @@ export async function getCoverUrl(book) {
   }
 
   // Fallback to placeholder image
-  return placeholderImage;
+  // Inside getCoverUrl()
+return getRandomPlaceholder();
 }
-
-export { placeholderImage };
 
 // --- SYNOPSIS FETCHING & CACHING ---
 
