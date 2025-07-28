@@ -5,7 +5,8 @@ import {
   fetchSynopsis, 
   fetchFilteredSubjects,
   fetchIsbn, 
-  clearApiCache
+  clearApiCache,
+  fetchEnrichedBookData
 } from "./coverAPI.js";
 
 // Supabase Client Initialization
@@ -458,8 +459,7 @@ async function renderQuickListCard() {
                 <div class="add-to-list-form">
                     <input type="text" id="addListTitle" placeholder="Title" class="title-input" required>
                     <input type="text" id="addListAuthor" placeholder="Author" class="author-input" required>
-                    <input placeholder="ISBN" class="isbn-input" />
-                    <button class="find-isbn-btn special-btn">Find ISBN</button>
+                  <input placeholder="ISBN (optional, will be auto-fetched)" id="addListIsbn" class="isbn-input" />
                     <button id="addToListConfirmBtn">Add</button>
                 </div>`;
             document.getElementById("addToListConfirmBtn").addEventListener("click", handleAddToListSubmit);
@@ -482,29 +482,60 @@ async function renderQuickListCard() {
     }
 }
 
-async function handleAddToListSubmit() {
-    const title = document.getElementById("addListTitle").value.trim();
-    const author = document.getElementById("addListAuthor").value.trim();
-    const isbn = document.querySelector('.add-to-list-form .isbn-input')?.value.trim() || "";
-    if (!title || !author) {
-        alert("Please enter both a title and an author.");
-        return;
+// In script.js, replace the old handleAddToListSubmit function
+
+async function handleAddToListSubmit(event) {
+  const confirmButton = event.target;
+  const title = document.getElementById("addListTitle").value.trim();
+  const author = document.getElementById("addListAuthor").value.trim();
+  const userProvidedIsbn = document.getElementById("addListIsbn").value.trim();
+
+  if (!title || !author) {
+    alert("Please enter both a title and an author.");
+    return;
+  }
+
+  // Give user feedback that work is being done
+  confirmButton.textContent = 'Fetching...';
+  confirmButton.disabled = true;
+
+  try {
+    // 1. Call our new enriching function to get all data at once
+    const enrichedData = await fetchEnrichedBookData(title, author);
+
+    // 2. Build the final book object for Supabase
+    const newBook = {
+      title: title,
+      author: author,
+      // Prioritize user's manual ISBN, otherwise use the fetched one
+      isbn: userProvidedIsbn || enrichedData.isbn || "", 
+      cover: enrichedData.coverUrl,
+      tags: enrichedData.tags, // Automatically add fetched genre tags
+    };
+
+    console.log("Saving enriched book to Supabase:", newBook);
+
+    // 3. Add the complete object to the 'to-read' table
+    const addedBook = await addToReadToSupabase(newBook);
+
+    if (addedBook) {
+      // Add the newly created book to our local state and re-render the grid
+      toReadBooks.unshift(normalizeBook(addedBook, true));
+      closeContentOverlay();
+      if (viewMode === 'to-read') {
+        applyFilters();
+      }
     }
-    try {
-        document.getElementById("addToListConfirmBtn").disabled = true;
-        const addedBook = await addToReadToSupabase({ title, author, isbn });
-        if (addedBook) {
-            toReadBooks.unshift(normalizeBook(addedBook, true));
-            closeContentOverlay();
-            if (viewMode === 'to-read') {
-                applyFilters();
-            }
-        }
-    } catch (error) {
-        alert("Failed to add book. Please try again.");
-        const confirmBtn = document.getElementById("addToListConfirmBtn");
-        if(confirmBtn) confirmBtn.disabled = false;
+  } catch (error) {
+    console.error("Failed to add enriched book to quick list:", error);
+    alert("Failed to add book. Please try again.");
+  } finally {
+    // Restore the button's state, even if it's about to be removed from the DOM
+    if (confirmButton) {
+      confirmButton.textContent = 'Add to List';
+      confirmButton.disabled = false;
     }
+  }
 }
 
 function showTagInput(book, isToRead = false) {
