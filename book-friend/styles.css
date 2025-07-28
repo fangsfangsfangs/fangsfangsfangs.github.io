@@ -1,60 +1,54 @@
-/* Base Reset & Typography */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html, body {
+body {
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow-x: hidden;
-}
-
-body {
-  display: block;
-  overflow-x: hidden;
-  margin: 0;
+  box-sizing: border-box;
+  height: calc((var(--vh, 1vh) * 100) - 3.5rem);
   padding-top: 3.5rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: "Raleway", sans-serif;
   background: #f8f8f8;
-  color: #575757;
+  color: var(--medium-gray);
   line-height: 1;
 }
 
 h3 {
-  color: #376469;
+  font-family: 'Quicksand', sans-serif;
+  color: var(--dark-orange);
   margin-top: 0;
   font-weight: 600;
   font-size: 1.25rem;
 }
 
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100dvw;
-  height: 100dvh;
-  background: rgba(255, 255, 255, 0.95);
-  display: flex;
-  align-items: flex-start; 
-  justify-content: center;
-  z-index: 999;
-  overflow-y: auto; 
-  padding: 2.5rem 1rem 2rem; 
-  box-sizing: border-box;
-  overscroll-behavior: contain;
-} 
-
-/* Prevents grid bg from scrolling when a popup is open */
+/* Prevents any element with this class from scrolling */
 body.popup-open {
+  position: relative;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
 .hidden {
   display: none !important;
+}
+
+/* Auth Modal Specific Styles */
+#authModal .popup-content {
+  max-width: 400px; /* A good width for a login form */
+  text-align: center;
+}
+
+#authModal input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+#authModal .popup-buttons {
+  display: flex;
+  justify-content: space-around; /* Space out the login/signup buttons */
+  margin-top: 15px;
 }
 
 /* ====== Grid CSS ====== */
@@ -66,7 +60,7 @@ body.popup-open {
   align-items: center;
   width: 100%;
   padding: 0.5rem;
-  background: #fcc255;
+  background: var(--bookmouse-yellow);
   box-sizing: border-box;
   top: 0;
   left: 0;
@@ -81,7 +75,7 @@ body.popup-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2f314b;
+  color: var(--darkest-gray);
   transition: color 0.3s ease;
 }
 
@@ -92,7 +86,7 @@ body.popup-open {
 }
 
 .fixed-toolbar button:hover {
-  color: #1aadaa;
+  color: var(--bright-teal);
 }
 
 .toolbar-logo-btn {
@@ -121,127 +115,149 @@ body.popup-open {
 .close-btn {
   font-size: 2rem;
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.1rem;
+  right: 0.5rem;
   background: none;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
-  color: #999;
+  color: var(--light-gray);
   transition: color 0.3s ease;
   z-index: 1000;
 }
 
 .close-btn:hover,
 .popup .close-btn:hover {
-  color: #ff6161;
+  color: var(--acid-orange);
 }
 
-/* Grid area full height with vertical scroll */
-.grid-area {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 1rem;
-  padding: 2rem;  
-  height: calc(var(--vh) - 3.5rem);
-  overflow-y: auto;
+/* --- FLEXBOX GRID  --- */
+#gridView {
+  display: flex;
+  flex-wrap: wrap;
   box-sizing: border-box;
+  gap: 1rem;
+  padding: 1rem;
+
+/* These height and scroll rules are correct and remain */
+  flex-grow: 1;
+  overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-/* Firefox-specific CSS property that hides scrollbars visually*/
-body::-webkit-scrollbar,
-.grid-area::-webkit-scrollbar {
-  display: none;
-}
-body,
-.grid-area {
-  scrollbar-width: none;
-}
-
-/* Grid item styling combined with To-Read grid item */
-.grid-item,
-.to-read-grid-item {
+/* The Grid Items (.grid-item) */
+.grid-item {
+  box-sizing: border-box;
   cursor: pointer;
   border-radius: 8px;
-  aspect-ratio: 2 / 3;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  width: calc(50% - 0.5rem);
+
+  aspect-ratio: 2 / 3;
 }
 
-.grid-item img,
-.to-read-grid-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 8px;
-  display: block;
-}
-
-.grid-item:hover,
-.to-read-grid-item:hover {
+.grid-item:hover {
   transform: scale(1.03);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Synposis box */
-.to-read-notes {
-  font-size: 0.9rem;
-  color: #333;
-  text-align: left;
-  min-height: 200px;
-  margin-top: 0.5rem;
-  overflow-y: auto;
-  padding: 12px;
+/* The Image inside the item */
+.grid-item img {
   width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #eaeaea;
+  height: 100%;
+  object-fit: cover;
+  display: block; /* Prevents extra space below the image */
+}
+
+/* cover images on to-read cards */
+.cover-container {
+  width: 260px;
+  max-width: 260px; 
+  aspect-ratio: 2 / 3; 
+  margin-bottom: 1rem; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  position: relative; 
+}
+
+.cover-container img {
+  width: 100%;
+  height: 100%; 
+  object-fit: cover;
+  background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
   border-radius: 8px;
-  background-color: #f9f7f7;
-  flex-grow: 1;
-
-  /* Hide scrollbar for Chrome, Safari and Edge */
-  scrollbar-width: none;          /* Firefox */
-  -ms-overflow-style: none;       /* IE 10+ */
+  display: block; 
 }
 
-.to-read-notes::-webkit-scrollbar {
-  display: none;                  /* Chrome, Safari, Edge */
+/* --- Media Queries for Larger Screens (Optional but Recommended) --- */
+
+/* TABLET: 4 columns */
+@media (min-width: 768px) {
+  #gridView {
+    padding: 2rem; /* More padding for larger screens */
+  }
+  .grid-item {
+    /* For 4 columns, width is 25% minus 3/4 of the gap */
+    width: calc(25% - 0.75rem);
+  }
 }
 
-#bookCard {
-  aspect-ratio: 1.2 / 2;       /* Match the image's 2:3 ratio */
-  max-width: 85%;          /* Keep your max width */
-  width: 100%;             /* Or desired width */
-  min-height: 35%;
-  height: calc(var(--vh) - 3.5rem);
+/* DESKTOP: 5 columns */
+@media (min-width: 1024px) {
+  .grid-item {
+    /* For 5 columns, width is 20% minus 4/5 of the gap */
+    width: calc(20% - 0.8rem);
+  }
 }
 
-/* === Book popup container === */
-.book-card-base {
-  background: #ffffff;
-  font-family: Arial, Helvetica, sans-serif;
-  text-transform: lowercase;
-  overflow-y: auto;
-  min-height: unset;         /* Remove min-height if conflicting */
-  max-height: unset;         /* Remove max-height if conflicting */
-  overflow: hidden;          /* Hide overflow if needed */
+/* === ALPHA Book card === */
+.book-card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px #424242;
   text-align: center;
-  align-items: stretch;
+  align-items: center;
   position: relative;
+  background: white;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow-y: auto; /* This allows content inside the card to scroll */
+  overflow-x: hidden;
+  z-index: 9996;
+  pointer-events: auto;
+
+  /* --- SIZING --- */
+  height: 550px;
+  width: 265px;
+  gap: 1rem;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px #424242;
 }
 
-.book-card-content, .to-read-card-content {
+.book-card-content {
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  padding: 0.5rem; /* optional */
-  width: 100%;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y:auto; 
+  box-sizing: border-box;
+  word-wrap: break-word;
+  word-break: break-word;
+  min-height: 0;
+  flex-grow:1;
+}
+
+.book-card-content * {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
   box-sizing: border-box;
 }
 
@@ -257,43 +273,46 @@ body,
   -webkit-overflow-scrolling: touch; /* for smooth iOS scroll */
 }
 
-/* Cover container */
-.cover-container,
-.to-read-cover-container {
-  flex: 0 0 50%;
-  margin-bottom: 0.5rem; /* space between cover and title */
-  position: relative; /* keep nav buttons positioned relative to cover */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cover-container img,
-.to-read-cover-container img {
+/* Synposis box */
+.to-read-notes {
+  font-size: 0.9rem;
+  color: var(--darkest-gray);
+  text-align: left;
+  min-height: 200px;
+  margin-top: 0.5rem;
+  overflow-y: auto;
+  padding: 12px;
   width: 100%;
-  aspect-ratio: 2 / 2.8;
-  object-fit: cover;
-  background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
-  position: relative;
-  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid #eaeaea;
   border-radius: 8px;
-  margin-top: 1.4rem;
+  background-color: #f9f7f7;
+  flex-grow: 1;
+
+  /* Hide scrollbar for Chrome, Safari and Edge */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
 }
 
-.title,
-.to-read-title {
-  padding-top: 0.5rem;
+.to-read-notes::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.title {
+ font-family: 'Raleway', sans-serif;
+  margin-top: 1.5rem;
   font-weight: 700;
-  font-size: 1.25rem;
-  color: #353535;
+  font-size: 1.4rem;
+  color: var(--darkest-gray);
 }
 
-.author,
-.to-read-author {
+.author {
+ font-family: 'Raleway', sans-serif;
+  font-weight: 400;
   font-style: italic;
-  color: #828282;
-  padding-top: 0.3rem;
-  padding-bottom: 1rem;
+  color: var(--light-gray);
+  padding-top: 0.4rem;
+  margin-bottom: 0.5rem;
 }
 
 .editable {
@@ -305,39 +324,37 @@ body,
   outline: none;
 }
 
-.editable.editing {
-  cursor: text;
-  user-select: text;
-  pointer-events: auto;
-  background-color: #fffdf5;
-  outline: 2px dashed #f9cb74;
-}
-
 .quote-box {
   display: flex;
   justify-content: center;
-  font-style: italic;
-  color: #555;
-  background-color: #ececec;
+  background-color: var(--whisper-gray);
   padding: 0.75rem 1rem;
   border-radius: 10px;
-  width: 100%;
+  max-width: 95%;
   box-sizing: border-box;
+  gap: 0.5rem;
+  margin: 0.5rem;
 }
 
 .quote-text {
-  flex: 1;
+  flex: 1; 
   padding: 0 0.5rem;
   text-align: center;
   font-style: italic;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 500;
   font-size: 0.95rem;
-  color: #555;
+  color: var(--darkest-gray);
+
+  white-space: pre-wrap;   /* Allows wrapping and preserves line breaks */
+  word-break: break-word;  /* Prevents long words from overflowing */
+  min-width: 0;            /* A crucial flexbox fix for preventing overflow */
 }
 
 .quote-icon {
   width: 18px;
   height: 18px;
-  color: #838383;
+  color: var(--dark-teal);
   flex-shrink: 0;
 }
 
@@ -345,44 +362,128 @@ body,
   transform: scaleX(-1);
 }
 
-#reviewEditable {
-  display: block;
-  font-size: 0.9rem;
-  color: #333;
-  min-height: 300px;
-  padding: 10px;
-  width: 100%;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  background-color: #f9f7f7;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  line-height: 1.4; /* was 1.2 — gives better spacing */
+.editable.editing {
+  cursor: text;
+  user-select: text;
+  pointer-events: auto;
+  background-color: #f2f2f2;
 
-  /* Try disabling these two if they’re causing ghost spacing */
-  height: auto;
-  overflow: visible;
-
-  flex-grow: 0;
-
-  /* New additions */
-  margin-top: 0;   /* Remove unwanted spacing */
-  margin-bottom: 0;
 }
 
 .review-box {
-  display: block;
+  display: flex;
   text-align: left;
-  color: #555;
-  background-color: #ececec;
+  color: var(--medium-gray);
+  background-color: var(--review-box);
   border-radius: 8px;
   width: 100%;
+  box-sizing: border-box; /* Ensures width: 100% is absolute */
+  padding: 0; 
+  margin-top: 0.5rem; 
+  flex: 1;
+  min-height: 120px; 
+  max-height: 250px; 
+}
+
+.review-box:focus-within {
+  border: 1px solid var(--bright-teal);
+}
+
+#reviewEditable {
+  width: 100%;
+  padding: 12px; 
+  
+  /* Text and wrapping properties */
+  font-size: 0.9rem;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 550;
+  line-height: 1.3;
+  text-align: left; 
+  white-space: pre-wrap;
+  overflow-wrap: break-word; 
+
+  /* Scrolling and appearance */
+  overflow-y: auto; 
+  background-color: transparent;
+  border-radius: 8px;
   box-sizing: border-box;
+  outline: none;
+  
+  /* Hide the scrollbar */
+  scrollbar-width: none; /* For Firefox */
+}
+
+#reviewEditable:focus {
+  background-color: #f0f8ff; /* A light blue color */
+}
+
+/* For Chrome, Safari, and Edge */
+#reviewEditable::-webkit-scrollbar {
+  display: none;
+}
+
+.popup-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(var(--vh, 1vh) * 100); /* Use stable height */
+
+  /* This centers the book card inside */
+  display: flex;
+  align-items: flex-start; 
+  justify-content: center;
+  padding-top: 5vh;
+  /* It sits on top of the dimming overlay */
+  z-index: 9995;
+}
+
+/* The separate dim overlay for the book cards */
+.dim-overlay, #addBookPopup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(var(--vh, 1vh) * 100);
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9990;
+}
+
+#findIsbnBtn {
+  background-color: var(--bright-teal);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.popup-footer-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  min-height: 4vh;
+  margin: auto;
+}
+
+#dateReadInput {
+  width: 30%;
+  font-size: 0.8rem;
+}
+
+/* Popup card add button */
+.add-btn:disabled {
+  background: #f9cb7466;
+  cursor: default;
+  color: #fff;
 }
 
 /* Move to-read button/ Add to read */
 .move-to-read-btn {
-  background-color: #4caf50;
+  background-color: var(--bright-teal);
   color: white;
   border: none;
   padding: 6px 12px;
@@ -393,132 +494,171 @@ body,
 }
 
 .move-to-read-btn:hover {
-  background-color: #45a049;
-}
-
-.card-footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-evenly;
-  width: 100%;
-  min-height: 4vh;
-  gap: 0.5rem;
-  font-size: 1rem;
-  padding: 0.25rem 0.5rem;
-  margin: 0.5rem 0;
-}
-
-/* Favorite heart */
-.favorite-heart,
-#addFavoriteHeart {
-
+  background-color: var(--light-teal);
 }
 
 .favorite-heart.active,
 #addFavoriteHeart.active {
-  color: #f46a6a;
+  color: var(--acid-orange);
 }
 
 .favorite-heart,
 #addFavoriteHeart {
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   vertical-align: middle;
   cursor: pointer;
-  color: #c0c0c0;
+  color: var(--lightest-gray);
   transition: color 0.3s ease;
 }
 
-.rating-star {
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  user-select: none;
-  color: #f9cb74;
-  font-size: 1.5rem;
+.rating-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 95%;
+  margin: 0.5rem; 
+}
+
+/* UNIVERSAL CLASS for all rating icons */
+.rating-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
-  vertical-align: middle;
+  font-size: 1.6rem; /* Standardized size */
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.rating-icon:hover {
+  transform: scale(1.2);
 }
 
-.rating-star:hover {
-  transform: scale(1.2);
-  color: #ffbb3b;
+.rating, .despair-rating {
+  display: flex;
+  gap: 0.2rem; /* Space between icons */
 }
+
+.rating-star {
+  color: var(--lightest-gray); /* Empty star color */
+}
+.rating-star.filled {
+  color: var(--bookmouse-yellow);
+}
+.rating-star:hover {
+   color: var(--dark-yellow);
+}
+
+/* --- Despair Icon Styling --- */
 
 .despair-icon {
-  width: 2rem;
-  height: 2rem;
-  font-size: 1.25rem;
-  padding: 0.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  vertical-align: middle;
-  cursor: pointer;
+  color: #e0e0e0; /* The color for all unselected icons */
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.despair-level {
-  display: flex;
-  gap: 0.25rem;
-  color: #376469;
+/* 
+  This is the core of the new logic.
+  Each rule targets an icon with a specific data-value ONLY when it is selected.
+*/
+.despair-icon[data-value="1"][data-selected="true"] {
+  color: var(--despair-icon-1);
+}
+.despair-icon[data-value="2"][data-selected="true"] {
+  color: var(--despair-icon-2);
+}
+.despair-icon[data-value="3"][data-selected="true"] {
+  color: var(--despair-icon-3);
+}
+.despair-icon[data-value="4"][data-selected="true"] {
+  color: var(--despair-icon-4);
+}
+.despair-icon[data-value="5"][data-selected="true"] {
+  color: var(--despair-icon-5);
 }
 
+/* The hover effect uses a single, consistent color */
 .despair-icon:hover {
-  transform: scale(1.2);
-  opacity: 1;
-  color: #690768;
+  color: var(--acid-orange);
 }
 
-.despair-icon[data-selected="true"] {
-  color: var(--despair-selected-color);
-  opacity: 1;
-}
-
-.despair-icon:not([data-selected="true"]):not(:hover) {
-  color: var(--despair-default-color);
-}
-
+/* This class is returned by your JS for the upside-down smile */
 .upside-down {
   display: inline-block;
   transform: rotate(180deg);
 }
 
-.to-read-footer {
+.card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
-  min-height: 4vh;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-top: auto;
 }
 
-.tag-footer{
+.card-footer {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100%;
+}
+
+.card-footer-alt {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.tag-footer {
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
+  width: 100%;
+  margin: 0.5rem;
+  /*border-bottom: 1px solid var(--lightest-gray);*/
+  margin-top: auto;
 }
 
-/* Tags container to group footer tags */
+/* Tags container to group footer tags into buttons */
 .tags {
   display: flex;
+  align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.2rem;
+  text-transform: lowercase;
+  font-family: inherit;
+}
+
+/* Tags in the footer */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  border-radius: 15px;
+  padding: 0.5rem 0.7rem;
+  margin: 0.2rem;
+  background: var(--bookmouse-yellow);
+  color: var(--white);
+  font-size: 0.8rem;
+  font-family: 'raleway', sans-serif;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.tag:hover {
+  background-color: var(--dark-yellow);
+  color: var(--medium-gray);
 }
 
 /* ===== Base Tag/Button Styles ===== */
-.tag,
-.add-btn {
+
+.add-tag-btn, .add-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -528,13 +668,13 @@ body,
   border-radius: 15px;
   padding: 0.4rem 0.6rem;
   gap: 0.2rem;
-  background: #376469;
+  background-color: var(--mid-teal);
   color: white;
-  font-size: 0.8rem;
+  font-size: 1rem;
   transition: background-color 0.3s ease;
 }
 
-.add-tag-btn {
+.special-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -542,29 +682,24 @@ body,
   user-select: none;
   border: none;
   border-radius: 15px;
-  padding: 0.4rem 0.6em;
+  padding: 0.4rem 0.6rem;
   gap: 0.2rem;
-  background: #f9b274;
+  background-color: var(--mid-teal);
   color: white;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.8rem;
   transition: background-color 0.3s ease;
 }
 
-.add-tag-btn:hover {
-  background: #f9b274;
-  color: white; 
-}
-
-.tag:hover,
-.add-btn:not(:disabled):hover {
-  background-color: #f9b274;
-  color: #376469;
+.add-tag-btn:hover, .add-btn:not(:disabled):hover {
+  background-color: var(--acid-orange);
+  color: var(--white);
 }
 
 /* Delete button inside tags */
 .delete-tag-btn {
   background: transparent;
+  align-items: center;
+  justify-content: center;
   border: none;
   color: white;
   font-weight: 700;
@@ -576,156 +711,57 @@ body,
   transition: color 0.2s ease;
 }
 
-/* Add tags popup */
-.tag-input-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  width: 100%;
-  box-sizing: border-box;
-  align-items: stretch;
-}
-
-.tag-input {
-  padding: 0.6rem;
-  border: 1px solid #f9cb74;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  background: #fffdf5;
-  color: #333;
-  box-sizing: border-box;
-  width: 100%;
-  outline: none;
-}
-
-.tag-input:focus {
-  border-color: #f9b274;
-  background-color: #fff8ec;
-}
-
-.tag-submit {
-  padding: 0.4rem 0.85rem;
-  font-size: 0.85rem;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-weight: bold;
-  background-color: #eee;
-  color: #666;
-}
-
-.tag-submit:hover {
-  background-color: #f49c48;
-}
-
-.tag-cancel {
-  padding: 0.4rem 0.85rem;
-  font-size: 0.85rem;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-weight: bold;
-  background-color: #eee;
-  color: #666;
-}
-
-.tag-cancel:hover {
-  background-color: #ccc;
-}
-
-.tag-input-buttons button {
-  background-color: var(--tag-hover-bg, #eaeaea);
-  color: var(--tag-hover-bg, #7a7a7a);
-  font-family: inherit;
-  font-weight: 550;
-  text-transform: lowercase;
-  border: none;
-  border-radius: 15px;
-  padding: 0.7rem 0.8rem;
-  margin: 10px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.tag-input-buttons button:hover {
-  background-color: var(--tag-hover-bg, #555);
-  color: var(--tag-hover-text, #fff);
-}
-
 .delete-tag-btn:hover {
-  color: #ff6161;
+  color: var(--acid-orange);
 }
 
-.cancel-btn:hover {
-  background: #ccc;
-}
-
-/* Buttons container */
-.popup-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-/* ===== opacity BG layer =====*/
-.tag-input-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100dvw;
-  height: 100dvh;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9998;
-}
-
-/* ===== TAG popup box bg =====*/
+/* ===== ADD A TAG CLOUD STYLING =====*/
 .tag-input-popup {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  padding: 1.5rem 2rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem 1.5rem;
   width: 320px;
   max-width: 90vw;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   text-align: center;
+  position: fixed; 
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000; 
 }
+
 /* ===== Add a Tag header =====*/
 .tag-input-popup h3 {
   margin: 0;
   font-weight: 700;
-  color: #353535;
+  color: var(--darkest-gray);
   font-size: 1.25rem;
 }
+
 /* ===== Enter tag box =====*/
 .tag-input-popup input[type="text"] {
   padding: 0.6rem 0.9rem;
   font-size: 1rem;
-  border: 2px solid #dadada;
+  border: 2px solid var(--lightest-gray);
   border-radius: 12px;
   outline-offset: 2px;
-  outline-color: #ffffff;
+  outline-color: white;
   transition: border-color 0.3s ease;
 }
 
 .tag-input-popup input[type="text"]:focus {
-  border-color: #b6b6b6;
-  background-color: #f9f5ec;
+  border-color: var(--lightest-gray);
+  background-color: var(--whisper-gray);
 }
-/* ===== Add a Tag/Suggested Popup Styles ===== */
-.suggested-tag-btn {
+
+.tag-cloud-btn {
   display: inline-flex;
   align-items: center;
-  font-weight: 700;
+  font-weight: 660;
   font-family: inherit;
   cursor: pointer;
   user-select: none;
@@ -733,49 +769,35 @@ body,
   border-radius: 15px;
   padding: 0.5rem 0.7rem;
   margin: 0.2rem;
-  background: #f9cb74;
-  color: white;
+  background: var(--bookmouse-yellow);
+  color: var(--white);
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
 
-.suggested-tag-btn:hover {
-  background-color: #f9b274;
-  color: #7a7a7a;
+.tag-cloud-btn:hover {
+  background-color: var(--bookmouse-yellow);
+  color: var(--medium-gray);
 }
 
-/* QUICKLIST stlye */
-
-/* Optional header styling */
-.quicklist-header {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #e66767;
-  margin-top: 1rem;
-  margin-bottom: 2rem;
-  gap: 1rem;
-  text-align: center;
+.add-cancel-button button {
+  background-color: var(--lightest-gray);
+  color: var(--medium-gray);
+  font-family: inherit;
+  font-weight: 600;
+  text-transform: lowercase;
+  border: none;
+  border-radius: 12px;
+  padding: 0.5rem 0.6rem;
+  margin: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-/* Scrollable list that fills remaining height */
-.quicklist-content {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: rem;
-  margin-bottom: 1rem;
-  scrollbar-width: none; /* Firefox */
-}
-.quicklist-content::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
-}
-
-/* List items are left-aligned and spaced */
-.quicklist-item {
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #f6bf9e;
-  padding-bottom: 0.5rem;
-  text-align: left;
+.add-cancel-button button:hover {
+  background-color: var(--medium-gray);
+  color: var(--white);
 }
 
 /* === Big add book button (+) === */
@@ -785,80 +807,184 @@ body,
   right: 1.5rem;
   width: 48px;
   height: 48px;
-  background-color: #f78a37;
+  background-color: var(--bright-teal);
   color: white;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 900;
   transition: background-color 0.3s ease;
 }
 
-
 #addBookBtn:hover {
-  background-color: #3698ff;
-  color: #f4b584;
-}
-
-/* === Add book popup overlay === */
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100dvw;
-  height: 100dvh;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9997;
-  overscroll-behavior: contain;
-}
-
-.popup-content{
-width: 100dvw;
-  max-width: 75dvw;
-  min-height: 35vh;
-  max-height: calc(58dvh - 3.5rem);
-  overflow: hidden; 
-}
-
-.popup-footer-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  width: 100%;
-  min-height: 4vh;
-  margin:auto;
-}
-
-/* === Add book input fields === */
-.popup input {
-  padding: 0.5rem;
-  border-radius: 8px;
-  color: #d86631;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.addBookConfirm-btn {
-  display: flex;
-  justify-content: center;
-  background: #f9cb74;
+  background-color: var(--bookmouse-yellow);
   color: white;
-  font-weight: bold;
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
 }
 
-/* Popup card add button */
-.add-btn:disabled {
-  background: #f9cb7466;
-  cursor: default;
-  color: #fff;
+/* ============================================= */
+/* === ADD BOOK POPUP STYLING === */
+/* ============================================= */
+
+/* Make the popup content a flex column */
+#addBookPopup .popup-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensure it fills the wrapper */
+  max-height: 550px;
+  width: 265px;
+}
+
+/* Allow the main area with inputs to grow */
+#addBookPopup .popup-content h3 {
+  flex-shrink: 0; /* Prevent the title from shrinking */
+}
+
+/* Style for all input types within the popup */
+#addBookPopup .popup-content input {
+  width: 100%; 
+  padding: 8px 10px; 
+  border: 1px solid #ddd; 
+  border-radius: 8px; 
+  background-color: var( --whisper-gray); 
+  font-family: 'raleway', sans-serif; 
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Hover and focus effects for inputs */
+#addBookPopup .popup-content input:hover {
+  border-color: #c0c0c0;
+}
+
+#addBookPopup .popup-content input:focus {
+  outline: none;
+  border-color: #909090;
+  box-shadow: 0 4px 10px #424242;
+}
+
+/* Specific adjustments for buttons if needed */
+#addBookPopup .popup-buttons {
+  margin-top: auto; /* Push buttons to the bottom */
+  flex-shrink: 0;
+}
+
+#addBookPopup .popup-footer-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+#addBookPopup .popup-action-buttons {
+    margin-left: auto; /* Push confirm button to the right */
+}
+
+/* =================================== */
+/* --- QUICKLIST + ADD FORM STYLES --- */
+/* =================================== */
+
+/* Optional header styling */
+/* Optional header styling */
+.quicklist-header {
+  font-family: 'Quicksand', sans-serif;
+  width: 90%;
+  display: flex;
+  gap: 1rem; /* gap between button and header */
+  align-items: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--acid-orange);
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Scrollable list that fills remaining height */
+.quicklist-content {
+  width: 90%;
+  text-transform: none;
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  scrollbar-width: none; /* Firefox */
+}
+
+.quicklist-content::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+/* List items are left-aligned and spaced */
+.quicklist-item {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--light-yellow);
+  padding-bottom: 0.5rem;
+  text-align: left;
+}
+
+/* Style the new '+' button in the header */
+.add-to-list-btn {
+  background-color: var(--bookmouse-yellow);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.add-to-list-btn:hover {
+  background-color: var(--bright-teal);
+}
+
+/* Container for the input form */
+#addToListFormContainer {
+  width: 90%;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* The form itself */
+.add-to-list-form {
+  display: flex;
+  flex-wrap: wrap; /* --- THIS IS THE FIX --- Allows items to wrap */
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.add-to-list-form input {
+  flex-grow: 1; /* Allow inputs to take up available space */
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.add-to-list-form button {
+  background-color: var(--bright-teal);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.add-to-list-form button:disabled {
+  background-color: var(--light-gray);
+  cursor: not-allowed;
 }
 
 /* Mousekeeping text */
@@ -871,12 +997,12 @@ width: 100dvw;
   left: 50%;
   transform: translateX(-50%) translateY(100%);
   background: #ffffff;
-  color: #60abff;
-  border: 2px dotted #60abff;
+  color: var(--bright-teal);
+  border: 2px dotted var(--bright-teal);
   padding: 20px 20px;
   border-radius: 30px;
   opacity: 0;
-  z-index: 9999;
+  z-index: 999;
   transition:
     opacity 1s ease,
     transform 1s ease;
@@ -925,18 +1051,49 @@ width: 100dvw;
   }
 }
 
-:root {
-  --despair-default-color: #376469; /* gray for unclicked */
-  --despair-hover-color: #690768; /* pink/purple for hover */
-  --despair-selected-color: #c1003e; /* red/black/purple for clicked */
+.inert {
+  /* 
+    This is the magic property. It makes the element and everything
+    inside it completely non-interactive to mouse or touch.
+  */
+  pointer-events: none;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10+ */
+  user-select: none; /* Standard */
+}
 
-  --color-yellow-light: #f9cb74;
-  --color-yellow-dark: #f9b274;
-  --color-blue-dark: #376469;
-  --color-gray-light: #c0c0c0;
-  --color-white-light: #fffdf5;
-  --color-red-light: #ff6161;
-  --color-orange: #f78a37;
-  --color-orange-hover: #f4b584;
-  /* add more as needed */
+:root {
+  /* GRAYS */
+ --darkest-gray: #353535;
+ --medium-gray: #606060;
+ --light-gray: #a0a0a0;
+ --lightest-gray: #e6e6e6;
+ --whisper-gray: #f9f9f9;
+  --white: #ffffff;
+  
+ --box-shadow-light: rgba(0, 0, 0, 0.2);
+ --dim-overlay: rgba(0, 0, 0, 0.7);
+
+  /* PALETTE */
+ --dark-yellow: #f5b12b;
+ --bookmouse-yellow: #fbc54c;
+ --light-yellow: #f7cf83; 
+ --dark-teal: #2F5A62;
+ --mid-teal: #379bb4;
+ --bright-teal: #1DBEBB;
+  
+  /* accents */
+ --acid-orange: #FF6161;
+ --dark-orange: #E66767;  
+ --light-teal: #78ddee;
+ --quote-box: #98e7e5ba;
+ --review-box: #f7f7f7ff;
+  
+  /* Despair ratings */
+    
+  --despair-icon-1: #f7b533;
+  --despair-icon-2: #e57f5c;
+  --despair-icon-3: #ca1919;
+  --despair-icon-4: #4859b6;
+  --despair-icon-5: #6b0578;
 }
