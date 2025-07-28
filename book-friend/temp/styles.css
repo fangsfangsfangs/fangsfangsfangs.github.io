@@ -108,7 +108,7 @@ body.popup-open {
 
 /* Optional: make the logo "light up" on hover */
 .toolbar-logo-btn:hover .toolbar-logo {
-  content: url("https://fangsfangsfangs.github.io/book-friend/bookmouse1-hover.png");
+  content: url("https://fangsfangsfangs.github.io/book-friend/img/bookmouse1-hover.png");
 }
 
 /* Close button for overlay and popup cards */
@@ -190,7 +190,7 @@ body.popup-open {
   width: 100%;
   height: 100%; 
   object-fit: cover;
-  background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
+  background: url("https://fangsfangsfangs.github.io/book-friend/img/cover-skeleton.svg") no-repeat center / cover;
   border-radius: 8px;
   display: block; 
 }
