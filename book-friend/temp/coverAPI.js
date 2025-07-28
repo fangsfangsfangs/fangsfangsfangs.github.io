@@ -75,7 +75,7 @@ export async function getCoverUrl(book) {
 // ==========================================================
 
 // --- IMPORTANT: ADD YOUR API KEY HERE ---
-const GOOGLE_BOOKS_API_KEY = 'PASTE_YOUR_GOOGLE_BOOKS_API_KEY_HERE';
+const GOOGLE_BOOKS_API_KEY = 'AIzaSyBfoOESdJcIYsSCWhviuKJYJrWcyC4ghRk';
 
 function cleanSynopsis(text) {
     if (!text) return '';
