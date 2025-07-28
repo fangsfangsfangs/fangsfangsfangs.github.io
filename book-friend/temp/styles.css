@@ -30,6 +30,27 @@ body.popup-open {
   display: none !important;
 }
 
+/* Auth Modal Specific Styles */
+#authModal .popup-content {
+  max-width: 400px; /* A good width for a login form */
+  text-align: center;
+}
+
+#authModal input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+#authModal .popup-buttons {
+  display: flex;
+  justify-content: space-around; /* Space out the login/signup buttons */
+  margin-top: 15px;
+}
+
 /* ====== Grid CSS ====== */
 
 .fixed-toolbar {
@@ -252,28 +273,6 @@ body.popup-open {
   -webkit-overflow-scrolling: touch; /* for smooth iOS scroll */
 }
 
-.add-book-card {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  align-items: center;
-  position: relative;
-  background: var(--white);
-  font-family: Arial, Helvetica, sans-serif;
-  overflow-y: auto; /* This allows content inside the card to scroll */
-  overflow-x: hidden;
-  z-index: 9996;
-  pointer-events: auto;
-
-  /* --- SIZING --- */
-  height: 420px;
-  width: 280px;
-  gap: 1rem;
-  padding: 2rem 1.5rem 1.5rem 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px #424242;
-}
-
 /* Synposis box */
 .to-read-notes {
   font-size: 0.9rem;
@@ -448,16 +447,6 @@ body.popup-open {
   height: calc(var(--vh, 1vh) * 100);
   background: rgba(0, 0, 0, 0.7);
   z-index: 9990;
-}
-
-#addBookPopup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: calc(var(--vh, 1vh) * 100);
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 10000; /* Give it the highest z-index */
 }
 
 #findIsbnBtn {
@@ -648,8 +637,6 @@ body.popup-open {
 .tag {
   display: inline-flex;
   align-items: center;
-  font-family: inherit;
-  font-weight: 200;
   cursor: pointer;
   user-select: none;
   border: none;
@@ -659,6 +646,8 @@ body.popup-open {
   background: var(--bookmouse-yellow);
   color: var(--white);
   font-size: 0.8rem;
+  font-family: 'raleway', sans-serif;
+  font-weight: 600;
   transition: background-color 0.3s ease;
 }
 
@@ -728,11 +717,10 @@ body.popup-open {
 
 /* ===== ADD A TAG CLOUD STYLING =====*/
 .tag-input-popup {
-  /* ... existing styles ... */
   background: white;
   border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  padding: 1.5rem 2rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem 1.5rem;
   width: 320px;
   max-width: 90vw;
   display: flex;
@@ -761,19 +749,19 @@ body.popup-open {
   border: 2px solid var(--lightest-gray);
   border-radius: 12px;
   outline-offset: 2px;
-  outline-color: var(--white);
+  outline-color: white;
   transition: border-color 0.3s ease;
 }
 
 .tag-input-popup input[type="text"]:focus {
   border-color: var(--lightest-gray);
-  background-color: #f9f5ec;
+  background-color: var(--whisper-gray);
 }
 
 .tag-cloud-btn {
   display: inline-flex;
   align-items: center;
-  font-weight: 600;
+  font-weight: 660;
   font-family: inherit;
   cursor: pointer;
   user-select: none;
@@ -793,7 +781,7 @@ body.popup-open {
 }
 
 .add-cancel-button button {
-  background-color: var(--whisper-gray);
+  background-color: var(--lightest-gray);
   color: var(--medium-gray);
   font-family: inherit;
   font-weight: 600;
@@ -808,7 +796,7 @@ body.popup-open {
 }
 
 .add-cancel-button button:hover {
-  background-color: var(--dark-gray);
+  background-color: var(--medium-gray);
   color: var(--white);
 }
 
@@ -824,7 +812,7 @@ body.popup-open {
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 3px 12px rgba(81, 87, 92, 0.2);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -837,10 +825,70 @@ body.popup-open {
   color: white;
 }
 
+/* ============================================= */
+/* === ADD BOOK POPUP STYLING === */
+/* ============================================= */
+
+/* Make the popup content a flex column */
+#addBookPopup .popup-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensure it fills the wrapper */
+  max-height: 550px;
+  width: 265px;
+}
+
+/* Allow the main area with inputs to grow */
+#addBookPopup .popup-content h3 {
+  flex-shrink: 0; /* Prevent the title from shrinking */
+}
+
+/* Style for all input types within the popup */
+#addBookPopup .popup-content input {
+  width: 100%; 
+  padding: 8px 10px; 
+  border: 1px solid #ddd; 
+  border-radius: 8px; 
+  background-color: var( --whisper-gray); 
+  font-family: 'raleway', sans-serif; 
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Hover and focus effects for inputs */
+#addBookPopup .popup-content input:hover {
+  border-color: #c0c0c0;
+}
+
+#addBookPopup .popup-content input:focus {
+  outline: none;
+  border-color: #909090;
+  box-shadow: 0 4px 10px #424242;
+}
+
+/* Specific adjustments for buttons if needed */
+#addBookPopup .popup-buttons {
+  margin-top: auto; /* Push buttons to the bottom */
+  flex-shrink: 0;
+}
+
+#addBookPopup .popup-footer-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+#addBookPopup .popup-action-buttons {
+    margin-left: auto; /* Push confirm button to the right */
+}
+
 /* =================================== */
 /* --- QUICKLIST + ADD FORM STYLES --- */
 /* =================================== */
 
+/* Optional header styling */
 /* Optional header styling */
 .quicklist-header {
   font-family: 'Quicksand', sans-serif;
@@ -1017,11 +1065,10 @@ body.popup-open {
 :root {
   /* GRAYS */
  --darkest-gray: #353535;
- --dark-gray: #424242;
  --medium-gray: #606060;
- --light-gray: #999999;
- --lightest-gray: #cdcdcd;
- --whisper-gray: #ECECEC;
+ --light-gray: #a0a0a0;
+ --lightest-gray: #e6e6e6;
+ --whisper-gray: #f9f9f9;
   --white: #ffffff;
   
  --box-shadow-light: rgba(0, 0, 0, 0.2);
