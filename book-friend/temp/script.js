@@ -5,8 +5,7 @@ import {
   fetchSynopsis, 
   fetchFilteredSubjects,
   fetchIsbn, 
-  clearApiCache,
-  fetchEnrichedBookData
+  clearApiCache
 } from "./coverAPI.js";
 
 // Supabase Client Initialization
