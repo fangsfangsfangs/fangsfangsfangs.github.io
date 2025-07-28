@@ -123,7 +123,7 @@ async function fetchSynopsisFromOpenLibrary(book) {
         const bookKey = data.docs?.[0]?.key;
         if (!bookKey) return null;
         const workUrl = `https://openlibrary.org${bookKey}.json`;
-        const workResponse = await fetch(workUrl);
+        const workResponse = await fetch(workUrl, { redirect: 'follow' });
         if (!workResponse.ok) return null;
         const workData = await workResponse.json();
         let description = workData.description;
