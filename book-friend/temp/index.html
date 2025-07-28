@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>bookmouse</title>
     <link rel="icon" href="https://fangsfangsfangs.github.io/book-friend/favicon.ico" type="image/x-icon" />
+    <!-- ====================FONT IMPORT========================= -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
@@ -13,24 +18,21 @@
 
     <!-- ============================================= -->
     <!-- === START OF THE MAIN APP CONTAINER === -->
-    <!-- Everything that should be DISABLED when a popup is open goes in here. -->
     <div id="app-container">
       <!-- Fixed toolbar -->
       <div id="fixedToolbar" class="icon-bar fixed-toolbar">
-        <button id="logoBtn" class="toolbar-logo-btn" title="Mousekeeping">
-          <img src="https://fangsfangsfangs.github.io/book-friend/bookmouse1-logo.png" alt="Logo" class="toolbar-logo" />
-        </button>
-        <button id="homeBtn" title="welcome home"><i data-lucide="home"></i></button>
-        <button id="showToReadBtn" title="to-read"><i data-lucide="notebook-pen"></i></button>
-        <button id="favoritesBtn" title="faves"><i data-lucide="book-heart"></i></button>
-        <button id="graveyardBtn" title="unfinished business"><i data-lucide="book-marked"></i></button>
-        <button id="showReadBtn" title="quick list"><i data-lucide="bookmark-plus"></i></button>
+          <button id="logoBtn" class="toolbar-logo-btn" title="Mousekeeping">
+            <img src="https://fangsfangsfangs.github.io/book-friend/bookmouse1-logo.png" alt="Logo" class="toolbar-logo" />
+          </button>
+          <button id="homeBtn" title="welcome home"><i data-lucide="home"></i></button>
+          <button id="showToReadBtn" title="to-read"><i data-lucide="notebook-pen"></i></button>
+          <button id="favoritesBtn" title="faves"><i data-lucide="book-heart"></i></button>
+          <button id="graveyardBtn" title="unfinished business"><i data-lucide="book-marked"></i></button>
+          <button id="showReadBtn" title="quick list"><i data-lucide="bookmark-plus"></i></button>
       </div>
-
-      <!-- Grid view - MOVED INSIDE app-container -->
+      <!-- Grid view -->
       <div id="gridView" class="grid-area"></div>
-
-      <!-- Add new book button - MOVED INSIDE app-container -->
+      <!-- Add new book button -->
       <button id="addBookBtn" title="Add New Book"><i data-lucide="plus"></i></button>
     </div>
     <!-- === END OF THE MAIN APP CONTAINER === -->
@@ -39,7 +41,6 @@
 
     <!-- ============================================= -->
     <!-- === START OF THE POPUP CONTAINER === -->
-    <!-- All popups and overlays live here, outside the main app. -->
     <div id="popup-container">
       <!-- BG Dimming effect -->
       <div id="dimOverlay" class="dim-overlay hidden"></div>
@@ -55,15 +56,15 @@
       <div id="addBookPopup" class="popup-wrapper hidden">
         <div class="popup-content book-card">
           <h3>Add a New Book</h3>
-          <input placeholder="Title" id="addTitle" />
-          <input placeholder="Author" id="addAuthor" />
+          <input placeholder="Title" id="addTitle" class="title-input" />
+          <input placeholder="Author" id="addAuthor" class="author-input" />
           <input placeholder="Quote" id="addQuote" />
           <input placeholder="Review" id="addReview" />
           <input type="number" placeholder="Rating" id="addRating" />
           <input type="number" placeholder="Despair Level" id="addDespair" />
           <input placeholder="Tags (comma-separated)" id="addTags" />
+          <input placeholder="ISBN" id="addIsbn" class="isbn-input" />
           <button class="find-isbn-btn special-btn">Find ISBN</button>
-          <input placeholder="ISBN" id="addIsbn" />
           <div class="popup-buttons">
             <div class="popup-footer-container">
               <div id="addFavoriteHeart" class="favorite-heart" title="Toggle Favorite">❤</div>
