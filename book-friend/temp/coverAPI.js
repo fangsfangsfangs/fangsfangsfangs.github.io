@@ -6,9 +6,9 @@ const SYNOPSIS_CACHE_PREFIX = 'synopsis-';
 
 // --- Placeholder Images ---
 const placeholderImages = [
-    "https://fangsfangsfangs.github.io/book-friend/placeholder-1.jpg",
-    "https://fangsfangsfangs.github.io/book-friend/placeholder-2.jpg",
-    "https://fangsfangsfangs.github.io/book-friend/placeholder-3.jpg"
+    "https://fangsfangsfangs.github.io/book-friend/img/placeholder-1.jpg",
+    "https://fangsfangsfangs.github.io/book-friend/img/placeholder-2.jpg",
+    "https://fangsfangsfangs.github.io/book-friend/img/placeholder-3.jpg"
 ];
 
 export function getRandomPlaceholder() {
@@ -16,6 +16,28 @@ export function getRandomPlaceholder() {
     return placeholderImages[randomIndex];
 }
 
+
+// max data pull
+export async function fetchEnrichedBookData(title, author) {
+  console.log(`Enriching data for "${title}"...`);
+
+  // Run fetches in parallel for better performance
+  const [isbn, tags] = await Promise.all([
+    fetchIsbn(title, author),
+    fetchFilteredSubjects(title, author)
+  ]);
+
+  // Now, use the fetched ISBN (if available) to get the most accurate cover
+  const coverUrl = await getCoverUrl({ title, author, isbn: isbn });
+
+  // Return a clean object with all the data we found
+  return {
+    isbn: isbn || "", // Return empty string if null
+    coverUrl: coverUrl,
+    tags: tags || [] // Return empty array if null
+  };
+}
+             
 // --- Image & Cover Helpers ---
 export async function imageExists(url) {
     try {
