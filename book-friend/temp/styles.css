@@ -87,22 +87,65 @@ body.popup-open {
 
 /* Optional: make the logo "light up" on hover */
 .toolbar-logo-btn:hover .toolbar-logo {
-  content: url("https://fangsfangsfangs.github.io/book-friend/bookmouse1-hover.png");
+  content: url("https://fangsfangsfangs.github.io/book-friend/img/bookmouse1-hover.png");
 }
 
-/* Close button for overlay and popup cards */
-.close-btn {
-  font-size: 2rem;
+/* --- CLOSE AND DELETE BUTTONS  --- */
+.card-header-delete {
+  position: absolute; /* Position relative to the .book-card */
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* Pushes delete to left, close to right */
+  align-items: center;
+  padding: 0.4rem 0.8rem; /* Adjust padding as needed */
+  box-sizing: border-box;
+  z-index: 10; /* Ensure it's above other card content */
+}
+
+.card-header {
   position: absolute;
-  top: 0.1rem;
-  right: 0.5rem;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  box-sizing: border-box;
+  z-index: 10; /* Ensure it's above other card content */
+}
+
+/* Base style for header buttons */
+.header-btn {
   background: none;
-  border-radius: 10px;
   border: none;
   cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--light-gray);
   transition: color 0.3s ease;
-  z-index: 1000;
+}
+
+.header-btn i {
+  width: 24px; /* Consistent icon size */
+  height: 24px;
+}
+
+.header-btn svg {
+  stroke-width: 2.5;
+}
+
+.header-btn:hover {
+  color: var(--acid-orange);
+}
+
+/* Specific hover color for delete button */
+.delete-btn:hover {
+  color: var(--acid-orange);
 }
 
 .close-btn:hover,
@@ -213,7 +256,7 @@ body.popup-open {
   height: 550px;
   width: 265px;
   gap: 1rem;
-  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  padding: 2.5rem 1rem 1rem 1rem;
   border-radius: 10px;
   box-shadow: 0 4px 10px #424242;
 }
@@ -279,7 +322,7 @@ body.popup-open {
 
 .title {
   font-family: "Raleway", sans-serif;
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
   font-weight: 700;
   font-size: 1.4rem;
   color: var(--darkest-gray);
@@ -305,20 +348,29 @@ body.popup-open {
 
 .quote-box {
   display: flex;
-  justify-content: center;
   background-color: var(--whisper-gray);
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0.2rem 1rem 0.2rem;
   border-radius: 10px;
+  margin: 0.5rem;
   max-width: 95%;
+  max-height: 100px;
+  overflow-y: auto;
+
   box-sizing: border-box;
   gap: 0.5rem;
-  margin: 0.5rem;
+
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
 }
 
 .quote-text {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 0.5rem;
   text-align: center;
+  align-content: center;
   font-style: italic;
   font-family: "Quicksand", sans-serif;
   font-weight: 500;
@@ -331,14 +383,17 @@ body.popup-open {
 }
 
 .quote-icon {
-  width: 18px;
-  height: 18px;
-  color: var(--dark-teal);
-  flex-shrink: 0;
+  width: 20px;
+  color: var(--dark-gray);
 }
 
 .quote-icon.close-quote {
   transform: scaleX(-1);
+  align-self: flex-start;
+}
+
+.quote-icon.open-quote {
+  align-self: flex-end;
 }
 
 .editable.editing {
@@ -360,7 +415,7 @@ body.popup-open {
   margin-top: 0.5rem;
   flex: 1;
   min-height: 120px;
-  max-height: 250px;
+  max-height: 260px;
 }
 
 .review-box:focus-within {
@@ -494,12 +549,12 @@ body.popup-open {
   transition: color 0.3s ease;
 }
 
+/* Rating input on main card */
 .rating-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 95%;
-  margin: 0.5rem;
 }
 
 /* UNIVERSAL CLASS for all rating icons */
@@ -507,7 +562,7 @@ body.popup-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem; /* Standardized size */
+  font-size: 1.75rem; /* Standardized size */
   cursor: pointer;
   user-select: none;
   transition:
@@ -521,7 +576,7 @@ body.popup-open {
 .rating,
 .despair-rating {
   display: flex;
-  gap: 0.2rem; /* Space between icons */
+  gap: 0.1rem; /* Space between icons */
 }
 
 .rating-star {
@@ -543,10 +598,6 @@ body.popup-open {
     transform 0.2s ease;
 }
 
-/* 
-  This is the core of the new logic.
-  Each rule targets an icon with a specific data-value ONLY when it is selected.
-*/
 .despair-icon[data-value="1"][data-selected="true"] {
   color: var(--despair-icon-1);
 }
@@ -574,22 +625,7 @@ body.popup-open {
   transform: rotate(180deg);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-top: auto;
-}
-
 .card-footer {
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  width: 100%;
-}
-
-.card-footer-alt {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -599,7 +635,7 @@ body.popup-open {
 .tag-footer {
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
+  justify-content: space-between;
   width: 100%;
   margin: 0.5rem;
   /*border-bottom: 1px solid var(--lightest-gray);*/
@@ -677,7 +713,7 @@ body.popup-open {
 
 .add-tag-btn:hover,
 .add-btn:not(:disabled):hover {
-  background-color: var(--acid-orange);
+  background-color: var(--bookmouse-yellow);
   color: var(--white);
 }
 
@@ -756,13 +792,13 @@ body.popup-open {
   padding: 0.5rem 0.7rem;
   margin: 0.2rem;
   background: var(--bookmouse-yellow);
-  color: var(--white);
+  color: white;
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
 
 .tag-cloud-btn:hover {
-  background-color: var(--bookmouse-yellow);
+  background-color: var(--dark-yellow);
   color: var(--medium-gray);
 }
 
@@ -782,7 +818,7 @@ body.popup-open {
 }
 
 .add-cancel-button button:hover {
-  background-color: var(--medium-gray);
+  background-color: var(--light-gray);
   color: var(--white);
 }
 
@@ -812,7 +848,7 @@ body.popup-open {
 }
 
 /* ============================================= */
-/* === ADD BOOK POPUP STYLING === */
+/* === ADD NEW BOOK POPUP STYLING === */
 /* ============================================= */
 
 /* Make the popup content a flex column */
@@ -822,15 +858,17 @@ body.popup-open {
   height: 100%; /* Ensure it fills the wrapper */
   max-height: 550px;
   width: 265px;
+  gap: 0.8rem;
 }
 
 /* Allow the main area with inputs to grow */
 #addBookPopup .popup-content h3 {
-  flex-shrink: 0; /* Prevent the title from shrinking */
+  flex-shrink: 0;
 }
 
 /* Style for all input types within the popup */
-#addBookPopup .popup-content input {
+#addBookPopup .popup-content input,
+#addBookPopup .popup-content textarea {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid #ddd;
@@ -842,6 +880,21 @@ body.popup-open {
   transition:
     border-color 0.3s,
     box-shadow 0.3s;
+}
+
+/* review and quote boxes specifically */
+#addBookPopup #addQuote,
+#addBookPopup #addReview {
+  min-height: 80px;
+  resize: vertical;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  scrollbar-width: none;
+}
+
+#addBookPopup #addQuote::-webkit-scrollbar,
+#addBookPopup #addReview::-webkit-scrollbar {
+  display: none;
 }
 
 /* Hover and focus effects for inputs */
@@ -870,6 +923,22 @@ body.popup-open {
 
 #addBookPopup .popup-action-buttons {
   margin-left: auto; /* Push confirm button to the right */
+}
+
+/* Rating input on Add New Book card */
+.add-book-rating-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 2.5rem 0 2.5rem;
+}
+
+.add-book-rating-bar label {
+  color: var(--dark-orange);
+  font-family: "raleway", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 /* =================================== */
@@ -901,11 +970,6 @@ body.popup-open {
   scrollbar-width: none; /* Firefox */
 }
 
-.quicklist-content::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
-}
-
 /* List items are left-aligned and spaced */
 .quicklist-item {
   margin-bottom: 1rem;
@@ -914,7 +978,7 @@ body.popup-open {
   text-align: left;
 }
 
-/* Style the new '+' button in the header */
+/* Style the + button in the header */
 .add-to-list-btn {
   background-color: var(--bookmouse-yellow);
   color: white;
@@ -946,17 +1010,23 @@ body.popup-open {
 /* The form itself */
 .add-to-list-form {
   display: flex;
-  flex-wrap: wrap; /* --- THIS IS THE FIX --- Allows items to wrap */
+  flex-wrap: wrap;
   gap: 0.5rem;
   width: 100%;
 }
 
 .add-to-list-form input {
-  flex-grow: 1; /* Allow inputs to take up available space */
+  flex-grow: 1;
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 0.9rem;
+}
+
+.add-to-list-form input:focus {
+  background-color: #f0f8ff;
+  border-color: var(--light-teal);
+  outline: none;
 }
 
 .add-to-list-form button {
@@ -974,6 +1044,10 @@ body.popup-open {
   cursor: not-allowed;
 }
 
+.quicklist-content::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
 /* Mousekeeping text */
 .toast-message {
   position: fixed;
