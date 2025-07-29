@@ -1,9 +1,9 @@
-// coverAPI.js
-// Array of placeholder images. Replace these with your actual image URLs.
+// Array of placeholder images
+
 const placeholderImages = [
-"https://fangsfangsfangs.github.io/book-friend/img/placeholder-1.jpg",
-"https://fangsfangsfangs.github.io/book-friend/img/placeholder-2.jpg",
-"https://fangsfangsfangs.github.io/book-friend/img/placeholder-3.jpg"
+  "https://fangsfangsfangs.github.io/book-friend/img/placeholder-1.jpg",
+  "https://fangsfangsfangs.github.io/book-friend/img/placeholder-2.jpg",
+  "https://fangsfangsfangs.github.io/book-friend/img/placeholder-3.jpg"
 ];
 
 export function getRandomPlaceholder() {
@@ -11,10 +11,6 @@ export function getRandomPlaceholder() {
   return placeholderImages[randomIndex];
 }
 
-/**
- * Check if an image URL exists by sending a HEAD request.
- * Returns true if response is ok, else false.
- */
 export async function imageExists(url) {
   try {
     const res = await fetch(url, { method: "HEAD" });
@@ -24,15 +20,8 @@ export async function imageExists(url) {
   }
 }
 
-/**
- * Fetch a cover image URL from OpenLibrary given book info.
- * Implements caching to localStorage to reduce API calls.
- * Tries multiple strategies:
- *   1. Search by title + author, use cover_i if present
- *   2. Search by ISBNs in search results (parallel check)
- *   3. Direct fetch by provided ISBN
- * Returns cover URL string or null if none found.
- */
+/*** Fetch a cover image URL from OpenLibrary given book info ***/
+
 export async function fetchOpenLibraryCover(title, author, isbn) {
   // Normalize inputs & cache key
   if (!title || !author) {
@@ -103,24 +92,16 @@ export async function fetchOpenLibraryCover(title, author, isbn) {
   return null;
 }
 
-/**
- * Get cover URL for a book object.
- * Uses OpenLibrary fetch first, then fallback to book.cover,
- * then placeholder image.
- * Validates fallback cover URL existence.
- */
 export async function getCoverUrl(book) {
   if (!book) {
     console.warn("getCoverUrl: Missing book object");
-// Inside getCoverUrl()
-return getRandomPlaceholder();
+
+    return getRandomPlaceholder();
   }
 
-  // Try OpenLibrary cover first
   const openLibCover = await fetchOpenLibraryCover(book.title, book.author, book.isbn);
   if (openLibCover) return openLibCover;
 
-  // Validate fallback book.cover URL before returning
   if (book.cover?.trim()) {
     const fallbackCover = book.cover.trim();
     if (await imageExists(fallbackCover)) {
@@ -131,21 +112,16 @@ return getRandomPlaceholder();
     }
   }
 
-  // Fallback to placeholder image
-// Inside getCoverUrl()
-return getRandomPlaceholder();
+  return getRandomPlaceholder();
 }
 
-/**
- * Fetches a synopsis from Google Books API.
- * @param {string} title The book title.
- * @param {string} author The book author.
- * @returns {Promise<string|null>} The synopsis text or null.
- */
+/*** Fetches a synopsis from Google Books API ***/
 async function fetchGoogleBooksSynopsis(title, author) {
   if (!title || !author) return null;
   try {
-    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}`);
+    const response = await fetch(
+      `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}`
+    );
     const data = await response.json();
     if (data.items && data.items.length > 0) {
       const book = data.items[0];
@@ -186,12 +162,20 @@ async function fetchOpenLibrarySynopsis(title, author) {
           const redirectedResponse = await fetch(workResponse.url);
           const workData = await redirectedResponse.json();
           console.log("Found synopsis via Open Library (after redirect).");
-          return workData.description ? (typeof workData.description === 'string' ? workData.description : workData.description.value) : null;
+          return workData.description
+            ? typeof workData.description === "string"
+              ? workData.description
+              : workData.description.value
+            : null;
         }
 
         const workData = await workResponse.json();
         console.log("Found synopsis via Open Library.");
-        return workData.description ? (typeof workData.description === 'string' ? workData.description : workData.description.value) : null;
+        return workData.description
+          ? typeof workData.description === "string"
+            ? workData.description
+            : workData.description.value
+          : null;
       }
     }
     return null;
@@ -201,12 +185,8 @@ async function fetchOpenLibrarySynopsis(title, author) {
   }
 }
 
-/**
- * Main synopsis fetching function. Tries Google Books first, then Open Library.
- * @param {string} title The book title.
- * @param {string} author The book author.
- * @returns {Promise<string|null>} The synopsis text or a default message.
- */
+/** Main synopsis fetching function **/
+
 export async function fetchSynopsis(title, author) {
   const googleSynopsis = await fetchGoogleBooksSynopsis(title, author);
   if (googleSynopsis) {
@@ -222,27 +202,19 @@ export async function fetchSynopsis(title, author) {
   return "No synopsis available.";
 }
 
-/**
- * Clears all known cache items (covers, synopses, etc.) from localStorage.
- * It intelligently removes only keys that start with the app's known prefixes.
- * @returns {number} The total number of items cleared from the cache.
- */
+/** Clears all known cache items (covers, synopses, etc.) from localStorage**/
 export function clearApiCache() {
-  const prefixes = ['cover_', 'synopsis_', 'workkey_', 'subjects_'];
+  const prefixes = ["cover_", "synopsis_", "workkey_", "subjects_"];
   let clearedCount = 0;
 
-  // We have to loop backwards when removing items from a collection
-  // or create a list of keys to remove first.
   const keysToRemove = [];
 
   for (const key in localStorage) {
-    // Check if the key in localStorage starts with any of our known prefixes
-    if (prefixes.some(prefix => key.startsWith(prefix))) {
+    if (prefixes.some((prefix) => key.startsWith(prefix))) {
       keysToRemove.push(key);
     }
   }
 
-  // Now, iterate over the list of keys to remove
   for (const key of keysToRemove) {
     localStorage.removeItem(key);
     clearedCount++;
@@ -253,15 +225,7 @@ export function clearApiCache() {
 }
 
 // --- ISBN FETCHING HELPER ---
-// In coverAPI.js, replace the old function with this definitive one.
 
-/**
- * Fetches an ISBN from OpenLibrary by specifically requesting the ISBN field
- * and then searching the results for a valid ISBN-13 or ISBN-10.
- * @param {string} title - The title of the book.
- * @param {string} author - The author of the book.
- * @returns {Promise<string|null>} A promise that resolves to an ISBN string or null.
- */
 export async function fetchIsbn(title, author) {
   if (!title || !author) {
     console.warn("fetchIsbn called with missing title or author.");
@@ -273,7 +237,7 @@ export async function fetchIsbn(title, author) {
     title: title,
     author: author,
     // THIS IS THE CRITICAL FIX: Explicitly request the ISBN field.
-    fields: '*,isbn' 
+    fields: "*,isbn"
   });
 
   const url = `https://openlibrary.org/search.json?${params.toString()}`;
@@ -302,9 +266,8 @@ export async function fetchIsbn(title, author) {
     for (const doc of data.docs) {
       // Because we requested the 'isbn' field, we can now reliably check for it.
       if (doc.isbn && Array.isArray(doc.isbn) && doc.isbn.length > 0) {
-
         // Prioritize finding a valid ISBN-13 (the modern standard).
-        const isbn13 = doc.isbn.find(id => typeof id === 'string' && id.length === 13 && /^\d+$/.test(id));
+        const isbn13 = doc.isbn.find((id) => typeof id === "string" && id.length === 13 && /^\d+$/.test(id));
         if (isbn13) {
           console.log(`Success! Found ISBN-13: ${isbn13}`);
           return isbn13; // Return immediately with the best result.
@@ -313,7 +276,7 @@ export async function fetchIsbn(title, author) {
         // If no ISBN-13, look for a valid ISBN-10 as a fallback.
         // We store it but don't return immediately, in case a later result has an ISBN-13.
         if (!foundIsbn10) {
-          const isbn10 = doc.isbn.find(id => typeof id === 'string' && id.length === 10 && /^\d{9}[\dX]$/i.test(id));
+          const isbn10 = doc.isbn.find((id) => typeof id === "string" && id.length === 10 && /^\d{9}[\dX]$/i.test(id));
           if (isbn10) {
             foundIsbn10 = isbn10;
           }
@@ -330,7 +293,6 @@ export async function fetchIsbn(title, author) {
     // If we get here, no valid ISBN was found in any of the results.
     console.log("Searched all results, but no valid ISBN was found.");
     return null;
-
   } catch (error) {
     console.error("Error fetching ISBN from Open Library:", error);
     return null;
