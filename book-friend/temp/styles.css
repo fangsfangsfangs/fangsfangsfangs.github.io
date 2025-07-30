@@ -1058,8 +1058,8 @@ body.popup-open {
   left: 50%;
   transform: translateX(-50%) translateY(100%);
   background: #ffffff;
-  color: var(--bright-teal);
-  border: 2px dotted var(--bright-teal);
+  color: var(--medium-teal);
+  border: 2px double var(--bright-teal);
   padding: 20px 20px;
   border-radius: 30px;
   opacity: 0;
@@ -1081,7 +1081,6 @@ body.popup-open {
 }
 
 /* MOUSEKEEPING glitter rain */
-.glitter-overlay,
 #glitterOverlay {
   position: absolute;
   top: 0;
