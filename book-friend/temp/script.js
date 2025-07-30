@@ -446,7 +446,7 @@ async function renderSingleCard(book) {
 
   const cardHTML = `
     <div class="card-header-delete">
-  <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="trash-2"></i></button>
+  <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="minus"></i></button>
   <button data-close class="header-btn close-icon-btn" title="Close"><i data-lucide="x"></i></button>
 </div>
 <div class="book-card-content">
@@ -722,7 +722,7 @@ async function renderToReadCard(book) {
   const coverSrc = await getCoverUrl(book);
   const cardHTML = `
     <div class="card-header-delete">
-  <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="trash-2"></i></button>
+  <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="minus"></i></button>
   <button data-close class="header-btn close-icon-btn" title="Close"><i data-lucide="x"></i></button>
 </div>
     <div class="book-card-content">
@@ -821,7 +821,7 @@ async function renderGraveyardCard(book) {
 
   const cardHTML = `
     <div class="card-header-delete">
-      <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="trash-2"></i></button>
+      <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="minus"></i></button>
       <button data-close class="header-btn close-icon-btn" title="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="book-card-content">
