@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>bookmouse</title>
     <link rel="icon" href="https://fangsfangsfangs.github.io/book-friend/img/favicon.ico" type="image/x-icon" />
+    
     <!-- ====================FONT IMPORT========================= -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,9 +18,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   </head>
   <body>
+    
     <!-- ============================================= -->
     <!-- === START OF THE MAIN APP CONTAINER === -->
-    <!-- Everything that should be DISABLED when a popup is open goes in here. -->
     <div id="app-container">
       <!-- Fixed toolbar -->
       <div id="fixedToolbar" class="icon-bar fixed-toolbar">
@@ -41,11 +42,12 @@
       <!-- Add new book button - MOVED INSIDE app-container -->
       <button id="addBookBtn" title="Add New Book"><i data-lucide="plus"></i></button>
     </div>
+    
     <!-- === END OF THE MAIN APP CONTAINER === -->
     <!-- ============================================= -->
+    
     <!-- ============================================= -->
     <!-- === START OF THE POPUP CONTAINER === -->
-    <!-- All popups and overlays live here, outside the main app. -->
     <div id="popup-container">
       <!-- BG Dimming effect -->
       <div id="dimOverlay" class="dim-overlay hidden"></div>
@@ -107,10 +109,10 @@
     <!-- === END OF THE POPUP CONTAINER === -->
     <!-- ============================================= -->
 
-    <!-- Glitter overlay can stay outside as it's purely decorative -->
+    <!-- Glitter overlay -->
     <div id="glitterOverlay" class="glitter-overlay"></div>
 
-    <!-- Scripts remain at the bottom -->
+    <!-- Scripts -->
     <script>
       lucide.createIcons();
     </script>
