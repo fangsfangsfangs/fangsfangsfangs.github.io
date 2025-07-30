@@ -4,67 +4,96 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>bookmouse</title>
-    <link rel="icon" href="https://fangsfangsfangs.github.io/book-friend/favicon.ico" type="image/x-icon" />
-    <!-- ====================FONT IMPORT========================= -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://fangsfangsfangs.github.io/book-friend/img/favicon.ico" type="image/x-icon" />
     
+    <!-- ====================FONT IMPORT========================= -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet" />
+
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   </head>
   <body>
-
+    
     <!-- ============================================= -->
     <!-- === START OF THE MAIN APP CONTAINER === -->
     <div id="app-container">
       <!-- Fixed toolbar -->
       <div id="fixedToolbar" class="icon-bar fixed-toolbar">
-          <button id="logoBtn" class="toolbar-logo-btn" title="Mousekeeping">
-            <img src="https://fangsfangsfangs.github.io/book-friend/bookmouse1-logo.png" alt="Logo" class="toolbar-logo" />
-          </button>
-          <button id="homeBtn" title="welcome home"><i data-lucide="home"></i></button>
-          <button id="showToReadBtn" title="to-read"><i data-lucide="notebook-pen"></i></button>
-          <button id="favoritesBtn" title="faves"><i data-lucide="book-heart"></i></button>
-          <button id="graveyardBtn" title="unfinished business"><i data-lucide="book-marked"></i></button>
-          <button id="showReadBtn" title="quick list"><i data-lucide="bookmark-plus"></i></button>
+        <button id="logoBtn" class="toolbar-logo-btn" title="Mousekeeping">
+          <img
+            src="https://fangsfangsfangs.github.io/book-friend/img/bookmouse1-logo.png"
+            alt="Logo"
+            class="toolbar-logo" />
+        </button>
+        <button id="homeBtn" title="welcome home"><i data-lucide="home"></i></button>
+        <button id="showToReadBtn" title="to-read"><i data-lucide="notebook-pen"></i></button>
+        <button id="favoritesBtn" title="faves"><i data-lucide="book-heart"></i></button>
+        <button id="graveyardBtn" title="unfinished business"><i data-lucide="book-marked"></i></button>
+        <button id="showReadBtn" title="quick list"><i data-lucide="bookmark-plus"></i></button>
       </div>
-      <!-- Grid view -->
+
+      <!-- Grid view - MOVED INSIDE app-container -->
       <div id="gridView" class="grid-area"></div>
-      <!-- Add new book button -->
+      <!-- Add new book button - MOVED INSIDE app-container -->
       <button id="addBookBtn" title="Add New Book"><i data-lucide="plus"></i></button>
     </div>
+    
     <!-- === END OF THE MAIN APP CONTAINER === -->
     <!-- ============================================= -->
-
-
+    
     <!-- ============================================= -->
     <!-- === START OF THE POPUP CONTAINER === -->
     <div id="popup-container">
       <!-- BG Dimming effect -->
       <div id="dimOverlay" class="dim-overlay hidden"></div>
-      
+
       <!-- Transparent container for book card popups -->
       <div id="BookCardpopup" class="popup-wrapper hidden">
         <div id="bookCard" class="book-card">
           <!-- Content is injected by JS -->
         </div>
       </div>
-      
+
       <!-- Add new book popup -->
       <div id="addBookPopup" class="popup-wrapper hidden">
         <div class="popup-content book-card">
+          <div class="card-header">
+            <button id="closePopupBtn" class="header-btn close-icon-btn" title="Close"><i data-lucide="x"></i></button>
+          </div>
           <h3>Add a New Book</h3>
-          <input placeholder="Title" id="addTitle" class="title-input" />
-          <input placeholder="Author" id="addAuthor" class="author-input" />
-          <input placeholder="Quote" id="addQuote" />
-          <input placeholder="Review" id="addReview" />
-          <input type="number" placeholder="Rating" id="addRating" />
-          <input type="number" placeholder="Despair Level" id="addDespair" />
+          <input placeholder="Title" id="addTitle" />
+          <input placeholder="Author" id="addAuthor" />
+          <textarea placeholder="Quote" id="addQuote" rows="3"></textarea>
+          <textarea placeholder="Thoughts..." id="addReview" rows="4"></textarea>
           <input placeholder="Tags (comma-separated)" id="addTags" />
-          <input placeholder="ISBN" id="addIsbn" class="isbn-input" />
-          <button class="find-isbn-btn special-btn">Find ISBN</button>
+          <input placeholder="ISBN (manual)" id="addIsbn" />
+          <div class="add-book-rating-bar">
+            <label>Rating:</label>
+            <div id="addBookRating" class="rating">
+              <span class="rating-icon rating-star" data-value="1">☆</span>
+              <span class="rating-icon rating-star" data-value="2">☆</span>
+              <span class="rating-icon rating-star" data-value="3">☆</span>
+              <span class="rating-icon rating-star" data-value="4">☆</span>
+              <span class="rating-icon rating-star" data-value="5">☆</span>
+            </div>
+          </div>
+          <div class="add-book-rating-bar">
+            <label>Despair level:</label>
+            <div id="addBookDespair" class="despair-rating">
+              <span class="rating-icon despair-icon" data-value="1"><i data-lucide="smile"></i></span>
+              <span class="rating-icon despair-icon" data-value="2"><i data-lucide="meh"></i></span>
+              <span class="rating-icon despair-icon" data-value="3"><i data-lucide="frown"></i></span>
+              <span class="rating-icon despair-icon" data-value="4"
+                ><i data-lucide="smile" class="upside-down"></i
+              ></span>
+              <span class="rating-icon despair-icon" data-value="5"><i data-lucide="skull"></i></span>
+            </div>
+          </div>
           <div class="popup-buttons">
             <div class="popup-footer-container">
               <div id="addFavoriteHeart" class="favorite-heart" title="Toggle Favorite">❤</div>
@@ -72,7 +101,6 @@
               <div class="popup-action-buttons">
                 <button id="addBookConfirm" class="special-btn">Add</button>
               </div>
-              <button class="close-btn" id="closePopupBtn">×</button>
             </div>
           </div>
         </div>
@@ -81,10 +109,10 @@
     <!-- === END OF THE POPUP CONTAINER === -->
     <!-- ============================================= -->
 
-    <!-- Glitter overlay can stay outside as it's purely decorative -->
+    <!-- Glitter overlay -->
     <div id="glitterOverlay" class="glitter-overlay"></div>
-    
-    <!-- Scripts remain at the bottom -->
+
+    <!-- Scripts -->
     <script>
       lucide.createIcons();
     </script>
@@ -92,11 +120,10 @@
     <script>
       function setVh() {
         let vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        document.documentElement.style.setProperty("--vh", `${vh}px`);
       }
       setVh();
-      window.addEventListener('resize', setVh);
+      window.addEventListener("resize", setVh);
     </script>
-
   </body>
 </html>
