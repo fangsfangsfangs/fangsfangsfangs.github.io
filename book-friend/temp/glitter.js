@@ -18,11 +18,11 @@ export function rainGlitter(count = 50) {
 
   setTimeout(() => {
     overlay.innerHTML = "";
-  }, 2000);
+  }, 5000);
 }
 
 // --- TOAST ---
-export function showToast(message, duration = 5000) {
+export function showToast(message, duration = 6000) {
   let toast = document.createElement("div");
   toast.className = "toast-message";
   toast.textContent = message;
