@@ -11,7 +11,7 @@ body {
 }
 
 h3 {
-  font-family: 'Quicksand', sans-serif;
+  font-family: "Quicksand", sans-serif;
   color: var(--dark-orange);
   margin-top: 0;
   font-weight: 600;
@@ -28,27 +28,6 @@ body.popup-open {
 
 .hidden {
   display: none !important;
-}
-
-/* Auth Modal Specific Styles */
-#authModal .popup-content {
-  max-width: 400px; /* A good width for a login form */
-  text-align: center;
-}
-
-#authModal input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-}
-
-#authModal .popup-buttons {
-  display: flex;
-  justify-content: space-around; /* Space out the login/signup buttons */
-  margin-top: 15px;
 }
 
 /* ====== Grid CSS ====== */
@@ -108,22 +87,65 @@ body.popup-open {
 
 /* Optional: make the logo "light up" on hover */
 .toolbar-logo-btn:hover .toolbar-logo {
-  content: url("https://fangsfangsfangs.github.io/book-friend/bookmouse1-hover.png");
+  content: url("https://fangsfangsfangs.github.io/book-friend/img/bookmouse1-hover.png");
 }
 
-/* Close button for overlay and popup cards */
-.close-btn {
-  font-size: 2rem;
+/* --- CLOSE AND DELETE BUTTONS  --- */
+.card-header-delete {
+  position: absolute; /* Position relative to the .book-card */
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* Pushes delete to left, close to right */
+  align-items: center;
+  padding: 0.4rem 0.8rem; /* Adjust padding as needed */
+  box-sizing: border-box;
+  z-index: 10; /* Ensure it's above other card content */
+}
+
+.card-header {
   position: absolute;
-  top: 0.1rem;
-  right: 0.5rem;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  box-sizing: border-box;
+  z-index: 10; /* Ensure it's above other card content */
+}
+
+/* Base style for header buttons */
+.header-btn {
   background: none;
-  border-radius: 10px;
   border: none;
   cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--light-gray);
   transition: color 0.3s ease;
-  z-index: 1000;
+}
+
+.header-btn i {
+  width: 24px; /* Consistent icon size */
+  height: 24px;
+}
+
+.header-btn svg {
+  stroke-width: 2.5;
+}
+
+.header-btn:hover {
+  color: var(--acid-orange);
+}
+
+/* Specific hover color for delete button */
+.delete-btn:hover {
+  color: var(--acid-orange);
 }
 
 .close-btn:hover,
@@ -139,7 +161,7 @@ body.popup-open {
   gap: 1rem;
   padding: 1rem;
 
-/* These height and scroll rules are correct and remain */
+  /* These height and scroll rules are correct and remain */
   flex-grow: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -176,23 +198,23 @@ body.popup-open {
 /* cover images on to-read cards */
 .cover-container {
   width: 260px;
-  max-width: 260px; 
-  aspect-ratio: 2 / 3; 
-  margin-bottom: 1rem; 
+  max-width: 260px;
+  aspect-ratio: 2 / 3;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  position: relative; 
+
+  position: relative;
 }
 
 .cover-container img {
   width: 100%;
-  height: 100%; 
+  height: 100%;
   object-fit: cover;
   background: url("https://fangsfangsfangs.github.io/book-friend/cover-skeleton.svg") no-repeat center / cover;
   border-radius: 8px;
-  display: block; 
+  display: block;
 }
 
 /* --- Media Queries for Larger Screens (Optional but Recommended) --- */
@@ -234,7 +256,7 @@ body.popup-open {
   height: 550px;
   width: 265px;
   gap: 1rem;
-  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  padding: 2.5rem 1rem 1rem 1rem;
   border-radius: 10px;
   box-shadow: 0 4px 10px #424242;
 }
@@ -246,12 +268,12 @@ body.popup-open {
   flex-direction: column;
   align-items: center;
   overflow-x: hidden;
-  overflow-y:auto; 
+  overflow-y: auto;
   box-sizing: border-box;
   word-wrap: break-word;
   word-break: break-word;
   min-height: 0;
-  flex-grow:1;
+  flex-grow: 1;
 }
 
 .book-card-content * {
@@ -299,15 +321,15 @@ body.popup-open {
 }
 
 .title {
- font-family: 'Raleway', sans-serif;
-  margin-top: 1.5rem;
+  font-family: "Raleway", sans-serif;
+  margin-top: 0.5rem;
   font-weight: 700;
   font-size: 1.4rem;
   color: var(--darkest-gray);
 }
 
 .author {
- font-family: 'Raleway', sans-serif;
+  font-family: "Raleway", sans-serif;
   font-weight: 400;
   font-style: italic;
   color: var(--light-gray);
@@ -326,40 +348,52 @@ body.popup-open {
 
 .quote-box {
   display: flex;
-  justify-content: center;
   background-color: var(--whisper-gray);
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0.2rem 1rem 0.2rem;
   border-radius: 10px;
+  margin: 0.5rem;
   max-width: 95%;
+  max-height: 100px;
+  overflow-y: auto;
+
   box-sizing: border-box;
   gap: 0.5rem;
-  margin: 0.5rem;
+
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
 }
 
 .quote-text {
-  flex: 1; 
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 0.5rem;
   text-align: center;
+  align-content: center;
   font-style: italic;
-  font-family: 'Quicksand', sans-serif;
+  font-family: "Quicksand", sans-serif;
   font-weight: 500;
   font-size: 0.95rem;
   color: var(--darkest-gray);
 
-  white-space: pre-wrap;   /* Allows wrapping and preserves line breaks */
-  word-break: break-word;  /* Prevents long words from overflowing */
-  min-width: 0;            /* A crucial flexbox fix for preventing overflow */
+  white-space: pre-wrap; /* Allows wrapping and preserves line breaks */
+  word-break: break-word; /* Prevents long words from overflowing */
+  min-width: 0; /* A crucial flexbox fix for preventing overflow */
 }
 
 .quote-icon {
-  width: 18px;
-  height: 18px;
-  color: var(--dark-teal);
-  flex-shrink: 0;
+  width: 20px;
+  color: var(--dark-gray);
 }
 
 .quote-icon.close-quote {
   transform: scaleX(-1);
+  align-self: flex-start;
+}
+
+.quote-icon.open-quote {
+  align-self: flex-end;
 }
 
 .editable.editing {
@@ -367,7 +401,6 @@ body.popup-open {
   user-select: text;
   pointer-events: auto;
   background-color: #f2f2f2;
-
 }
 
 .review-box {
@@ -378,11 +411,11 @@ body.popup-open {
   border-radius: 8px;
   width: 100%;
   box-sizing: border-box; /* Ensures width: 100% is absolute */
-  padding: 0; 
-  margin-top: 0.5rem; 
+  padding: 0;
+  margin-top: 0.5rem;
   flex: 1;
-  min-height: 120px; 
-  max-height: 250px; 
+  min-height: 120px;
+  max-height: 260px;
 }
 
 .review-box:focus-within {
@@ -391,24 +424,24 @@ body.popup-open {
 
 #reviewEditable {
   width: 100%;
-  padding: 12px; 
-  
+  padding: 12px;
+
   /* Text and wrapping properties */
   font-size: 0.9rem;
-  font-family: 'Raleway', sans-serif;
+  font-family: "Raleway", sans-serif;
   font-weight: 550;
   line-height: 1.3;
-  text-align: left; 
+  text-align: left;
   white-space: pre-wrap;
-  overflow-wrap: break-word; 
+  overflow-wrap: break-word;
 
   /* Scrolling and appearance */
-  overflow-y: auto; 
+  overflow-y: auto;
   background-color: transparent;
   border-radius: 8px;
   box-sizing: border-box;
   outline: none;
-  
+
   /* Hide the scrollbar */
   scrollbar-width: none; /* For Firefox */
 }
@@ -431,7 +464,7 @@ body.popup-open {
 
   /* This centers the book card inside */
   display: flex;
-  align-items: flex-start; 
+  align-items: flex-start;
   justify-content: center;
   padding-top: 5vh;
   /* It sits on top of the dimming overlay */
@@ -439,7 +472,8 @@ body.popup-open {
 }
 
 /* The separate dim overlay for the book cards */
-.dim-overlay, #addBookPopup {
+.dim-overlay,
+#addBookPopup {
   position: fixed;
   top: 0;
   left: 0;
@@ -515,12 +549,12 @@ body.popup-open {
   transition: color 0.3s ease;
 }
 
+/* Rating input on main card */
 .rating-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 95%;
-  margin: 0.5rem; 
 }
 
 /* UNIVERSAL CLASS for all rating icons */
@@ -528,18 +562,21 @@ body.popup-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem; /* Standardized size */
+  font-size: 1.75rem; /* Standardized size */
   cursor: pointer;
   user-select: none;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
 }
 .rating-icon:hover {
   transform: scale(1.2);
 }
 
-.rating, .despair-rating {
+.rating,
+.despair-rating {
   display: flex;
-  gap: 0.2rem; /* Space between icons */
+  gap: 0.1rem; /* Space between icons */
 }
 
 .rating-star {
@@ -549,20 +586,18 @@ body.popup-open {
   color: var(--bookmouse-yellow);
 }
 .rating-star:hover {
-   color: var(--dark-yellow);
+  color: var(--dark-yellow);
 }
 
 /* --- Despair Icon Styling --- */
 
 .despair-icon {
   color: #e0e0e0; /* The color for all unselected icons */
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-/* 
-  This is the core of the new logic.
-  Each rule targets an icon with a specific data-value ONLY when it is selected.
-*/
 .despair-icon[data-value="1"][data-selected="true"] {
   color: var(--despair-icon-1);
 }
@@ -590,22 +625,7 @@ body.popup-open {
   transform: rotate(180deg);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-top: auto;
-}
-
 .card-footer {
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  width: 100%;
-}
-
-.card-footer-alt {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -615,7 +635,7 @@ body.popup-open {
 .tag-footer {
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
+  justify-content: space-between;
   width: 100%;
   margin: 0.5rem;
   /*border-bottom: 1px solid var(--lightest-gray);*/
@@ -646,7 +666,7 @@ body.popup-open {
   background: var(--bookmouse-yellow);
   color: var(--white);
   font-size: 0.8rem;
-  font-family: 'raleway', sans-serif;
+  font-family: "raleway", sans-serif;
   font-weight: 600;
   transition: background-color 0.3s ease;
 }
@@ -658,7 +678,8 @@ body.popup-open {
 
 /* ===== Base Tag/Button Styles ===== */
 
-.add-tag-btn, .add-btn {
+.add-tag-btn,
+.add-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -690,8 +711,9 @@ body.popup-open {
   transition: background-color 0.3s ease;
 }
 
-.add-tag-btn:hover, .add-btn:not(:disabled):hover {
-  background-color: var(--acid-orange);
+.add-tag-btn:hover,
+.add-btn:not(:disabled):hover {
+  background-color: var(--bookmouse-yellow);
   color: var(--white);
 }
 
@@ -727,11 +749,11 @@ body.popup-open {
   flex-direction: column;
   gap: 1rem;
   text-align: center;
-  position: fixed; 
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10000; 
+  z-index: 10000;
 }
 
 /* ===== Add a Tag header =====*/
@@ -754,8 +776,8 @@ body.popup-open {
 }
 
 .tag-input-popup input[type="text"]:focus {
-  border-color: var(--lightest-gray);
-  background-color: var(--whisper-gray);
+  border-color: var(--whisper-gray);
+  background-color: #f9f5ec;
 }
 
 .tag-cloud-btn {
@@ -770,13 +792,13 @@ body.popup-open {
   padding: 0.5rem 0.7rem;
   margin: 0.2rem;
   background: var(--bookmouse-yellow);
-  color: var(--white);
+  color: white;
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
 
 .tag-cloud-btn:hover {
-  background-color: var(--bookmouse-yellow);
+  background-color: var(--dark-yellow);
   color: var(--medium-gray);
 }
 
@@ -796,7 +818,7 @@ body.popup-open {
 }
 
 .add-cancel-button button:hover {
-  background-color: var(--medium-gray);
+  background-color: var(--light-gray);
   color: var(--white);
 }
 
@@ -826,7 +848,7 @@ body.popup-open {
 }
 
 /* ============================================= */
-/* === ADD BOOK POPUP STYLING === */
+/* === ADD NEW BOOK POPUP STYLING === */
 /* ============================================= */
 
 /* Make the popup content a flex column */
@@ -836,24 +858,43 @@ body.popup-open {
   height: 100%; /* Ensure it fills the wrapper */
   max-height: 550px;
   width: 265px;
+  gap: 0.8rem;
 }
 
 /* Allow the main area with inputs to grow */
 #addBookPopup .popup-content h3 {
-  flex-shrink: 0; /* Prevent the title from shrinking */
+  flex-shrink: 0;
 }
 
 /* Style for all input types within the popup */
-#addBookPopup .popup-content input {
-  width: 100%; 
-  padding: 8px 10px; 
-  border: 1px solid #ddd; 
-  border-radius: 8px; 
-  background-color: var( --whisper-gray); 
-  font-family: 'raleway', sans-serif; 
-  font-size: 0.9rem;
+#addBookPopup .popup-content input,
+#addBookPopup .popup-content textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: var(--whisper-gray);
+  font-family: "raleway", sans-serif;
+  font-size: 0.8rem;
   box-sizing: border-box;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+
+/* review and quote boxes specifically */
+#addBookPopup #addQuote,
+#addBookPopup #addReview {
+  min-height: 80px;
+  resize: vertical;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  scrollbar-width: none;
+}
+
+#addBookPopup #addQuote::-webkit-scrollbar,
+#addBookPopup #addReview::-webkit-scrollbar {
+  display: none;
 }
 
 /* Hover and focus effects for inputs */
@@ -863,8 +904,8 @@ body.popup-open {
 
 #addBookPopup .popup-content input:focus {
   outline: none;
-  border-color: #909090;
-  box-shadow: 0 4px 10px #424242;
+  border-color: var(--light-gray);
+  box-shadow: 0 2px 5px var(--medium-gray);
 }
 
 /* Specific adjustments for buttons if needed */
@@ -874,14 +915,30 @@ body.popup-open {
 }
 
 #addBookPopup .popup-footer-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
 }
 
 #addBookPopup .popup-action-buttons {
-    margin-left: auto; /* Push confirm button to the right */
+  margin-left: auto; /* Push confirm button to the right */
+}
+
+/* Rating input on Add New Book card */
+.add-book-rating-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 2.5rem 0 2.5rem;
+}
+
+.add-book-rating-bar label {
+  color: var(--dark-orange);
+  font-family: "raleway", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 /* =================================== */
@@ -889,9 +946,8 @@ body.popup-open {
 /* =================================== */
 
 /* Optional header styling */
-/* Optional header styling */
 .quicklist-header {
-  font-family: 'Quicksand', sans-serif;
+  font-family: "Quicksand", sans-serif;
   width: 90%;
   display: flex;
   gap: 1rem; /* gap between button and header */
@@ -914,11 +970,6 @@ body.popup-open {
   scrollbar-width: none; /* Firefox */
 }
 
-.quicklist-content::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
-}
-
 /* List items are left-aligned and spaced */
 .quicklist-item {
   margin-bottom: 1rem;
@@ -927,7 +978,7 @@ body.popup-open {
   text-align: left;
 }
 
-/* Style the new '+' button in the header */
+/* Style the + button in the header */
 .add-to-list-btn {
   background-color: var(--bookmouse-yellow);
   color: white;
@@ -959,17 +1010,23 @@ body.popup-open {
 /* The form itself */
 .add-to-list-form {
   display: flex;
-  flex-wrap: wrap; /* --- THIS IS THE FIX --- Allows items to wrap */
+  flex-wrap: wrap;
   gap: 0.5rem;
   width: 100%;
 }
 
 .add-to-list-form input {
-  flex-grow: 1; /* Allow inputs to take up available space */
+  flex-grow: 1;
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 0.9rem;
+}
+
+.add-to-list-form input:focus {
+  background-color: #f0f8ff;
+  border-color: var(--light-teal);
+  outline: none;
 }
 
 .add-to-list-form button {
@@ -987,6 +1044,10 @@ body.popup-open {
   cursor: not-allowed;
 }
 
+.quicklist-content::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
 /* Mousekeeping text */
 .toast-message {
   position: fixed;
@@ -997,8 +1058,8 @@ body.popup-open {
   left: 50%;
   transform: translateX(-50%) translateY(100%);
   background: #ffffff;
-  color: var(--bright-teal);
-  border: 2px dotted var(--bright-teal);
+  color: var(--medium-teal);
+  border: 2px double var(--bright-teal);
   padding: 20px 20px;
   border-radius: 30px;
   opacity: 0;
@@ -1020,7 +1081,6 @@ body.popup-open {
 }
 
 /* MOUSEKEEPING glitter rain */
-.glitter-overlay,
 #glitterOverlay {
   position: absolute;
   top: 0;
@@ -1064,33 +1124,32 @@ body.popup-open {
 
 :root {
   /* GRAYS */
- --darkest-gray: #353535;
- --medium-gray: #606060;
- --light-gray: #a0a0a0;
- --lightest-gray: #e6e6e6;
- --whisper-gray: #f9f9f9;
-  --white: #ffffff;
-  
- --box-shadow-light: rgba(0, 0, 0, 0.2);
- --dim-overlay: rgba(0, 0, 0, 0.7);
+  --darkest-gray: #353535;
+  --medium-gray: #606060;
+  --light-gray: #a0a0a0;
+  --lightest-gray: #e6e6e6;
+  --whisper-gray: #f9f9f9;
+
+  --box-shadow-light: rgba(0, 0, 0, 0.2);
+  --dim-overlay: rgba(0, 0, 0, 0.7);
 
   /* PALETTE */
- --dark-yellow: #f5b12b;
- --bookmouse-yellow: #fbc54c;
- --light-yellow: #f7cf83; 
- --dark-teal: #2F5A62;
- --mid-teal: #379bb4;
- --bright-teal: #1DBEBB;
-  
+  --dark-yellow: #f5b12b;
+  --bookmouse-yellow: #fbc54c;
+  --light-yellow: #f7cf83;
+  --dark-teal: #2f5a62;
+  --mid-teal: #379bb4;
+  --bright-teal: #1dbebb;
+
   /* accents */
- --acid-orange: #FF6161;
- --dark-orange: #E66767;  
- --light-teal: #78ddee;
- --quote-box: #98e7e5ba;
- --review-box: #f7f7f7ff;
-  
+  --acid-orange: #ff6161;
+  --dark-orange: #e66767;
+  --light-teal: #78ddee;
+  --quote-box: #98e7e5ba;
+  --review-box: #f7f7f7ff;
+
   /* Despair ratings */
-    
+
   --despair-icon-1: #f7b533;
   --despair-icon-2: #e57f5c;
   --despair-icon-3: #ca1919;
