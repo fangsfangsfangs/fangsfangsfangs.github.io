@@ -402,17 +402,17 @@ height: 25px;
 }
 
 .quote-icon {
-   width: 30px;
+   width: 20px;
     color: var(--dark-gray);
 }
 
 .quote-icon.close-quote {
   transform: scaleX(-1);
-  align-self: center;
+  align-self: flex-start;
 }
 
 .quote-icon.open-quote {
-  align-self: center;
+  align-self: flex-end;
 }
 
 .editable.editing {
