@@ -1053,11 +1053,17 @@ function getDespairIcon(value) {
 }
 
 // === Editable field helper ===
+// === Editable field helper ===
 function makeEditableOnClick(el, book, field, updateFunction) {
+  // Find the parent popup card once.
+  const popupCard = el.closest('#BookCardpopup');
+
   el.addEventListener("click", () => {
     if (!el.classList.contains("editing")) {
       el.contentEditable = "true";
       el.classList.add("editing");
+      // Add a class to the parent popup to signify editing has started.
+      if (popupCard) popupCard.classList.add('is-editing');
       el.focus();
 
       const range = document.createRange();
@@ -1072,25 +1078,23 @@ function makeEditableOnClick(el, book, field, updateFunction) {
   el.addEventListener("blur", async () => {
     if (el.classList.contains("editing")) {
       el.classList.remove("editing");
+      // Remove the class from the parent popup.
+      if (popupCard) popupCard.classList.remove('is-editing');
       el.contentEditable = "false";
 
       let newValue = el.innerText.replace(/^\s+|\s+$/g, "");
       newValue = newValue.replace(/\n{2,}/g, "\n");
 
-      // Only proceed if the value has actually changed
       if (newValue !== (book[field] || "").trim()) {
         const updateObj = {};
         updateObj[field] = newValue;
 
-        // Wait for the update to finish and check for success
         const result = await updateFunction(book.id, updateObj);
 
-        // ONLY update the local book object if the database update was successful
         if (result) {
           book[field] = newValue;
           showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} updated!`);
         } else {
-          // If the update failed, revert the change in the UI and alert the user.
           el.innerText = book[field] || ""; // Revert to the old value
           alert(`Failed to save ${field}. Please check your connection and try again.`);
         }
