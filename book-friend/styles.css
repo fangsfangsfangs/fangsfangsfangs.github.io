@@ -347,11 +347,13 @@ height: 25px;
 
 .quote-box {
   display: flex;
+  flex: 1;
+  max-width: 95%;
+  max-height: 100px;
   background-color: var(--whisper-gray);
   border-radius: 10px;
   margin: 0.5rem;
-  max-width: 95%;
-  max-height: 100px;
+  padding: 0;
   overflow-y: auto;
   box-sizing: border-box;
 
@@ -364,12 +366,19 @@ height: 25px;
 }
 
 #quoteEditable {
+  display: flex;
+  flex: 1;
   width: 100%;
+  padding: 0.5rem 0.5rem 0 0.5rem;
+  align-content: flex-start;
+  
   font-size: 0.9rem;
   line-height: 1.2;
-  text-align: left;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
+  text-align: center;
+  font-style: italic;
+  font-family: "Quicksand", sans-serif;
+  font-weight: 500;
+  color: var(--darkest-gray);
   
   overflow-y: auto;
   background-color: transparent;
@@ -377,6 +386,8 @@ height: 25px;
   box-sizing: border-box;
   outline: none;
 
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   /* Hide the scrollbar */
   scrollbar-width: none; /* For Firefox */
 }
@@ -390,24 +401,6 @@ height: 25px;
   display: none;
 }
 
-.quote-text {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 0.5rem 0.5rem 0 0.5rem;
-  text-align: center;
-  align-content: center;
-  font-style: italic;
-  font-family: "Quicksand", sans-serif;
-  font-weight: 500;
-  font-size: 0.95rem;
-  color: var(--darkest-gray);
-
-  white-space: pre-wrap; /* Allows wrapping and preserves line breaks */
-  word-break: break-word; /* Prevents long words from overflowing */
-  min-width: 0; /* A crucial flexbox fix for preventing overflow */
-}
 .quote-icon {
    width: 30px;
     color: var(--dark-gray);
