@@ -348,24 +348,54 @@ height: 25px;
 .quote-box {
   display: flex;
   background-color: var(--whisper-gray);
-  padding: 0.75rem 0.2rem 1rem 0.2rem;
+  padding: 0.75rem 0.2rem 0.2rem 0.2rem;
   border-radius: 10px;
   margin: 0.5rem;
   max-width: 95%;
   max-height: 100px;
   overflow-y: auto;
-
   box-sizing: border-box;
-  gap: 0.5rem;
 
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
 }
 
+.quote-box:focus-within {
+  border: 1px solid var(--bright-teal);
+}
+
+#quoteEditable {
+  width: 100%;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+
+  /* Scrolling and appearance */
+  overflow-y: auto;
+  background-color: transparent;
+  border-radius: 8px;
+  box-sizing: border-box;
+  outline: none;
+
+  /* Hide the scrollbar */
+  scrollbar-width: none; /* For Firefox */
+}
+
+#quoteEditable:focus {
+  background-color: #f0f8ff; /* A light blue color */
+}
+
+/* For Chrome, Safari, and Edge */
+#quoteEditable:-webkit-scrollbar {
+  display: none;
+}
+
 .quote-text {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 0 0.5rem;
   text-align: center;
