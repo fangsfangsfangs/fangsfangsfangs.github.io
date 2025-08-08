@@ -43,36 +43,45 @@ const suggestedTags = ["fiction", "poetry", "horror", "nonfiction", "sci-fi", "b
 let selectedRating = 0;
 let selectedDespair = 0;
 
-// NEW function to set up the Add Book form
+// This function sets up ALL event listeners for the Add Book form.
 function initializeAddBookForm() {
   const addBookPopup = document.getElementById("addBookPopup");
 
-  /// Rating click handler///
+  // Rating click handler
   const ratingStars = addBookPopup.querySelectorAll("#addBookRating .rating-star");
   ratingStars.forEach((star) => {
     star.addEventListener("click", () => {
       selectedRating = parseInt(star.dataset.value);
+
       ratingStars.forEach((s) => {
-        s.textContent = parseInt(s.dataset.value) <= selectedRating ? "★" : "☆";
-        s.classList.toggle("filled", parseInt(s.dataset.value) <= selectedRating);
+        const isFilled = parseInt(s.dataset.value) <= selectedRating;
+        s.textContent = isFilled ? "★" : "☆";
+        s.classList.toggle("filled", isFilled);
       });
     });
   });
-}
 
-/// Despair click handler///
-const despairIcons = addBookPopup.querySelectorAll("#addBookDespair .despair-icon");
-despairIcons.forEach((icon) => {
-  icon.addEventListener("click", () => {
-    const newValue = parseInt(icon.dataset.value);
+  // Despair click handler
+  const despairIcons = addBookPopup.querySelectorAll("#addBookDespair .despair-icon");
+  despairIcons.forEach((icon) => {
+    icon.addEventListener("click", () => {
+      const newValue = parseInt(icon.dataset.value);
 
-    selectedDespair = selectedDespair === newValue ? 0 : newValue;
-
-    despairIcons.forEach((i) => {
-      i.dataset.selected = (parseInt(i.dataset.value) <= selectedDespair).toString();
+      selectedDespair = selectedDespair === newValue ? 0 : newValue;
+      despairIcons.forEach((i) => {
+        i.dataset.selected = (parseInt(i.dataset.value) <= selectedDespair).toString();
+      });
     });
   });
-});
+
+  // Favorite heart toggle
+  const favHeart = document.getElementById("addFavoriteHeart");
+  if (favHeart) {
+    favHeart.addEventListener("click", () => {
+      favHeart.classList.toggle("active");
+    });
+  }
+}
 // --- Universal Overlay & Scrolling Functions ---
 
 // Find the main app container once at the top
@@ -446,7 +455,7 @@ async function renderSingleCard(book) {
 
   const cardHTML = `
     <div class="card-header-delete">
-  <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="minus"></i></button>
+  <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="circle-slash-2"></i></button>
   <button data-close class="header-btn close-icon-btn" title="Close"><i data-lucide="x"></i></button>
 </div>
 <div class="book-card-content">
@@ -821,7 +830,7 @@ async function renderGraveyardCard(book) {
 
   const cardHTML = `
     <div class="card-header-delete">
-      <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="minus"></i></button>
+      <button id="deleteBookBtn" class="header-btn delete-btn" title="Delete Book"><i data-lucide="circle-slash-2"></i></button>
       <button data-close class="header-btn close-icon-btn" title="Close"><i data-lucide="x"></i></button>
     </div>
     <div class="book-card-content">
@@ -1013,9 +1022,8 @@ async function handleAddToListSubmit() {
       toReadBooks.unshift(normalizedBook);
 
       closeContentOverlay();
-      if (viewMode === "to-read") {
-        applyFilters();
-      }
+
+      applyFilters();
     } else {
       throw new Error("Book was not added successfully.");
     }
@@ -1052,9 +1060,6 @@ function makeEditableOnClick(el, book, field, updateFunction) {
       el.classList.add("editing");
       el.focus();
 
-      // The scroll is already locked by the parent card,
-      // so we don't need to do anything extra here.
-
       const range = document.createRange();
       range.selectNodeContents(el);
       range.collapse(false);
@@ -1072,11 +1077,23 @@ function makeEditableOnClick(el, book, field, updateFunction) {
       let newValue = el.innerText.replace(/^\s+|\s+$/g, "");
       newValue = newValue.replace(/\n{2,}/g, "\n");
 
+      // Only proceed if the value has actually changed
       if (newValue !== (book[field] || "").trim()) {
         const updateObj = {};
         updateObj[field] = newValue;
-        await updateFunction(book.id, updateObj);
-        book[field] = newValue;
+
+        // Wait for the update to finish and check for success
+        const result = await updateFunction(book.id, updateObj);
+
+        // ONLY update the local book object if the database update was successful
+        if (result) {
+          book[field] = newValue;
+          showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} updated!`);
+        } else {
+          // If the update failed, revert the change in the UI and alert the user.
+          el.innerText = book[field] || ""; // Revert to the old value
+          alert(`Failed to save ${field}. Please check your connection and try again.`);
+        }
       }
     }
   });
@@ -1093,13 +1110,9 @@ function makeEditableOnClick(el, book, field, updateFunction) {
 function attachToolbarHandlers() {
   document.getElementById("logoBtn").addEventListener("click", () => {
     const clearedCount = clearApiCache();
-
     showToast(`🧹 Cleared ${clearedCount} cached items. Fresh start!`);
-
     rainGlitter(50);
   });
-
-  // --- All buttons now follow the same simple pattern ---
 
   document.getElementById("homeBtn").onclick = () => {
     viewMode = "all";
@@ -1114,57 +1127,55 @@ function attachToolbarHandlers() {
   document.getElementById("showToReadBtn").onclick = () => {
     viewMode = "to-read";
     activeToReadTag = null;
-    applyFilters(); // Use the central controller function
+    applyFilters();
   };
 
   document.getElementById("graveyardBtn").onclick = () => {
     viewMode = "unfinished";
     activeUnfinishedTag = null;
-    applyFilters(); // Use the central controller function
+    applyFilters();
   };
 
-  // This button opens a popup, so its logic is different and correct
   document.getElementById("showReadBtn").onclick = () => {
+    viewMode = "to-read";
+    activeToReadTag = null;
+
     renderQuickListCard();
   };
 }
 
 // DOMContentLoaded listener
 document.addEventListener("DOMContentLoaded", async () => {
+  // Call the initialization function ONCE to set up all form listeners.
+  initializeAddBookForm();
+
   // Open Add Book popup
   document.getElementById("addBookBtn").addEventListener("click", () => {
-    document.getElementById("addBookPopup").classList.remove("hidden");
+    // Always clear the form to a fresh state before showing it.
+    clearAddBookForm();
+    const popup = document.getElementById("addBookPopup");
+    popup.classList.remove("hidden");
+    popup.dataset.toReadId = "";
     lockScroll();
-
-    initializeAddBookForm();
   });
 
-  // Favorite heart toggle (this was missing from your last provided code, restoring it)
-  const favHeart = document.getElementById("addFavoriteHeart");
-  if (favHeart) {
-    favHeart.addEventListener("click", () => {
-      favHeart.classList.toggle("active");
-    });
-  }
+  // Close button on the Add Book popup
+  document.getElementById("closePopupBtn").addEventListener("click", (event) => {
+    event.preventDefault();
+    document.getElementById("addBookPopup").classList.add("hidden");
+    // Clear the form on close so no stale data is left behind.
+    clearAddBookForm();
+    unlockScroll();
+  });
 
-  // Now that popup is visible, attach calendar toggle logic
-  const calendarToggle = document.querySelector("#addBookPopup .calendar-toggle");
-  const monthPicker = document.querySelector("#addBookPopup .month-picker");
-  if (calendarToggle && monthPicker) {
-    calendarToggle.addEventListener("click", () => {
-      monthPicker.classList.toggle("hidden");
-      if (!monthPicker.classList.contains("hidden")) {
-        monthPicker.focus();
-      }
-    });
-  }
-
+  // The main handler for when a new book is confirmed
   document.getElementById("addBookConfirm").addEventListener("click", async () => {
     const title = document.getElementById("addTitle").value.trim();
     const author = document.getElementById("addAuthor").value.trim();
     const isbn = document.getElementById("addIsbn").value.trim().replace(/[-\s]/g, "");
     const quote = document.getElementById("addQuote").value.trim();
     const review = document.getElementById("addReview").value.trim();
+    // These now read from state variables that are correctly managed
     const rating = selectedRating;
     const despair = selectedDespair;
     const tags = document
@@ -1172,79 +1183,87 @@ document.addEventListener("DOMContentLoaded", async () => {
       .value.split(",")
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
-    let dateReadText = document.getElementById("dateReadInput").value;
-    if (!/^\d{4}-\d{2}$/.test(dateReadText)) {
-      dateReadText = getFallbackDate().slice(0, 7);
+    let date_read = document.getElementById("dateReadInput").value;
+    if (!date_read) {
+      date_read = getFallbackDate();
     }
-    dateReadText += "-01";
-    const date_read = dateReadText;
     const favorite = document.getElementById("addFavoriteHeart").classList.contains("active");
+
     if (!title || !author) {
       alert("Title and author are required.");
       return;
     }
+
     const cover = await getCoverUrl({ title, author, isbn });
-    const book = { title, author, isbn, quote, review, rating, despair, favorite, tags, date_read, cover };
+    const newBookData = { title, author, isbn, quote, review, rating, despair, favorite, tags, date_read, cover };
+
     try {
-      const added = await addBookToSupabase(book);
-      allBooks.unshift(normalizeBook(added));
-      applyFilters(); // Changed from applyFiltersAndRender
+      const addedBook = await addBookToSupabase(newBookData);
+      allBooks.unshift(normalizeBook(addedBook));
+
       const popup = document.getElementById("addBookPopup");
-      const toReadId = parseInt(popup.dataset.toReadId);
+      const toReadId = parseInt(popup.dataset.toReadId, 10);
+
       if (toReadId) {
         const { error: deleteError } = await supabase.from("books_to_read").delete().eq("id", toReadId);
         if (deleteError) {
-          console.error("Failed to delete from to-read:", deleteError);
+          console.error("Failed to delete from to-read list:", deleteError);
+          alert("Failed to remove the book from your to-read list. Please do so manually.");
         } else {
           toReadBooks = toReadBooks.filter((b) => b.id !== toReadId);
-          applyFilters();
         }
-        popup.dataset.toReadId = "";
       }
-      closeContentOverlay();
-      document.getElementById("addBookPopup").classList.add("hidden");
+
+      applyFilters();
+
+      // On success, hide the popup and clear the form for the next use.
+      popup.classList.add("hidden");
+      unlockScroll();
       clearAddBookForm();
+      showToast(`"${title}" has been added to your library!`);
     } catch (e) {
       console.error("Error adding book:", e);
       alert("Failed to add book: " + (e?.message || e));
     }
   });
 
+  // A more complete function to clear all fields in the Add Book form
+  // This function resets the entire form to its default state.
   function clearAddBookForm() {
-    ["addTitle", "addAuthor", "addIsbn", "addQuote", "addReview", "addRating", "addDespair", "addTags"].forEach(
-      (id) => {
-        const el = document.getElementById(id);
-        if (el) el.value = "";
-      }
-    );
+    // Reset all text inputs and textareas
+    ["addTitle", "addAuthor", "addIsbn", "addQuote", "addReview", "addTags", "dateReadInput"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
 
-    const dateEl = document.getElementById("dateReadInput");
-    if (dateEl) dateEl.value = "";
-    const addFavoriteHeart = document.getElementById("addFavoriteHeart");
-    if (addFavoriteHeart) addFavoriteHeart.classList.remove("active");
+    // Reset the favorite heart UI
+    document.getElementById("addFavoriteHeart")?.classList.remove("active");
+
+    // 1. Reset the rating STATE variable
+    selectedRating = 0;
+    // 2. Reset the rating UI
+    document.querySelectorAll("#addBookRating .rating-star").forEach((star) => {
+      star.textContent = "☆";
+      star.classList.remove("filled");
+    });
+
+    // 1. Reset the despair STATE variable
+    selectedDespair = 0;
+    // 2. Reset the despair UI
+    document.querySelectorAll("#addBookDespair .despair-icon").forEach((icon) => {
+      icon.dataset.selected = "false";
+    });
   }
 
-  // Visually reset stars
-  document.querySelectorAll("#addBookRating .rating-star").forEach((star) => {
-    star.textContent = "☆";
-    star.classList.remove("filled");
+  // Close button on the Add Book popup
+  document.getElementById("closePopupBtn").addEventListener("click", (event) => {
+    event.preventDefault();
+    document.getElementById("addBookPopup").classList.add("hidden");
+    clearAddBookForm();
+    unlockScroll();
   });
 
-  // Visually reset despair icons
-  document.querySelectorAll("#addBookDespair .despair-icon").forEach((icon) => {
-    icon.dataset.selected = "false";
-  });
-
-  document.getElementById("addBookPopup").addEventListener("click", (event) => {
-    // Check if the clicked element is inside our close button
-    if (event.target.closest("#closePopupBtn")) {
-      event.preventDefault();
-      document.getElementById("addBookPopup").classList.add("hidden");
-      clearAddBookForm();
-      unlockScroll();
-    }
-  });
-
+  // Initial setup
   attachToolbarHandlers();
   allBooks = await fetchBooks();
   applyFilters();
