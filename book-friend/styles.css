@@ -348,7 +348,6 @@ height: 25px;
 .quote-box {
   display: flex;
   background-color: var(--whisper-gray);
-  padding: 0.75rem 0.2rem 0.2rem 0.2rem;
   border-radius: 10px;
   margin: 0.5rem;
   max-width: 95%;
@@ -371,8 +370,7 @@ height: 25px;
   text-align: left;
   white-space: pre-wrap;
   overflow-wrap: break-word;
-
-  /* Scrolling and appearance */
+  
   overflow-y: auto;
   background-color: transparent;
   border-radius: 8px;
@@ -397,7 +395,7 @@ height: 25px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 0 0.5rem;
+  padding: 0.5rem 0.5rem 0 0.5rem;
   text-align: center;
   align-content: center;
   font-style: italic;
@@ -410,19 +408,18 @@ height: 25px;
   word-break: break-word; /* Prevents long words from overflowing */
   min-width: 0; /* A crucial flexbox fix for preventing overflow */
 }
-
 .quote-icon {
-  width: 20px;
-  color: var(--dark-gray);
+   width: 30px;
+    color: var(--dark-gray);
 }
 
 .quote-icon.close-quote {
   transform: scaleX(-1);
-  align-self: flex-start;
+  align-self: center;
 }
 
 .quote-icon.open-quote {
-  align-self: flex-end;
+  align-self: center;
 }
 
 .editable.editing {
